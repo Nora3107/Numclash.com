@@ -137,7 +137,7 @@ function App() {
   return (
     <div className="min-h-screen bg-bg-cream bg-dots-pattern relative overflow-hidden">
       {/* Floating numbers background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
         {[
           { num: 18, top: '8%', left: '5%', size: '4rem', dur: 18, dx: 30, dy: 20, rot: 15, opacity: 0.20 },
           { num: 36, top: '70%', right: '8%', size: '3.5rem', dur: 22, dx: -25, dy: 15, rot: -10, opacity: 0.20 },
