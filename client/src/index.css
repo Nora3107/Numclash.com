@@ -159,6 +159,8 @@ body {
    Cartoon Card
    ============================================ */
 .cartoon-card {
+  position: relative;
+  z-index: 2;
   background: var(--color-bg-card);
   border: 3px solid #e8e0d4;
   border-radius: 24px;
@@ -212,6 +214,7 @@ body {
    ============================================ */
 .pill-btn {
   position: relative;
+  z-index: 2;
   padding: 14px 36px;
   border: 3px solid transparent;
   border-radius: 50px;
@@ -306,6 +309,8 @@ body {
    Rounded Input
    ============================================ */
 .cartoon-input {
+  position: relative;
+  z-index: 2;
   background: var(--color-bg-soft);
   border: 3px solid #e0d8cc;
   border-radius: 16px;
