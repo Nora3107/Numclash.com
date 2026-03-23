@@ -11,7 +11,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
   const { t, lang } = useLang();
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-6 pt-40 pb-12 md:pt-16 md:justify-center relative">
+    <div className="min-h-screen flex flex-col items-center px-6 pb-12 relative" style={{ paddingTop: '160px' }}>
 
       {/* Logo */}
       <motion.div
@@ -192,8 +192,8 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="w-full max-w-lg px-4"
-        style={{ marginTop: '40px' }}
+        className="w-full max-w-lg"
+        style={{ marginTop: '40px', paddingLeft: '16px', paddingRight: '16px' }}
       >
         <h3 className="text-sm font-bold text-text-mid uppercase tracking-wider text-center" style={{ marginBottom: '16px' }}>
           🏠 {t('publicRooms')}
