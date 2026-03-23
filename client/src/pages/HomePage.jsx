@@ -8,7 +8,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
   const [mode, setMode] = useState(null);
   const [showRules, setShowRules] = useState(false);
   const [nicknameError, setNicknameError] = useState(false);
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative">
@@ -256,19 +256,30 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
                   {t('rulesTitle')}
                 </h2>
 
-                {/* Step 1 — Pick a number */}
+                {/* Game rules explanation */}
                 <motion.div
                   initial={{ x: -15, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.05 }}
                   className="rounded-2xl bg-bg-soft border-2 border-[#e8e0d4]"
-                  style={{ padding: '18px 20px', marginBottom: '14px' }}
+                  style={{ padding: '18px 20px', marginBottom: '24px' }}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🎯</span>
-                    <div>
-                      <p className="font-bold text-text-dark">{t('rule1Title')}</p>
-                      <p className="text-sm text-text-mid">{t('rule1Desc')}</p>
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl" style={{ marginTop: '2px' }}>🎯</span>
+                    <div className="text-sm text-text-mid" style={{ lineHeight: '1.7' }}>
+                      {lang === 'vi' ? (
+                        <>
+                          <p>Mỗi vòng, hệ thống đưa ra một số <strong className="text-text-dark">Mục Tiêu</strong> ngẫu nhiên (ví dụ: 10). Mỗi người chơi <em>bí mật chọn một con số</em>.</p>
+                          <p style={{ marginTop: '10px' }}>Nếu <strong className="text-text-dark">TỔNG</strong> các số của mọi người <span style={{ color: '#2bb5a0', fontWeight: 700 }}>nhỏ hơn hoặc bằng Mục Tiêu</span> → ai chọn <span style={{ color: '#2bb5a0', fontWeight: 700 }}>số lớn nhất</span> sẽ thắng.</p>
+                          <p style={{ marginTop: '10px' }}>Ngược lại, nếu <strong className="text-text-dark">TỔNG</strong> <span style={{ color: '#e54d4d', fontWeight: 700 }}>vượt quá Mục Tiêu</span> → ai chọn <span style={{ color: '#e54d4d', fontWeight: 700 }}>số nhỏ nhất</span> sẽ thắng!</p>
+                        </>
+                      ) : (
+                        <>
+                          <p>Each round, the system picks a random <strong className="text-text-dark">Target</strong> number (e.g. 10). Every player <em>secretly chooses a number</em>.</p>
+                          <p style={{ marginTop: '10px' }}>If the <strong className="text-text-dark">TOTAL</strong> of all numbers is <span style={{ color: '#2bb5a0', fontWeight: 700 }}>less than or equal to the Target</span> → the <span style={{ color: '#2bb5a0', fontWeight: 700 }}>highest number</span> wins.</p>
+                          <p style={{ marginTop: '10px' }}>But if the <strong className="text-text-dark">TOTAL</strong> <span style={{ color: '#e54d4d', fontWeight: 700 }}>exceeds the Target</span> → the <span style={{ color: '#e54d4d', fontWeight: 700 }}>lowest number</span> wins!</p>
+                        </>
+                      )}
                     </div>
                   </div>
                 </motion.div>
