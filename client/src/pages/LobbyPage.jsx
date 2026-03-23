@@ -249,7 +249,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
 
         {/* Messages */}
         <div
-          style={{ maxHeight: '200px', overflowY: 'auto', scrollbarWidth: 'thin' }}
+          style={{ maxHeight: '200px', minHeight: '100px', overflowY: 'auto', scrollbarWidth: 'thin' }}
           className="rounded-xl bg-bg-soft border border-[#e8e0d4]"
         >
           <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
