@@ -107,7 +107,7 @@ function setupSocketHandlers(io) {
         const room = gameManager.getRoom(roomCode);
         const player = room?.players.get(socket.id);
         if (player) {
-          const text = player.isReady ? `${player.nickname} đã sẵn sàng ✓` : `${player.nickname} chưa sẵn sàng`;
+          const text = result.ready ? `${player.nickname} đã sẵn sàng ✓` : `${player.nickname} chưa sẵn sàng`;
           io.to(roomCode).emit('new-message', { system: true, text, time: Date.now() });
         }
       }

@@ -31,7 +31,7 @@ class GameManager {
     const room = {
       code: roomCode,
       hostId: hostSocketId,
-      totalRounds: 8, // default
+      totalRounds: 1, // default
       currentRound: 0,
       phase: 'lobby', // lobby | picking | reveal | scoreboard | finished
       players: new Map(),
