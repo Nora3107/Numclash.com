@@ -393,17 +393,6 @@ export default function GamePage({
                   </motion.span>
                 </div>
               </div>
-
-              <motion.div
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                className={`rounded-full inline-flex items-center gap-2 ${isSafe ? 'bg-primary/10 text-primary' : 'bg-accent-red/10 text-accent-red'}`}
-                style={{ padding: '8px 20px' }}
-              >
-                {isSafe ? <Shield size={16} /> : <AlertTriangle size={16} />}
-                <span className="text-sm font-bold">{isSafe ? t('safeRule') : t('overloadedRule')}</span>
-              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
