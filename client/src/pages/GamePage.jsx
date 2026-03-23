@@ -18,6 +18,7 @@ export default function GamePage({
   const [timeLeft, setTimeLeft] = useState(36);
   const [revealStep, setRevealStep] = useState(0);
   const [showScoreboard, setShowScoreboard] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(true);
   const timerRef = useRef(null);
   const { t } = useLang();
 
@@ -85,6 +86,41 @@ export default function GamePage({
   if (gamePhase === 'picking' && roundData) {
     return (
       <div className="min-h-screen flex flex-col items-center px-6" style={{ paddingTop: '32px', paddingBottom: '32px' }}>
+
+        {/* Tutorial overlay - round 1 only */}
+        <AnimatePresence>
+          {showTutorial && roundData.round === 1 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowTutorial(false)}
+              className="fixed inset-0 z-50 flex items-center justify-center cursor-pointer"
+              style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+            >
+              <motion.div
+                initial={{ scale: 0.8, y: 30 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 30 }}
+                transition={{ type: 'spring', damping: 15 }}
+                className="cartoon-card text-center mx-6"
+                style={{ padding: '32px 28px', maxWidth: '380px' }}
+              >
+                <h2 className="text-xl font-black text-primary" style={{ fontFamily: 'var(--font-display)', marginBottom: '20px' }}>
+                  {t('tutorialTitle')}
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+                  <p className="text-sm font-semibold text-text-dark">{t('tutorialLine1')}</p>
+                  <p className="text-sm font-semibold text-text-dark">{t('tutorialLine2')}</p>
+                  <p className="text-sm font-semibold text-text-dark">{t('tutorialLine3')}</p>
+                </div>
+                <p className="text-xs text-text-light" style={{ marginTop: '24px' }}>
+                  {t('tutorialDismiss')}
+                </p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* Round badge */}
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ marginBottom: '24px' }}>
           <span className="badge badge-teal text-sm" style={{ padding: '10px 20px' }}>

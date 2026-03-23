@@ -103,6 +103,12 @@ const translations = {
     chat: 'Chat',
     chatPlaceholder: 'Nhắn tin...',
     send: 'Gửi',
+    // Tutorial
+    tutorialTitle: 'CÁCH CHƠI',
+    tutorialLine1: '🎯 Mục tiêu: Chọn số sao cho tổng của tất cả ≤ Target',
+    tutorialLine2: '🏆 Nếu tổng ≤ Target → Người chọn số CAO NHẤT thắng',
+    tutorialLine3: '💥 Nếu tổng > Target → Người chọn số THẤP NHẤT thắng',
+    tutorialDismiss: 'Chạm để bắt đầu',
   },
   en: {
     // Home
@@ -206,6 +212,12 @@ const translations = {
     chat: 'Chat',
     chatPlaceholder: 'Type a message...',
     send: 'Send',
+    // Tutorial
+    tutorialTitle: 'HOW TO PLAY',
+    tutorialLine1: '🎯 Goal: Pick a number so the total of all ≤ Target',
+    tutorialLine2: '🏆 If total ≤ Target → HIGHEST number wins',
+    tutorialLine3: '💥 If total > Target → LOWEST number wins',
+    tutorialDismiss: 'Tap to start',
   },
 };
 
