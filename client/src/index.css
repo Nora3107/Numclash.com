@@ -1,0 +1,384 @@
+@import "tailwindcss";
+
+/* ============================================
+   NumClash.com — Warm Cartoon Theme
+   Inspired by quiz.com aesthetic
+   ============================================ */
+
+@theme {
+  /* Warm background palette */
+  --color-bg-cream: #faf5ee;
+  --color-bg-warm: #f2ebe0;
+  --color-bg-card: #ffffff;
+  --color-bg-soft: #f8f4ed;
+  --color-bg-dark: #3d3b38;
+
+  /* Accent colors — playful, warm */
+  --color-primary: #2bb5a0;
+  --color-primary-light: #5dd6c4;
+  --color-primary-dark: #1f9585;
+  --color-secondary: #ff7eb3;
+  --color-secondary-dark: #e0548f;
+  --color-accent-yellow: #ffd166;
+  --color-accent-orange: #ff9a56;
+  --color-accent-red: #ff6b6b;
+  --color-accent-purple: #a78bfa;
+  --color-accent-blue: #60b5ff;
+  --color-accent-cyan: #67e8f9;
+
+  /* Text */
+  --color-text-dark: #2d2a26;
+  --color-text-mid: #6b6560;
+  --color-text-light: #a09890;
+
+  /* Success/danger */
+  --color-safe: #2bb5a0;
+  --color-danger: #ff6b6b;
+  --color-gold: #ffc233;
+
+  --font-display: 'Nunito', sans-serif;
+  --font-body: 'Be Vietnam Pro', sans-serif;
+}
+
+
+/* Fonts loaded via index.html <link> */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+}
+
+body {
+  background: var(--color-bg-cream);
+  color: var(--color-text-dark);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-warm);
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc5b9;
+  border-radius: 4px;
+}
+
+/* Hide scrollbar but allow scroll */
+.cartoon-card::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+@keyframes bounce-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.8); }
+  60% { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(3deg); }
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(43, 181, 160, 0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(43, 181, 160, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(43, 181, 160, 0); }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes timer-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* Utility classes */
+.animate-bounce-soft {
+  animation: bounce-soft 2s ease-in-out infinite;
+}
+.animate-wiggle {
+  animation: wiggle 1s ease-in-out infinite;
+}
+.animate-pop-in {
+  animation: pop-in 0.4s ease-out forwards;
+}
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+.animate-pulse-ring {
+  animation: pulse-ring 2s ease-out infinite;
+}
+.animate-timer-pulse {
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+/* ============================================
+   Cartoon Card
+   ============================================ */
+.cartoon-card {
+  background: var(--color-bg-card);
+  border: 3px solid #e8e0d4;
+  border-radius: 24px;
+  box-shadow:
+    0 4px 0 #e0d8cc,
+    0 8px 20px rgba(0,0,0,0.06);
+}
+
+@media (max-width: 640px) {
+  .cartoon-card,
+  .pill-btn,
+  .max-w-md {
+    max-width: calc(100% - 32px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.cartoon-card-teal {
+  background: linear-gradient(135deg, #2bb5a0, #1f9585);
+  border: 3px solid #1a8070;
+  border-radius: 24px;
+  box-shadow:
+    0 4px 0 #167565,
+    0 8px 20px rgba(43, 181, 160, 0.15);
+  color: white;
+}
+
+.cartoon-card-pink {
+  background: linear-gradient(135deg, #ff7eb3, #ff5e99);
+  border: 3px solid #e54d85;
+  border-radius: 24px;
+  box-shadow:
+    0 4px 0 #cc3d72,
+    0 8px 20px rgba(255, 126, 179, 0.15);
+  color: white;
+}
+
+.cartoon-card-yellow {
+  background: linear-gradient(135deg, #ffd166, #ffbf33);
+  border: 3px solid #e6a22e;
+  border-radius: 24px;
+  box-shadow:
+    0 4px 0 #cc8f28,
+    0 8px 20px rgba(255, 209, 102, 0.15);
+  color: #5c4a1e;
+}
+
+/* ============================================
+   Pill Buttons — Rounded, Bubbly
+   ============================================ */
+.pill-btn {
+  position: relative;
+  padding: 14px 36px;
+  border: 3px solid transparent;
+  border-radius: 50px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.pill-btn-primary {
+  background: linear-gradient(135deg, #2bb5a0, #24a08d);
+  border-color: #1a8070;
+  color: white;
+  box-shadow:
+    0 4px 0 #167565,
+    0 6px 15px rgba(43, 181, 160, 0.25);
+}
+.pill-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 #167565,
+    0 10px 25px rgba(43, 181, 160, 0.35);
+}
+.pill-btn-primary:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 1px 0 #167565,
+    0 2px 8px rgba(43, 181, 160, 0.2);
+}
+.pill-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pill-btn-secondary {
+  background: linear-gradient(135deg, #ff7eb3, #ff5e99);
+  border-color: #e54d85;
+  color: white;
+  box-shadow:
+    0 4px 0 #cc3d72,
+    0 6px 15px rgba(255, 126, 179, 0.25);
+}
+.pill-btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 #cc3d72,
+    0 10px 25px rgba(255, 126, 179, 0.35);
+}
+.pill-btn-secondary:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 1px 0 #cc3d72;
+}
+
+.pill-btn-accent {
+  background: linear-gradient(135deg, #60b5ff, #4da3ee);
+  border-color: #3a8fd6;
+  color: white;
+  box-shadow:
+    0 4px 0 #2e7cbf,
+    0 6px 15px rgba(96, 181, 255, 0.25);
+}
+.pill-btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 #2e7cbf,
+    0 10px 25px rgba(96, 181, 255, 0.35);
+}
+.pill-btn-accent:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #2e7cbf;
+}
+
+.pill-btn-ghost {
+  background: var(--color-bg-warm);
+  border-color: #ddd5c9;
+  color: var(--color-text-mid);
+  box-shadow:
+    0 3px 0 #d0c8bc,
+    0 4px 10px rgba(0,0,0,0.04);
+}
+.pill-btn-ghost:hover {
+  border-color: #c5baad;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   Rounded Input
+   ============================================ */
+.cartoon-input {
+  background: var(--color-bg-soft);
+  border: 3px solid #e0d8cc;
+  border-radius: 16px;
+  padding: 14px 18px;
+  color: var(--color-text-dark);
+  font-size: 1rem;
+  font-family: var(--font-body);
+  transition: all 0.2s;
+  outline: none;
+  width: 100%;
+}
+.cartoon-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(43, 181, 160, 0.15);
+}
+.cartoon-input::placeholder {
+  color: #c0b8ac;
+}
+
+/* Hide number input spinner arrows */
+.cartoon-input[type="number"]::-webkit-inner-spin-button,
+.cartoon-input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.cartoon-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ============================================
+   Badge / Tag
+   ============================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid transparent;
+}
+.badge-teal {
+  background: rgba(43, 181, 160, 0.15);
+  border-color: rgba(43, 181, 160, 0.3);
+  color: #1f9585;
+}
+.badge-pink {
+  background: rgba(255, 126, 179, 0.15);
+  border-color: rgba(255, 126, 179, 0.3);
+  color: #e0548f;
+}
+.badge-gold {
+  background: rgba(255, 194, 51, 0.2);
+  border-color: rgba(255, 194, 51, 0.4);
+  color: #b88a1a;
+}
+.badge-purple {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: rgba(167, 139, 250, 0.3);
+  color: #7c5bcf;
+}
+
+/* ============================================
+   Background Pattern
+   ============================================ */
+.bg-dots-pattern {
+  background-image: radial-gradient(circle, #e0d8cc 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Medal colors */
+.medal-gold { color: #ffc233; }
+.medal-silver { color: #b0b0b0; }
+.medal-bronze { color: #cd7f32; }
