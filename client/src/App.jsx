@@ -201,7 +201,7 @@ function App() {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={toggleLang}
-        className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-sm border-2 border-[#e0d8cc] text-sm font-bold text-text-mid hover:border-primary hover:text-primary transition-all cursor-pointer shadow-sm"
+        className="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-sm border-2 border-[#e0d8cc] text-sm font-bold text-text-mid hover:border-primary hover:text-primary transition-all cursor-pointer shadow-sm"
         style={{ padding: '8px 16px' }}
       >
         <Globe size={16} />
