@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut, Globe, Lock, MessageCircle, Send } from 'lucide-react';
+import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut, Globe, Lock, MessageCircle, Send, X } from 'lucide-react';
 import { useLang } from '../i18n';
 
 const ROUND_OPTIONS = [1, 4, 8, 18, 36];
 
-export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName, chatMessages = [], onSendMessage }) {
+export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName, chatMessages = [], onSendMessage, onKickPlayer }) {
   const [copied, setCopied] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef(null);
@@ -210,6 +210,15 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
                 <CheckCircle size={20} className="text-primary" />
               ) : (
                 <Circle size={20} className="text-text-light" />
+              )}
+              {isHost && !player.isHost && (
+                <button
+                  onClick={() => onKickPlayer(player.id)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-accent-red/10 text-text-light hover:text-accent-red transition-colors cursor-pointer"
+                  title="Kick"
+                >
+                  <X size={14} />
+                </button>
               )}
             </motion.div>
           ))}

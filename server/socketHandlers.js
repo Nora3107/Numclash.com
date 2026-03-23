@@ -99,6 +99,25 @@ function setupSocketHandlers(io) {
       }
     });
 
+    socket.on('kick-player', ({ roomCode, targetId }) => {
+      const room = gameManager.getRoom(roomCode);
+      if (!room || room.hostId !== socket.id) return;
+      if (targetId === socket.id) return; // can't kick yourself
+      const player = room.players.get(targetId);
+      if (!player) return;
+      const kickedName = player.nickname;
+      gameManager.removePlayer(roomCode, targetId);
+      // Tell kicked player to leave
+      io.to(targetId).emit('left-room');
+      // Make kicked socket leave the room channel
+      const kickedSocket = io.sockets.sockets.get(targetId);
+      if (kickedSocket) kickedSocket.leave(roomCode);
+      // Notify room
+      io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+      io.to(roomCode).emit('new-message', { system: true, text: `${kickedName} đã bị kick`, time: Date.now() });
+      broadcastPublicRooms();
+    });
+
     socket.on('toggle-ready', ({ roomCode }) => {
       const result = gameManager.toggleReady(roomCode, socket.id);
       if (result) {
