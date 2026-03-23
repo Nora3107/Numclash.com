@@ -67,6 +67,18 @@ function App() {
       setScreen('home');
       setChatMessages([]);
     });
+    socket.on('kicked', () => {
+      setRoomInfo(null);
+      setRoomCode('');
+      setIsHost(false);
+      setRoundData(null);
+      setRevealData(null);
+      setFinalScores(null);
+      setGamePhase('picking');
+      setScreen('home');
+      setChatMessages([]);
+      setError('Bạn đã bị kick vì quá xàm lul 🫵😂');
+    });
     socket.on('connect_error', () => {
       setError(lang === 'vi' ? 'Mất kết nối đến server!' : 'Connection lost!');
     });
@@ -80,6 +92,7 @@ function App() {
       socket.off('game-finished');
       socket.off('back-to-lobby');
       socket.off('left-room');
+      socket.off('kicked');
       socket.off('connect_error');
       socket.off('public-rooms-updated');
       socket.off('new-message');

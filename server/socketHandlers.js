@@ -108,7 +108,7 @@ function setupSocketHandlers(io) {
       const kickedName = player.nickname;
       gameManager.removePlayer(roomCode, targetId);
       // Tell kicked player to leave
-      io.to(targetId).emit('left-room');
+      io.to(targetId).emit('kicked');
       // Make kicked socket leave the room channel
       const kickedSocket = io.sockets.sockets.get(targetId);
       if (kickedSocket) kickedSocket.leave(roomCode);
