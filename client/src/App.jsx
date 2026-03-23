@@ -149,7 +149,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-cream bg-dots-pattern relative overflow-hidden">
+    <div className="min-h-screen bg-bg-cream bg-dots-pattern relative">
       {/* Floating numbers background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
         {[

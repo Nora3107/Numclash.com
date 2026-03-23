@@ -11,7 +11,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
   const { t, lang } = useLang();
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-6 pb-12 relative" style={{ paddingTop: '160px' }}>
+    <div className="min-h-screen flex flex-col items-center px-6 pb-12 relative" style={{ paddingTop: '56px' }}>
 
       {/* Logo */}
       <motion.div
