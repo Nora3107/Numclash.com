@@ -65,6 +65,8 @@ function setupSocketHandlers(io) {
 
         // Notify everyone in the room
         io.to(code).emit('room-updated', gameManager.getRoomInfo(code));
+        // System message: player joined
+        io.to(code).emit('new-message', { system: true, text: `${nickname} đã tham gia phòng`, time: Date.now() });
         broadcastPublicRooms();
         console.log(`[Room] ${nickname} joined room ${code}`);
       } catch (err) {
@@ -101,7 +103,33 @@ function setupSocketHandlers(io) {
       const result = gameManager.toggleReady(roomCode, socket.id);
       if (result) {
         io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+        // System message: ready/unready
+        const room = gameManager.getRoom(roomCode);
+        const player = room?.players.get(socket.id);
+        if (player) {
+          const text = player.isReady ? `${player.nickname} đã sẵn sàng ✓` : `${player.nickname} chưa sẵn sàng`;
+          io.to(roomCode).emit('new-message', { system: true, text, time: Date.now() });
+        }
       }
+    });
+
+    // ------------------------------------------
+    // Chat
+    // ------------------------------------------
+
+    socket.on('send-message', ({ roomCode, text }) => {
+      if (!text || typeof text !== 'string') return;
+      const msg = text.trim().slice(0, 100);
+      if (!msg) return;
+      const room = gameManager.getRoom(roomCode);
+      if (!room || !room.players.has(socket.id)) return;
+      const player = room.players.get(socket.id);
+      io.to(roomCode).emit('new-message', {
+        nickname: player.nickname,
+        text: msg,
+        time: Date.now(),
+        senderId: socket.id,
+      });
     });
 
     // ------------------------------------------
@@ -218,6 +246,8 @@ function setupSocketHandlers(io) {
       socket.emit('left-room');
       if (room) {
         io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+        // System message: player left
+        io.to(roomCode).emit('new-message', { system: true, text: `Một người chơi đã rời phòng`, time: Date.now() });
       }
       broadcastPublicRooms();
     });

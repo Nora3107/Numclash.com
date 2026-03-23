@@ -1,13 +1,19 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut, Globe, Lock } from 'lucide-react';
+import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut, Globe, Lock, MessageCircle, Send } from 'lucide-react';
 import { useLang } from '../i18n';
 
 const ROUND_OPTIONS = [1, 4, 8, 18, 36];
 
-export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName }) {
+export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName, chatMessages = [], onSendMessage }) {
   const [copied, setCopied] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const chatEndRef = useRef(null);
   const { t } = useLang();
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
@@ -216,6 +222,81 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
               <span className="text-text-light text-sm">{t('waiting')}</span>
             </div>
           ))}
+        </div>
+      </motion.div>
+
+      {/* Chat */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.35 }}
+        className="cartoon-card w-full max-w-md"
+        style={{ padding: '16px 20px', marginBottom: '20px' }}
+      >
+        <div className="flex items-center gap-2" style={{ marginBottom: '12px' }}>
+          <MessageCircle size={16} className="text-primary" />
+          <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('chat')}</span>
+        </div>
+
+        {/* Messages */}
+        <div
+          style={{ maxHeight: '200px', overflowY: 'auto', scrollbarWidth: 'thin' }}
+          className="rounded-xl bg-bg-soft border border-[#e8e0d4]"
+        >
+          <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {chatMessages.length === 0 && (
+              <p className="text-xs text-text-light text-center" style={{ padding: '8px 0' }}>💬</p>
+            )}
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={`text-xs ${msg.system ? 'text-text-light italic text-center' : 'text-text-dark'}`}>
+                {msg.system ? (
+                  msg.text
+                ) : (
+                  <>
+                    <span className={`font-bold ${msg.senderId === socketId ? 'text-primary' : 'text-accent-purple'}`}>
+                      {msg.nickname}
+                    </span>
+                    <span className="text-text-light">: </span>
+                    <span>{msg.text}</span>
+                  </>
+                )}
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+        </div>
+
+        {/* Input */}
+        <div className="flex gap-2" style={{ marginTop: '10px' }}>
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value.slice(0, 100))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && chatInput.trim()) {
+                onSendMessage(chatInput.trim());
+                setChatInput('');
+              }
+            }}
+            placeholder={t('chatPlaceholder')}
+            className="cartoon-input text-sm flex-1"
+            style={{ padding: '8px 14px' }}
+            maxLength={100}
+          />
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              if (chatInput.trim()) {
+                onSendMessage(chatInput.trim());
+                setChatInput('');
+              }
+            }}
+            className="pill-btn pill-btn-primary flex items-center justify-center"
+            style={{ padding: '8px 14px', minWidth: '44px' }}
+          >
+            <Send size={16} />
+          </motion.button>
         </div>
       </motion.div>
 

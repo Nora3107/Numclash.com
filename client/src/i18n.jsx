@@ -99,6 +99,10 @@ const translations = {
     roomPrivate: 'Private',
     roomNameLabel: 'Tên phòng',
     roomNamePlaceholder: 'Đặt tên phòng...',
+    // Chat
+    chat: 'Chat',
+    chatPlaceholder: 'Nhắn tin...',
+    send: 'Gửi',
   },
   en: {
     // Home
@@ -198,6 +202,10 @@ const translations = {
     roomPrivate: 'Private',
     roomNameLabel: 'Room name',
     roomNamePlaceholder: 'Set room name...',
+    // Chat
+    chat: 'Chat',
+    chatPlaceholder: 'Type a message...',
+    send: 'Send',
   },
 };
 

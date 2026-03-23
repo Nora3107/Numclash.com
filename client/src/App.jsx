@@ -22,6 +22,7 @@ function App() {
   const [gamePhase, setGamePhase] = useState('picking');
   const [leaderboard, setLeaderboard] = useState([]);
   const [publicRooms, setPublicRooms] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
 
   const clearError = useCallback(() => setError(''), []);
   const { t, lang, toggleLang } = useLang();
@@ -53,6 +54,7 @@ function App() {
       setFinalScores(null);
       setGamePhase('picking');
       setScreen('lobby');
+      setChatMessages([]);
     });
     socket.on('left-room', () => {
       setRoomInfo(null);
@@ -63,11 +65,13 @@ function App() {
       setFinalScores(null);
       setGamePhase('picking');
       setScreen('home');
+      setChatMessages([]);
     });
     socket.on('connect_error', () => {
       setError(lang === 'vi' ? 'Mất kết nối đến server!' : 'Connection lost!');
     });
     socket.on('public-rooms-updated', (rooms) => setPublicRooms(rooms));
+    socket.on('new-message', (msg) => setChatMessages(prev => [...prev.slice(-49), msg]));
     return () => {
       socket.off('room-updated');
       socket.off('round-start');
@@ -78,6 +82,7 @@ function App() {
       socket.off('left-room');
       socket.off('connect_error');
       socket.off('public-rooms-updated');
+      socket.off('new-message');
     };
   }, []);
 
@@ -136,6 +141,7 @@ function App() {
   const handleToggleReady = useCallback(() => { socket.emit('toggle-ready', { roomCode }); }, [roomCode]);
   const handleToggleRoomPublic = useCallback(() => { socket.emit('toggle-room-public', { roomCode }); }, [roomCode]);
   const handleSetRoomName = useCallback((name) => { socket.emit('set-room-name', { roomCode, name }); }, [roomCode]);
+  const handleSendMessage = useCallback((text) => { socket.emit('send-message', { roomCode, text }); }, [roomCode]);
   const handleLeaveRoom = useCallback(() => { socket.emit('leave-room'); }, []);
 
   useEffect(() => {
@@ -233,7 +239,7 @@ function App() {
         )}
         {screen === 'lobby' && (
           <motion.div key="lobby" {...pageVariants}>
-            <LobbyPage roomInfo={roomInfo} roomCode={roomCode} isHost={isHost} onStartGame={handleStartGame} onSetRounds={handleSetRounds} onToggleReady={handleToggleReady} onLeaveRoom={handleLeaveRoom} socketId={socket.id} onToggleRoomPublic={handleToggleRoomPublic} onSetRoomName={handleSetRoomName} />
+            <LobbyPage roomInfo={roomInfo} roomCode={roomCode} isHost={isHost} onStartGame={handleStartGame} onSetRounds={handleSetRounds} onToggleReady={handleToggleReady} onLeaveRoom={handleLeaveRoom} socketId={socket.id} onToggleRoomPublic={handleToggleRoomPublic} onSetRoomName={handleSetRoomName} chatMessages={chatMessages} onSendMessage={handleSendMessage} />
           </motion.div>
         )}
         {screen === 'game' && (
