@@ -177,6 +177,13 @@ body {
     margin-left: auto;
     margin-right: auto;
   }
+  /* Cards inside grid should fill their column */
+  .grid > .cartoon-card,
+  .grid > div.cartoon-card,
+  .grid > button.cartoon-card {
+    max-width: 100%;
+    margin: 0;
+  }
 }
 
 .cartoon-card-teal {
