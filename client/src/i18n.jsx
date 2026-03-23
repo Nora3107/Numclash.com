@@ -92,6 +92,13 @@ const translations = {
     notReady: 'Sẵn sàng?',
     waitAllReady: 'Đợi tất cả sẵn sàng...',
     readyHint: 'Bấm sẵn sàng để Host bắt đầu',
+    // Room Browser
+    publicRooms: 'Phòng đang mở',
+    noRooms: 'Chưa có phòng nào',
+    roomPublic: 'Public',
+    roomPrivate: 'Private',
+    roomNameLabel: 'Tên phòng',
+    roomNamePlaceholder: 'Đặt tên phòng...',
   },
   en: {
     // Home
@@ -184,6 +191,13 @@ const translations = {
     notReady: 'Ready?',
     waitAllReady: 'Waiting for everyone...',
     readyHint: 'Press ready so Host can start',
+    // Room Browser
+    publicRooms: 'Open Rooms',
+    noRooms: 'No rooms available',
+    roomPublic: 'Public',
+    roomPrivate: 'Private',
+    roomNameLabel: 'Room name',
+    roomNamePlaceholder: 'Set room name...',
   },
 };
 

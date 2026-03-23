@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Users, Crown, BookOpen, X } from 'lucide-react';
 import { useLang } from '../i18n';
 
-export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRoom }) {
+export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRoom, publicRooms = [] }) {
   const [joinCode, setJoinCode] = useState('');
   const [mode, setMode] = useState(null);
   const [showRules, setShowRules] = useState(false);
@@ -186,6 +186,62 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
         <BookOpen size={16} />
         {t('howToPlay')}
       </motion.button>
+
+      {/* Public Rooms Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="w-full max-w-2xl"
+        style={{ marginTop: '40px' }}
+      >
+        <h3 className="text-sm font-bold text-text-mid uppercase tracking-wider text-center" style={{ marginBottom: '16px' }}>
+          🏠 {t('publicRooms')}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {publicRooms.map((room) => (
+            <motion.button
+              key={room.code}
+              whileHover={{ scale: 1.04, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => {
+                if (!nickname.trim()) {
+                  setNicknameError(true);
+                  setTimeout(() => setNicknameError(false), 5000);
+                  return;
+                }
+                onJoinRoom(room.code);
+              }}
+              className="cartoon-card flex flex-col items-center cursor-pointer hover:border-primary transition-colors"
+              style={{ padding: '16px 12px' }}
+            >
+              <span className="text-xs font-bold text-text-mid truncate w-full text-center" style={{ marginBottom: '8px' }}>
+                {room.roomName}
+              </span>
+              <span style={{ fontSize: '2rem', lineHeight: 1 }}>👤</span>
+              <span className="text-sm font-black text-text-dark" style={{ marginTop: '6px' }}>
+                {room.playerCount}/{room.maxPlayers}
+              </span>
+            </motion.button>
+          ))}
+          {/* 3 placeholder rooms */}
+          {[1, 2, 3].filter((_, i) => i >= publicRooms.length).map((i) => (
+            <div
+              key={`placeholder-${i}`}
+              className="cartoon-card flex flex-col items-center opacity-40"
+              style={{ padding: '16px 12px', borderStyle: 'dashed' }}
+            >
+              <span className="text-xs font-bold text-text-light truncate w-full text-center" style={{ marginBottom: '8px' }}>
+                ---
+              </span>
+              <span style={{ fontSize: '2rem', lineHeight: 1 }}>🪑</span>
+              <span className="text-sm font-black text-text-light" style={{ marginTop: '6px' }}>
+                0/8
+              </span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
 
       {/* Rules Modal */}
       <AnimatePresence>

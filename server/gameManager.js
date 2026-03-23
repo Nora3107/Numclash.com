@@ -40,6 +40,8 @@ class GameManager {
       roundHistory: [],
       timer: null,
       readyPlayers: new Set(), // Set of ready player IDs
+      isPublic: true, // phòng public mặc định
+      roomName: nickname, // tên phòng = tên host mặc định
     };
 
     // Add host as first player
@@ -362,6 +364,8 @@ class GameManager {
       currentRound: room.currentRound,
       phase: room.phase,
       playerCount: room.players.size,
+      isPublic: room.isPublic,
+      roomName: room.roomName,
       players: Array.from(room.players.values()).map(p => ({
         id: p.id,
         nickname: p.nickname,
@@ -370,6 +374,40 @@ class GameManager {
       })),
       readyCount: room.readyPlayers.size,
     };
+  }
+
+  // ------------------------------------------
+  // Public Room Browser
+  // ------------------------------------------
+
+  getPublicRooms() {
+    const list = [];
+    for (const [code, room] of this.rooms) {
+      if (room.isPublic && room.phase === 'lobby' && room.players.size < 8) {
+        list.push({
+          code,
+          roomName: room.roomName,
+          playerCount: room.players.size,
+          maxPlayers: 8,
+          totalRounds: room.totalRounds,
+        });
+      }
+    }
+    return list;
+  }
+
+  setRoomPublic(roomCode, hostId, isPublic) {
+    const room = this.rooms.get(roomCode);
+    if (!room || room.hostId !== hostId) return false;
+    room.isPublic = !!isPublic;
+    return true;
+  }
+
+  setRoomName(roomCode, hostId, name) {
+    const room = this.rooms.get(roomCode);
+    if (!room || room.hostId !== hostId) return false;
+    room.roomName = String(name).slice(0, 18).trim() || room.roomName;
+    return true;
   }
 }
 

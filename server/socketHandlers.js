@@ -8,8 +8,30 @@ const gameManager = require('./gameManager');
 const PICK_TIME = 36; // seconds
 
 function setupSocketHandlers(io) {
+  // Helper: broadcast updated public room list to all browsers
+  function broadcastPublicRooms() {
+    io.to('home-browser').emit('public-rooms-updated', gameManager.getPublicRooms());
+  }
+
   io.on('connection', (socket) => {
     console.log(`[+] Connected: ${socket.id}`);
+
+    // ------------------------------------------
+    // Room Browser Events
+    // ------------------------------------------
+
+    socket.on('join-home-browser', () => {
+      socket.join('home-browser');
+      socket.emit('public-rooms-updated', gameManager.getPublicRooms());
+    });
+
+    socket.on('leave-home-browser', () => {
+      socket.leave('home-browser');
+    });
+
+    socket.on('get-public-rooms', (callback) => {
+      callback(gameManager.getPublicRooms());
+    });
 
     // ------------------------------------------
     // Room Events
@@ -19,7 +41,9 @@ function setupSocketHandlers(io) {
       try {
         const room = gameManager.createRoom(socket.id, nickname);
         socket.join(room.code);
+        socket.leave('home-browser');
         callback({ success: true, roomCode: room.code, roomInfo: gameManager.getRoomInfo(room.code) });
+        broadcastPublicRooms();
         console.log(`[Room] ${nickname} created room ${room.code}`);
       } catch (err) {
         callback({ success: false, error: 'Lỗi tạo phòng!' });
@@ -36,13 +60,33 @@ function setupSocketHandlers(io) {
         }
 
         socket.join(code);
+        socket.leave('home-browser');
         callback({ success: true, roomCode: code, roomInfo: gameManager.getRoomInfo(code) });
 
         // Notify everyone in the room
         io.to(code).emit('room-updated', gameManager.getRoomInfo(code));
+        broadcastPublicRooms();
         console.log(`[Room] ${nickname} joined room ${code}`);
       } catch (err) {
         callback({ success: false, error: 'Lỗi tham gia phòng!' });
+      }
+    });
+
+    socket.on('toggle-room-public', ({ roomCode }) => {
+      const room = gameManager.getRoom(roomCode);
+      if (!room) return;
+      const success = gameManager.setRoomPublic(roomCode, socket.id, !room.isPublic);
+      if (success) {
+        io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+        broadcastPublicRooms();
+      }
+    });
+
+    socket.on('set-room-name', ({ roomCode, name }) => {
+      const success = gameManager.setRoomName(roomCode, socket.id, name);
+      if (success) {
+        io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+        broadcastPublicRooms();
       }
     });
 
@@ -87,6 +131,7 @@ function setupSocketHandlers(io) {
 
       // Start the countdown timer
       startRoundTimer(io, roomCode);
+      broadcastPublicRooms();
     });
 
     socket.on('submit-number', ({ roomCode, number }, callback) => {
@@ -174,6 +219,7 @@ function setupSocketHandlers(io) {
       if (room) {
         io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
       }
+      broadcastPublicRooms();
     });
 
     // ------------------------------------------
@@ -211,6 +257,7 @@ function setupSocketHandlers(io) {
           }
         }
       }
+      broadcastPublicRooms();
     });
   });
 }

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut } from 'lucide-react';
+import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut, Globe, Lock } from 'lucide-react';
 import { useLang } from '../i18n';
 
 const ROUND_OPTIONS = [1, 4, 8, 18, 36];
 
-export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId }) {
+export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName }) {
   const [copied, setCopied] = useState(false);
   const { t } = useLang();
 
@@ -69,6 +69,62 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
           </motion.button>
         </div>
         <p className="text-xs text-text-light" style={{ marginTop: '12px' }}>{copied ? t('copied') : t('shareCode')}</p>
+      </motion.div>
+
+      {/* Room Settings: Public/Private + Room Name */}
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.15 }}
+        className="cartoon-card w-full max-w-md"
+        style={{ padding: '16px 24px', marginBottom: '14px' }}
+      >
+        {/* Public/Private toggle */}
+        <div className="flex items-center justify-between" style={{ marginBottom: isHost ? '14px' : '0' }}>
+          <div className="flex items-center gap-2">
+            {roomInfo.isPublic ? <Globe size={16} className="text-primary" /> : <Lock size={16} className="text-accent-red" />}
+            <span className="text-sm font-bold text-text-mid uppercase tracking-wider">
+              {roomInfo.isPublic ? t('roomPublic') : t('roomPrivate')}
+            </span>
+          </div>
+          {isHost && (
+            <button
+              onClick={onToggleRoomPublic}
+              className={`relative w-12 h-7 rounded-full transition-colors duration-200 cursor-pointer border-2 ${
+                roomInfo.isPublic
+                  ? 'bg-primary/20 border-primary/40'
+                  : 'bg-bg-warm border-[#e0d8cc]'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-200 shadow-sm ${
+                  roomInfo.isPublic
+                    ? 'left-[22px] bg-primary'
+                    : 'left-[2px] bg-text-light'
+                }`}
+              />
+            </button>
+          )}
+        </div>
+
+        {/* Room Name (host only edit) */}
+        {isHost && (
+          <div>
+            <label className="block text-xs font-bold text-text-light uppercase tracking-wider" style={{ marginBottom: '6px' }}>
+              {t('roomNameLabel')}
+            </label>
+            <input
+              type="text"
+              defaultValue={roomInfo.roomName}
+              maxLength={18}
+              onBlur={(e) => onSetRoomName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+              placeholder={t('roomNamePlaceholder')}
+              className="cartoon-input text-sm"
+              style={{ padding: '8px 14px' }}
+            />
+          </div>
+        )}
       </motion.div>
 
       {/* Round selector (Host only) */}
