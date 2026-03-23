@@ -273,69 +273,6 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
                   </div>
                 </motion.div>
 
-                {/* Step 2 — Safe vs Overloaded */}
-                <motion.div
-                  initial={{ x: -15, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="rounded-2xl bg-bg-soft border-2 border-[#e8e0d4]"
-                  style={{ padding: '18px 20px', marginBottom: '14px' }}
-                >
-                  <p className="font-bold text-text-dark" style={{ marginBottom: '12px' }}>⚖️ {t('rule2Title')}</p>
-                  <div className="flex gap-3">
-                    <div className="flex-1 rounded-xl text-center" style={{ padding: '12px', background: 'rgba(43,181,160,0.1)', border: '2px solid rgba(43,181,160,0.25)' }}>
-                      <p className="text-xs font-bold text-primary">{t('rule2Safe')}</p>
-                      <p className="text-lg mt-1">📈</p>
-                      <p className="text-xs text-text-mid font-medium">{t('rule2SafeDesc')}</p>
-                    </div>
-                    <div className="flex-1 rounded-xl text-center" style={{ padding: '12px', background: 'rgba(229,77,77,0.08)', border: '2px solid rgba(229,77,77,0.2)' }}>
-                      <p className="text-xs font-bold text-accent-red">{t('rule2Over')}</p>
-                      <p className="text-lg mt-1">📉</p>
-                      <p className="text-xs text-text-mid font-medium">{t('rule2OverDesc')}</p>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Step 3 — Scoring */}
-                <motion.div
-                  initial={{ x: -15, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.15 }}
-                  className="rounded-2xl bg-bg-soft border-2 border-[#e8e0d4]"
-                  style={{ padding: '18px 20px', marginBottom: '14px' }}
-                >
-                  <p className="font-bold text-text-dark" style={{ marginBottom: '12px' }}>🏅 {t('rule3Title')}</p>
-                  <p className="text-sm text-text-mid" style={{ marginBottom: '10px' }}>{t('rule3Desc')}</p>
-                  <div className="flex gap-2 justify-center">
-                    {[
-                      { rank: '🥇', pts: '70', color: '#ffd166' },
-                      { rank: '🥈', pts: '36', color: '#c0c0c0' },
-                      { rank: '🥉', pts: '18', color: '#cd7f32' },
-                    ].map((s, i) => (
-                      <div key={i} className="flex-1 rounded-xl text-center" style={{ padding: '8px 4px', background: `${s.color}15`, border: `2px solid ${s.color}40` }}>
-                        <span className="text-lg">{s.rank}</span>
-                        <p className="text-sm font-black text-text-dark" style={{ fontFamily: 'var(--font-display)' }}>{s.pts}</p>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* Step 4 — Win condition */}
-                <motion.div
-                  initial={{ x: -15, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="rounded-2xl bg-bg-soft border-2 border-[#e8e0d4]"
-                  style={{ padding: '18px 20px', marginBottom: '24px' }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">👑</span>
-                    <div>
-                      <p className="font-bold text-text-dark">{t('rule4Title')}</p>
-                      <p className="text-sm text-text-mid">{t('rule4Desc')}</p>
-                    </div>
-                  </div>
-                </motion.div>
 
                 {/* Close button */}
                 <motion.button
