@@ -198,7 +198,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
         <h3 className="text-sm font-bold text-text-mid uppercase tracking-wider text-center" style={{ marginBottom: '16px' }}>
           🏠 {t('publicRooms')}
         </h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {publicRooms.map((room) => (
             <motion.button
               key={room.code}
