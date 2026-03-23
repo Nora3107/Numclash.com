@@ -274,6 +274,7 @@ class GameManager {
       playerPicks.sort((a, b) => a.number - b.number);
     }
 
+
     // Assign ranks with tie handling
     const results = [];
     let currentRank = 1;

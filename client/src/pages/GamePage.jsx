@@ -105,7 +105,7 @@ export default function GamePage({
             <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('target')}</span>
           </div>
           <div
-            className="text-7xl md:text-8xl font-black text-accent-orange animate-bounce-soft"
+            className="text-7xl md:text-8xl font-black text-accent-orange"
             style={{ fontFamily: 'var(--font-display)', textShadow: '3px 3px 0 #cc7a40' }}
           >
             {roundData.target}
