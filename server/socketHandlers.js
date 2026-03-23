@@ -241,13 +241,16 @@ function setupSocketHandlers(io) {
       if (!roomCode) return;
 
       socket.leave(roomCode);
+      // Get nickname before removal
+      const leavingRoom = gameManager.getRoom(roomCode);
+      const leavingNickname = leavingRoom?.players.get(socket.id)?.nickname || 'Ai đó';
       const room = gameManager.removePlayer(roomCode, socket.id);
       // Tell the leaving player to go back to home
       socket.emit('left-room');
       if (room) {
         io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
         // System message: player left
-        io.to(roomCode).emit('new-message', { system: true, text: `Một người chơi đã rời phòng`, time: Date.now() });
+        io.to(roomCode).emit('new-message', { system: true, text: `${leavingNickname} đã rời phòng`, time: Date.now() });
       }
       broadcastPublicRooms();
     });
@@ -261,9 +264,12 @@ function setupSocketHandlers(io) {
       const roomCode = gameManager.findRoomByPlayer(socket.id);
       if (!roomCode) return;
 
+      const dcRoom = gameManager.getRoom(roomCode);
+      const dcNickname = dcRoom?.players.get(socket.id)?.nickname || 'Ai đó';
       const room = gameManager.removePlayer(roomCode, socket.id);
       if (room) {
         io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+        io.to(roomCode).emit('new-message', { system: true, text: `${dcNickname} đã ngắt kết nối`, time: Date.now() });
         // Also update player status if game is in progress
         if (room.phase === 'picking') {
           io.to(roomCode).emit('player-status-updated', gameManager.getPlayersStatus(roomCode));
