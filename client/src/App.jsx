@@ -136,11 +136,42 @@ function App() {
 
   return (
     <div className="min-h-screen bg-bg-cream bg-dots-pattern relative overflow-hidden">
-      {/* Decorative blobs */}
+      {/* Floating numbers background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-150px] left-[-100px] w-[400px] h-[400px] rounded-full bg-primary/5 blur-[80px]" />
-        <div className="absolute bottom-[-150px] right-[-100px] w-[400px] h-[400px] rounded-full bg-secondary/5 blur-[80px]" />
-        <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] rounded-full bg-accent-yellow/5 blur-[100px]" />
+        {[
+          { num: 18, top: '8%', left: '5%', size: '4rem', dur: 18, dx: 30, dy: 20, rot: 15, opacity: 0.07 },
+          { num: 36, top: '70%', right: '8%', size: '3.5rem', dur: 22, dx: -25, dy: 15, rot: -10, opacity: 0.06 },
+          { num: 7, top: '15%', right: '12%', size: '2.5rem', dur: 15, dx: -20, dy: 25, rot: 12, opacity: 0.05 },
+          { num: 3, top: '55%', left: '3%', size: '2rem', dur: 20, dx: 35, dy: -15, rot: -8, opacity: 0.06 },
+          { num: 42, top: '30%', right: '5%', size: '3rem', dur: 25, dx: -15, dy: 20, rot: 10, opacity: 0.05 },
+          { num: 9, top: '80%', left: '15%', size: '2.2rem', dur: 17, dx: 20, dy: -25, rot: -12, opacity: 0.06 },
+          { num: 70, top: '5%', left: '45%', size: '2.8rem', dur: 23, dx: -10, dy: 30, rot: 8, opacity: 0.04 },
+          { num: 1, top: '45%', right: '3%', size: '1.8rem', dur: 19, dx: -30, dy: -10, rot: 15, opacity: 0.05 },
+          { num: 25, top: '88%', left: '55%', size: '2.5rem', dur: 21, dx: 15, dy: -20, rot: -6, opacity: 0.05 },
+          { num: 0, top: '35%', left: '8%', size: '2rem', dur: 16, dx: 25, dy: 15, rot: 10, opacity: 0.04 },
+          { num: 56, top: '60%', right: '20%', size: '2.3rem', dur: 24, dx: -20, dy: -15, rot: -14, opacity: 0.04 },
+          { num: 14, top: '20%', left: '30%', size: '1.6rem', dur: 26, dx: 10, dy: 20, rot: 6, opacity: 0.04 },
+        ].map((n, i) => (
+          <motion.span
+            key={i}
+            animate={{
+              x: [0, n.dx, -n.dx * 0.5, 0],
+              y: [0, n.dy, -n.dy * 0.7, 0],
+              rotate: [0, n.rot, -n.rot * 0.5, 0],
+            }}
+            transition={{ duration: n.dur, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute select-none font-black"
+            style={{
+              top: n.top, left: n.left, right: n.right,
+              fontSize: n.size,
+              opacity: n.opacity,
+              fontFamily: 'var(--font-display)',
+              color: '#c4b8a8',
+            }}
+          >
+            {n.num}
+          </motion.span>
+        ))}
       </div>
 
       {/* Language toggle */}

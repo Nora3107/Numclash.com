@@ -12,35 +12,6 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative">
-      {/* Floating decorative elements */}
-      <motion.div
-        animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-24 left-12 text-6xl select-none hidden md:block opacity-15"
-      >
-        🎮
-      </motion.div>
-      <motion.div
-        animate={{ y: [0, 10, 0], rotate: [0, -8, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute top-36 right-20 text-5xl select-none hidden md:block opacity-15"
-      >
-        🎯
-      </motion.div>
-      <motion.div
-        animate={{ y: [0, -8, 0], rotate: [0, 10, 0] }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-        className="absolute bottom-36 left-24 text-7xl select-none hidden md:block opacity-10"
-      >
-        🏆
-      </motion.div>
-      <motion.div
-        animate={{ y: [0, 12, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        className="absolute bottom-44 right-28 text-4xl select-none hidden md:block opacity-10"
-      >
-        ⭐
-      </motion.div>
 
       {/* Logo */}
       <motion.div
