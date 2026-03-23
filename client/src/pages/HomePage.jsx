@@ -213,7 +213,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
                 onJoinRoom(room.code);
               }}
               className="cartoon-card flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
-              style={{ padding: '14px 8px', height: '120px' }}
+              style={{ padding: '14px 8px', height: '120px', maxWidth: '100%', margin: 0 }}
             >
               <span className="text-xs font-bold text-text-mid w-full text-center overflow-hidden whitespace-nowrap text-ellipsis" style={{ marginBottom: '6px' }}>
                 {room.roomName}
@@ -229,7 +229,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
             <div
               key={`placeholder-${i}`}
               className="cartoon-card flex flex-col items-center justify-center opacity-40"
-              style={{ padding: '14px 8px', height: '120px', borderStyle: 'dashed' }}
+              style={{ padding: '14px 8px', height: '120px', borderStyle: 'dashed', maxWidth: '100%', margin: 0 }}
             >
               <span className="text-xs font-bold text-text-light w-full text-center" style={{ marginBottom: '6px' }}>
                 ---
