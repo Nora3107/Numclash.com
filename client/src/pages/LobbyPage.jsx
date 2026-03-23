@@ -244,9 +244,6 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
           className="rounded-xl bg-bg-soft border border-[#e8e0d4]"
         >
           <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {chatMessages.length === 0 && (
-              <p className="text-xs text-text-light text-center" style={{ padding: '8px 0' }}>💬</p>
-            )}
             {chatMessages.map((msg, i) => (
               <div key={i} className={`text-xs ${msg.system ? 'text-text-light italic text-center' : 'text-text-dark'}`}>
                 {msg.system ? (
