@@ -211,6 +211,7 @@ function App() {
       </AnimatePresence>
 
       {/* Screens */}
+      <div className="relative z-10">
       <AnimatePresence mode="wait">
         {screen === 'home' && (
           <motion.div key="home" {...pageVariants}>
@@ -233,6 +234,7 @@ function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }
