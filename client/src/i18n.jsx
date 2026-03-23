@@ -71,6 +71,9 @@ const translations = {
     overloaded: 'QUÁ TẢI!',
     safeRule: 'Số LỚN thắng — Sắp xếp từ Cao → Thấp',
     overloadedRule: 'Số NHỎ thắng — Sắp xếp từ Thấp → Cao',
+    total: 'Tổng',
+    highestWins: 'Số CAO NHẤT thắng!',
+    lowestWins: 'Số THẤP NHẤT thắng!',
     viewLeaderboard: 'Xem Bảng Xếp Hạng',
 
     // Scoreboard
@@ -180,6 +183,9 @@ const translations = {
     overloaded: 'OVERLOADED!',
     safeRule: 'HIGHEST wins — Sorted High → Low',
     overloadedRule: 'LOWEST wins — Sorted Low → High',
+    total: 'Total',
+    highestWins: 'HIGHEST number wins!',
+    lowestWins: 'LOWEST number wins!',
     viewLeaderboard: 'View Leaderboard',
 
     // Scoreboard

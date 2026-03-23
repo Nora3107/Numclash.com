@@ -57,7 +57,7 @@ export default function GamePage({
     const interval = setInterval(() => {
       step++;
       setRevealStep(step);
-      if (step >= revealData.results.length + 2) clearInterval(interval);
+      if (step >= revealData.results.length + 3) clearInterval(interval);
     }, 1200);
     return () => clearInterval(interval);
   }, [gamePhase, revealData]);
@@ -260,81 +260,188 @@ export default function GamePage({
   // ==========================================
   if (gamePhase === 'reveal' && revealData && !showScoreboard) {
     const { target, totalSum, isSafe, results } = revealData;
-    const progressPercent = Math.min((totalSum / target) * 100, 150);
     const showTotal = revealStep > results.length;
-    const revealDone = revealStep >= results.length + 2;
+    const showWinner = revealStep >= results.length + 2;
+    const revealDone = revealStep >= results.length + 3;
+
+    // Calculate running sum based on revealed numbers
+    const runningSum = results.slice(0, Math.min(revealStep, results.length)).reduce((s, r) => s + r.number, 0);
+
+    // Find winner (highest if safe, lowest if overloaded)
+    const winner = results.length > 0 ? results.reduce((best, r) =>
+      isSafe ? (r.number > best.number ? r : best) : (r.number < best.number ? r : best)
+    , results[0]) : null;
 
     return (
       <div className="min-h-screen flex flex-col items-center px-6" style={{ paddingTop: '32px', paddingBottom: '32px' }}>
+        {/* Round badge */}
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ marginBottom: '16px' }}>
           <span className="badge badge-purple text-sm" style={{ padding: '10px 20px' }}>
             {t('round')} {revealData.round}
           </span>
         </motion.div>
 
-        <div className="flex items-center gap-2" style={{ marginBottom: '20px' }}>
+        {/* Target display */}
+        <div className="flex items-center gap-2" style={{ marginBottom: '24px' }}>
           <Target size={16} className="text-accent-orange" />
           <span className="text-sm text-text-mid">{t('target')}: <span className="text-accent-orange font-bold text-lg">{target}</span></span>
         </div>
 
-        {/* Player reveals */}
-        <div className="w-full max-w-md" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
-          {results.map((r, i) => (
-            <AnimatePresence key={r.id}>
-              {revealStep > i && (
-                <motion.div
-                  initial={{ x: -40, opacity: 0, scale: 0.9 }}
-                  animate={{ x: 0, opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', damping: 15 }}
-                  className={`flex items-center gap-3 rounded-2xl border-2 ${
-                    r.id === socketId
-                      ? 'bg-accent-blue/10 border-accent-blue/30 shadow-md'
-                      : 'bg-white border-[#e8e0d4]'
-                  }`}
-                  style={{ padding: '14px 16px' }}
-                >
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm text-white ${
-                    r.id === socketId ? 'bg-accent-blue' : 'bg-text-light'
-                  }`}>
-                    {r.nickname[0].toUpperCase()}
-                  </div>
-                  <span className={`flex-1 font-semibold ${r.id === socketId ? 'text-accent-blue' : 'text-text-dark'}`}>
-                    {r.nickname}
-                  </span>
-                  <span className="text-2xl font-black text-primary" style={{ fontFamily: 'var(--font-display)' }}>
-                    {r.number}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          ))}
-        </div>
+        {/* === Numbers reveal horizontally === */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="cartoon-card w-full max-w-md text-center"
+          style={{ padding: '24px 16px', marginBottom: '24px' }}
+        >
+          {/* Player numbers in a horizontal row */}
+          <div className="flex flex-wrap items-center justify-center gap-1" style={{ marginBottom: '16px', minHeight: '50px' }}>
+            {results.map((r, i) => (
+              <AnimatePresence key={r.id}>
+                {revealStep > i && (
+                  <>
+                    {i > 0 && (
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-lg font-bold text-text-light"
+                      >
+                        +
+                      </motion.span>
+                    )}
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', damping: 10, stiffness: 200 }}
+                      className="flex flex-col items-center"
+                    >
+                      <span
+                        className={`text-3xl font-black ${r.id === socketId ? 'text-accent-blue' : 'text-primary'}`}
+                        style={{ fontFamily: 'var(--font-display)' }}
+                      >
+                        {r.number}
+                      </span>
+                      <span className={`text-[10px] font-semibold ${r.id === socketId ? 'text-accent-blue/70' : 'text-text-light'}`}>
+                        {r.nickname}
+                      </span>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            ))}
+          </div>
 
-        {/* Progress bar */}
+          {/* Divider */}
+          <div className="h-px bg-[#e8e0d4]" style={{ marginBottom: '12px' }} />
+
+          {/* Running sum */}
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('total')}:</span>
+            <motion.span
+              key={runningSum}
+              initial={{ scale: 1.4, color: '#2bb5a0' }}
+              animate={{ scale: 1, color: runningSum > target ? '#e85d75' : '#2bb5a0' }}
+              className="text-3xl font-black"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              {revealStep > 0 ? runningSum : '?'}
+            </motion.span>
+          </div>
+        </motion.div>
+
+        {/* === Sum vs Target comparison === */}
         <AnimatePresence>
           {showTotal && (
-            <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="w-full max-w-md" style={{ marginBottom: '24px' }}>
-              <div className="relative h-12 rounded-full bg-bg-warm border-2 border-[#e0d8cc] overflow-hidden" style={{ marginBottom: '14px' }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(progressPercent, 100)}%` }}
-                  transition={{ duration: 1.5, ease: 'easeOut' }}
-                  className={`absolute inset-y-0 left-0 rounded-full ${
-                    isSafe ? 'bg-gradient-to-r from-primary to-primary-light' : 'bg-gradient-to-r from-accent-red to-secondary'
-                  }`}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="font-bold text-text-dark text-sm drop-shadow-sm">{totalSum} / {target}</span>
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', damping: 12 }}
+              className="cartoon-card w-full max-w-md text-center"
+              style={{ padding: '24px 20px', marginBottom: '20px' }}
+            >
+              <div className="flex items-center justify-center gap-4" style={{ marginBottom: '16px' }}>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-bold text-text-light uppercase">{t('total')}</span>
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', delay: 0.3 }}
+                    className={`text-4xl font-black ${isSafe ? 'text-primary' : 'text-accent-red'}`}
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
+                    {totalSum}
+                  </motion.span>
+                </div>
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className={`text-2xl font-black ${isSafe ? 'text-primary' : 'text-accent-red'}`}
+                >
+                  {isSafe ? '≤' : '>'}
+                </motion.span>
+                <div className="flex flex-col items-center">
+                  <span className="text-xs font-bold text-text-light uppercase">{t('target')}</span>
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', delay: 0.3 }}
+                    className="text-4xl font-black text-accent-orange"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                  >
+                    {target}
+                  </motion.span>
                 </div>
               </div>
 
-              <p className={`text-center text-sm font-semibold ${isSafe ? 'text-primary' : 'text-accent-red'}`} style={{ marginTop: '8px' }}>
-                {isSafe ? t('safeRule') : t('overloadedRule')}
-              </p>
+              <motion.div
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className={`rounded-full inline-flex items-center gap-2 ${isSafe ? 'bg-primary/10 text-primary' : 'bg-accent-red/10 text-accent-red'}`}
+                style={{ padding: '8px 20px' }}
+              >
+                {isSafe ? <Shield size={16} /> : <AlertTriangle size={16} />}
+                <span className="text-sm font-bold">{isSafe ? t('safeRule') : t('overloadedRule')}</span>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
+        {/* === Winner announcement === */}
+        <AnimatePresence>
+          {showWinner && winner && (
+            <motion.div
+              initial={{ scale: 0, opacity: 0, rotate: -5 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ type: 'spring', damping: 10 }}
+              className={`cartoon-card w-full max-w-md text-center border-2 ${isSafe ? 'border-primary/30' : 'border-accent-red/30'}`}
+              style={{ padding: '24px 20px', marginBottom: '24px' }}
+            >
+              <motion.div
+                animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                style={{ marginBottom: '8px' }}
+              >
+                <Crown size={32} className="text-accent-yellow mx-auto" />
+              </motion.div>
+              <p className="text-xs font-bold text-text-light uppercase tracking-wider" style={{ marginBottom: '4px' }}>
+                {isSafe ? t('highestWins') : t('lowestWins')}
+              </p>
+              <p className="text-2xl font-black text-text-dark" style={{ fontFamily: 'var(--font-display)', marginBottom: '4px' }}>
+                {winner.nickname}
+              </p>
+              <span
+                className={`text-4xl font-black ${isSafe ? 'text-primary' : 'text-accent-red'}`}
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                {winner.number}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* View leaderboard button */}
         <AnimatePresence>
           {revealDone && (
             <motion.button
