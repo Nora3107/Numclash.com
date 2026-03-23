@@ -11,7 +11,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
   const { t, lang } = useLang();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-12 md:py-12 relative">
 
       {/* Logo */}
       <motion.div
@@ -198,7 +198,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
         <h3 className="text-sm font-bold text-text-mid uppercase tracking-wider text-center" style={{ marginBottom: '16px' }}>
           🏠 {t('publicRooms')}
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {publicRooms.map((room) => (
             <motion.button
               key={room.code}
@@ -212,13 +212,13 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
                 }
                 onJoinRoom(room.code);
               }}
-              className="cartoon-card flex flex-col items-center cursor-pointer hover:border-primary transition-colors"
-              style={{ padding: '16px 12px' }}
+              className="cartoon-card flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
+              style={{ padding: '14px 8px', height: '120px' }}
             >
-              <span className="text-xs font-bold text-text-mid truncate w-full text-center" style={{ marginBottom: '8px' }}>
+              <span className="text-xs font-bold text-text-mid w-full text-center overflow-hidden whitespace-nowrap text-ellipsis" style={{ marginBottom: '6px' }}>
                 {room.roomName}
               </span>
-              <span style={{ fontSize: '2rem', lineHeight: 1 }}>👤</span>
+              <Users size={28} className="text-text-mid" strokeWidth={1.5} />
               <span className="text-sm font-black text-text-dark" style={{ marginTop: '6px' }}>
                 {room.playerCount}/{room.maxPlayers}
               </span>
@@ -228,13 +228,13 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
           {[1, 2, 3].filter((_, i) => i >= publicRooms.length).map((i) => (
             <div
               key={`placeholder-${i}`}
-              className="cartoon-card flex flex-col items-center opacity-40"
-              style={{ padding: '16px 12px', borderStyle: 'dashed' }}
+              className="cartoon-card flex flex-col items-center justify-center opacity-40"
+              style={{ padding: '14px 8px', height: '120px', borderStyle: 'dashed' }}
             >
-              <span className="text-xs font-bold text-text-light truncate w-full text-center" style={{ marginBottom: '8px' }}>
+              <span className="text-xs font-bold text-text-light w-full text-center" style={{ marginBottom: '6px' }}>
                 ---
               </span>
-              <span style={{ fontSize: '2rem', lineHeight: 1 }}>🪑</span>
+              <Users size={28} className="text-text-light" strokeWidth={1.5} />
               <span className="text-sm font-black text-text-light" style={{ marginTop: '6px' }}>
                 0/8
               </span>
