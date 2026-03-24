@@ -168,8 +168,14 @@ function App() {
   const handleSetDeckType = useCallback((deckType) => { socket.emit('set-deck-type', { roomCode, deckType }); }, [roomCode]);
   const handleLeaveRoom = useCallback(() => { socket.emit('leave-room'); }, []);
   const handleLeaveOldMaid = useCallback(() => {
+    // Reset ready state on server before going back to lobby
+    socket.emit('toggle-ready', { roomCode, ready: false });
+    // Request fresh room info
+    setTimeout(() => {
+      socket.emit('request-room-info', { roomCode });
+    }, 200);
     setScreen('lobby');
-  }, []);
+  }, [roomCode]);
 
   useEffect(() => {
     if (roomInfo) setIsHost(roomInfo.hostId === socket.id);

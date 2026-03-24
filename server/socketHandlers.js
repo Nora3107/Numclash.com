@@ -138,7 +138,16 @@ function setupSocketHandlers(io) {
       broadcastPublicRooms();
     });
 
-    socket.on('toggle-ready', ({ roomCode }) => {
+    socket.on('toggle-ready', ({ roomCode, ready }) => {
+      // If explicit ready=false, force unready
+      if (ready === false) {
+        const room = gameManager.getRoom(roomCode);
+        if (room) {
+          room.readyPlayers.delete(socket.id);
+          io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+        }
+        return;
+      }
       const result = gameManager.toggleReady(roomCode, socket.id);
       if (result) {
         io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));

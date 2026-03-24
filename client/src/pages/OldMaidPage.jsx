@@ -553,6 +553,20 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
               )}
             </div>
 
+            {/* Chat bubble between name and cards */}
+            <AnimatePresence>
+              {chatBubbles[pid] && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="chat-bubble"
+                  style={{ marginTop: 4, marginBottom: 4 }}
+                >
+                  {chatBubbles[pid]}
+                </motion.div>
+              )}
+            </AnimatePresence>
             {!playerOut && (() => {
               // Direction-aware transform for draw target
               const drawTargetStyle = isDrawTarget ? (() => {
@@ -605,20 +619,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
                 </div>
               );
             })()}
-            {/* Chat bubble in front of cards */}
-            <AnimatePresence>
-              {chatBubbles[pid] && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="chat-bubble"
-                  style={{ marginTop: 6 }}
-                >
-                  {chatBubbles[pid]}
-                </motion.div>
-              )}
-            </AnimatePresence>
+
           </div>
         );
       })}
