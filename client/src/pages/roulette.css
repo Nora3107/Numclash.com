@@ -1,15 +1,11 @@
-/* SuckCard.com — Tactical Deal: Roulette — Casino Theme Styles */
-
-/* ==========================================
-   Page Container
-   ========================================== */
+/* Tactical Deal: Roulette — Clean Dark Theme */
 
 .roulette-page {
   width: 100vw;
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #080a10;
+  background: #0c0e14;
 }
 
 .roulette-page canvas {
@@ -17,65 +13,50 @@
   height: 100% !important;
 }
 
-/* ==========================================
-   HUD Overlay
-   ========================================== */
-
+/* HUD */
 .roulette-hud {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 10;
-  font-family: 'Orbitron', 'Inter', sans-serif;
+  font-family: 'Be Vietnam Pro', 'Inter', system-ui, sans-serif;
 }
+.roulette-hud > * { pointer-events: auto; }
 
-.roulette-hud > * {
-  pointer-events: auto;
-}
-
-/* ==========================================
-   Top Bar
-   ========================================== */
-
+/* Top Bar */
 .roulette-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
+  padding: 12px 16px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
 }
 
 .roulette-leave-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  gap: 4px;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 8px;
-  color: rgba(212, 175, 55, 0.8);
+  color: rgba(255,255,255,0.6);
   font-size: 11px;
   font-weight: 600;
-  font-family: 'Cinzel', 'Orbitron', serif;
   cursor: pointer;
-  backdrop-filter: blur(12px);
-  transition: all 0.25s;
-  text-transform: uppercase;
   letter-spacing: 1px;
 }
-
 .roulette-leave-btn:hover {
-  background: rgba(255, 60, 60, 0.15);
-  border-color: rgba(255, 80, 80, 0.5);
+  background: rgba(255,60,60,0.12);
+  border-color: rgba(255,60,60,0.3);
   color: #ff6b6b;
-  box-shadow: 0 0 15px rgba(255, 60, 60, 0.2);
 }
 
 .roulette-info-center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .roulette-gun-info {
@@ -85,491 +66,256 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
-  letter-spacing: 1px;
 }
 
 .bullet-count {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(180, 140, 30, 0.15));
-  padding: 3px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  background: rgba(212,175,55,0.12);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid rgba(212,175,55,0.15);
 }
 
 .roulette-turn-indicator {
   font-size: 11px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.4);
   font-weight: 600;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
 }
-
 .roulette-turn-indicator.my-turn {
-  color: #ff4444;
-  text-shadow: 0 0 16px rgba(255, 68, 68, 0.6), 0 0 32px rgba(255, 68, 68, 0.3);
-  animation: pulse-glow 1.2s ease-in-out infinite;
+  color: #f44336;
+  animation: pulse 1.2s ease-in-out infinite;
 }
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; text-shadow: 0 0 16px rgba(255, 68, 68, 0.6); }
-  50% { opacity: 0.7; text-shadow: 0 0 24px rgba(255, 68, 68, 0.9); }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .roulette-direction {
-  font-size: 24px;
-  color: rgba(212, 175, 55, 0.4);
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+  font-size: 22px;
+  color: rgba(255,255,255,0.2);
 }
 
-/* ==========================================
-   Timer Ring
-   ========================================== */
-
-.roulette-timer-container {
+/* Timer */
+.roulette-timer {
   position: absolute;
-  top: 68px;
+  top: 58px;
   left: 50%;
   transform: translateX(-50%);
-  width: 56px;
-  height: 56px;
-  pointer-events: none;
-}
-
-.roulette-timer-ring {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3));
-}
-
-.roulette-timer-number {
-  position: absolute;
-  inset: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(212,175,55,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: #d4af37;
-  font-family: 'Orbitron', monospace;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  background: rgba(0,0,0,0.5);
+}
+.roulette-timer .urgent {
+  color: #f44336;
+  animation: pulse 0.4s ease-in-out infinite;
 }
 
-.roulette-timer-number.urgent {
-  color: #ff4444;
-  text-shadow: 0 0 12px rgba(255, 68, 68, 0.7);
-  animation: pulse-glow 0.5s ease-in-out infinite;
-}
-
-/* ==========================================
-   Action Buttons — Casino Style
-   ========================================== */
-
+/* Actions */
 .roulette-actions {
   position: absolute;
-  bottom: 130px;
+  bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.roulette-action-btn {
+.r-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 32px;
-  border: 1px solid;
-  border-radius: 6px;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  min-width: 230px;
-  justify-content: center;
-  backdrop-filter: blur(16px);
-  transition: all 0.3s;
-  font-family: 'Cinzel', 'Orbitron', serif;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Shimmer effect on buttons */
-.roulette-action-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-  transition: left 0.5s;
-}
-
-.roulette-action-btn:hover::before {
-  left: 100%;
-}
-
-.roulette-action-btn .btn-icon {
-  font-size: 18px;
-}
-
-.roulette-action-btn.draw {
-  background: linear-gradient(135deg, rgba(20, 80, 160, 0.85), rgba(10, 50, 120, 0.95));
-  border-color: rgba(100, 180, 255, 0.35);
-  box-shadow: 0 0 20px rgba(20, 100, 200, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-.roulette-action-btn.draw:hover {
-  box-shadow: 0 0 30px rgba(20, 100, 200, 0.5), 0 0 60px rgba(20, 100, 200, 0.2);
-  border-color: rgba(100, 180, 255, 0.6);
-}
-
-.roulette-action-btn.self {
-  background: linear-gradient(135deg, rgba(200, 120, 0, 0.8), rgba(180, 80, 0, 0.9));
-  border-color: rgba(255, 200, 100, 0.35);
-  box-shadow: 0 0 20px rgba(200, 120, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-.roulette-action-btn.self small {
-  display: block;
-  font-size: 8px;
-  font-weight: 500;
-  opacity: 0.7;
-  font-family: 'Orbitron', monospace;
-  letter-spacing: 0.5px;
-  text-transform: none;
-}
-
-.roulette-action-btn.other {
-  background: linear-gradient(135deg, rgba(110, 30, 150, 0.8), rgba(70, 15, 120, 0.9));
-  border-color: rgba(200, 120, 255, 0.35);
-  box-shadow: 0 0 20px rgba(130, 40, 180, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-.roulette-action-btn.fire {
-  background: linear-gradient(135deg, rgba(200, 30, 30, 0.9), rgba(150, 10, 10, 0.95));
-  border-color: rgba(255, 100, 100, 0.5);
-  font-size: 18px;
-  padding: 18px 44px;
   min-width: 200px;
-  letter-spacing: 4px;
-  box-shadow: 0 0 30px rgba(255, 50, 50, 0.4), 0 0 60px rgba(255, 30, 30, 0.15);
+  backdrop-filter: blur(8px);
+  font-family: inherit;
+  letter-spacing: 1px;
 }
 
-.roulette-action-btn.fire:hover {
-  box-shadow: 0 0 40px rgba(255, 50, 50, 0.6), 0 0 80px rgba(255, 30, 30, 0.3);
+.r-btn.draw {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+  border-color: rgba(100,180,255,0.25);
+}
+.r-btn.self {
+  background: linear-gradient(135deg, #e65100, #bf360c);
+  border-color: rgba(255,180,100,0.25);
+}
+.r-btn.other {
+  background: linear-gradient(135deg, #7b1fa2, #4a148c);
+  border-color: rgba(200,130,255,0.25);
+}
+.r-btn.fire {
+  background: linear-gradient(135deg, #c62828, #b71c1c);
+  border-color: rgba(255,100,100,0.35);
+  font-size: 18px;
+  padding: 14px 36px;
+  letter-spacing: 3px;
 }
 
-.fire-icon {
-  display: inline-block;
-  animation: shake-gun 0.4s ease-in-out infinite;
-}
-
-@keyframes shake-gun {
-  0%, 100% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(-8deg) scale(1.05); }
-  75% { transform: rotate(8deg) scale(1.05); }
-}
-
-.roulette-choice-panel,
-.roulette-fire-panel {
+.r-choice, .r-fire {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-}
-
-.choice-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #d4af37;
-  margin-bottom: 4px;
-  text-shadow: 0 0 16px rgba(212, 175, 55, 0.5);
-  font-family: 'Cinzel', serif;
-  letter-spacing: 3px;
-  text-transform: uppercase;
 }
 
 .fire-count {
-  color: #ff4444;
+  color: #ff5252;
   font-weight: 800;
-  font-size: 18px;
-  text-shadow: 0 0 16px rgba(255, 68, 68, 0.5);
-  font-family: 'Orbitron', monospace;
-  letter-spacing: 2px;
+  font-size: 16px;
 }
 
-/* ==========================================
-   Card Hand — Casino Cards
-   ========================================== */
-
+/* Hand */
 .roulette-hand {
   position: absolute;
-  bottom: 12px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  text-align: center;
-}
-
-.hand-label {
-  color: rgba(212, 175, 55, 0.5);
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  margin-bottom: 8px;
-  font-family: 'Cinzel', serif;
-}
-
-.roulette-hand-cards {
   display: flex;
   gap: 6px;
-  justify-content: center;
-  perspective: 800px;
 }
 
-.roulette-card-btn {
+.r-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 12px;
-  background: linear-gradient(180deg, rgba(30, 30, 40, 0.9), rgba(15, 15, 25, 0.95));
-  border: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 8px 10px;
+  background: rgba(20,20,30,0.9);
+  border: 1px solid rgba(212,175,55,0.2);
   border-radius: 8px;
   color: #fff;
   cursor: pointer;
-  min-width: 68px;
-  backdrop-filter: blur(12px);
-  transition: all 0.25s;
-  transform-origin: center bottom;
+  min-width: 60px;
+  font-family: inherit;
 }
-
-.roulette-card-btn:hover {
-  background: linear-gradient(180deg, rgba(40, 40, 55, 0.95), rgba(20, 20, 35, 0.98));
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.2), 0 8px 24px rgba(0,0,0,0.4);
+.r-card:hover {
+  border-color: rgba(212,175,55,0.5);
+  box-shadow: 0 0 12px rgba(212,175,55,0.15);
 }
+.r-card span { font-size: 22px; }
+.r-card small { font-size: 8px; color: rgba(212,175,55,0.6); font-weight: 600; }
 
-.roulette-card-btn .card-icon {
-  font-size: 24px;
-  margin-bottom: 3px;
-}
-
-.roulette-card-btn .card-label {
-  font-size: 8px;
-  font-weight: 700;
-  color: rgba(212, 175, 55, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-family: 'Cinzel', serif;
-}
-
-/* ==========================================
-   Drawn Card Notification
-   ========================================== */
-
-.roulette-drawn-card {
+/* Drawn card */
+.roulette-drawn {
   position: absolute;
-  top: 135px;
+  top: 110px;
   left: 50%;
   transform: translateX(-50%);
-}
-
-.drawn-card-inner {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: linear-gradient(135deg, rgba(10, 10, 15, 0.92), rgba(20, 15, 5, 0.9));
-  padding: 14px 28px;
+  gap: 8px;
+  padding: 10px 22px;
+  background: rgba(0,0,0,0.8);
+  border: 1px solid rgba(212,175,55,0.3);
   border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 0 24px rgba(212, 175, 55, 0.15), 0 8px 32px rgba(0,0,0,0.5);
-}
-
-.drawn-card-icon {
-  font-size: 26px;
-}
-
-.drawn-card-text {
   color: #d4af37;
   font-weight: 700;
   font-size: 14px;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 1px;
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+  white-space: nowrap;
 }
+.roulette-drawn span { font-size: 22px; }
 
-/* ==========================================
-   Game Over — Grand Reveal
-   ========================================== */
-
-.roulette-game-over {
+/* Game Over */
+.roulette-gameover {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.88);
-  backdrop-filter: blur(20px);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
 }
 
-.roulette-game-over-card {
+.gameover-card {
   text-align: center;
   color: #fff;
-  padding: 44px 56px;
-  background: linear-gradient(180deg, rgba(30, 25, 15, 0.95), rgba(10, 8, 5, 0.98));
+  padding: 36px 44px;
+  background: rgba(15,15,20,0.95);
   border-radius: 16px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  box-shadow: 0 0 40px rgba(212, 175, 55, 0.1), 0 24px 64px rgba(0,0,0,0.6);
-  min-width: 320px;
+  border: 1px solid rgba(212,175,55,0.2);
+  min-width: 280px;
 }
-
-.game-over-icon {
-  font-size: 60px;
-  margin-bottom: 12px;
-  filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.6));
-}
-
-.roulette-game-over-card h2 {
-  font-size: 24px;
-  margin: 0 0 6px;
+.go-icon { font-size: 52px; margin-bottom: 8px; }
+.gameover-card h2 {
+  font-size: 22px;
+  margin: 0 0 16px;
   font-weight: 800;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #d4af37, #f5d280, #d4af37);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #d4af37;
+  letter-spacing: 2px;
 }
-
-.roulette-game-over-card p {
-  font-size: 12px;
-  opacity: 0.45;
-  margin: 0;
-  font-family: 'Orbitron', monospace;
-  letter-spacing: 1px;
-}
-
-.game-over-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
-  margin: 20px 0;
-}
-
-.game-over-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.stat-row {
+.go-stats { display: flex; flex-direction: column; gap: 4px; }
+.go-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 14px;
-  border-radius: 6px;
+  padding: 6px 10px;
+  border-radius: 4px;
   font-size: 13px;
-  font-weight: 600;
   color: rgba(255,255,255,0.5);
-  font-family: 'Orbitron', monospace;
 }
-
-.stat-row.winner {
-  background: rgba(212, 175, 55, 0.1);
+.go-row.w {
+  background: rgba(212,175,55,0.1);
   color: #d4af37;
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
 }
 
-/* ==========================================
-   Player List Sidebar
-   ========================================== */
-
-.roulette-player-list {
+/* Sidebar */
+.roulette-sidebar {
   position: absolute;
-  left: 14px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.roulette-player-item {
-  display: flex;
-  flex-direction: column;
   gap: 4px;
-  padding: 10px 14px;
-  background: linear-gradient(180deg, rgba(15, 15, 20, 0.8), rgba(10, 10, 15, 0.85));
+}
+
+.r-player {
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.5);
   border-radius: 8px;
-  border: 1px solid rgba(212, 175, 55, 0.08);
-  backdrop-filter: blur(12px);
-  min-width: 130px;
-  transition: all 0.3s;
+  border: 1px solid rgba(255,255,255,0.04);
+  min-width: 110px;
 }
-
-.roulette-player-item.active {
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 0 0 16px rgba(212, 175, 55, 0.15);
-  background: linear-gradient(180deg, rgba(30, 25, 10, 0.85), rgba(15, 12, 5, 0.9));
+.r-player.active {
+  border-color: rgba(212,175,55,0.35);
+  background: rgba(212,175,55,0.05);
 }
+.r-player.dead { opacity: 0.3; }
 
-.roulette-player-item.dead {
-  opacity: 0.3;
-}
-
-.player-info-row {
+.r-player-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.player-name {
-  color: #fff;
   font-size: 11px;
   font-weight: 700;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 0.5px;
+  color: #fff;
+  margin-bottom: 4px;
 }
+.turn-dot { color: #d4af37; font-size: 9px; }
 
-.turn-badge {
-  color: #d4af37;
-  font-size: 10px;
-  animation: pulse-glow 1s ease-in-out infinite;
-}
-
-.player-hp-visual {
-  display: flex;
-  gap: 3px;
-}
-
-.hp-pip {
-  width: 14px;
-  height: 5px;
-  border-radius: 2px;
-  transition: all 0.3s;
-}
-
-.hp-pip.filled {
-  background: linear-gradient(135deg, #cc3333, #ff5555);
-  box-shadow: 0 0 5px rgba(200, 50, 50, 0.5);
-}
-
-.hp-pip.empty {
+.r-hp { display: flex; gap: 2px; }
+.pip {
+  width: 12px;
+  height: 4px;
+  border-radius: 1px;
   background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.05);
 }
-
-.player-cards {
-  font-size: 10px;
-  color: rgba(212, 175, 55, 0.4);
-  font-weight: 600;
-  font-family: 'Orbitron', monospace;
+.pip.on {
+  background: #e74c3c;
+  box-shadow: 0 0 3px rgba(231,76,60,0.4);
 }
