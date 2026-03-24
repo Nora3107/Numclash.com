@@ -56,11 +56,17 @@ const translations = {
     startGame: 'Bắt Đầu Trận Đấu!',
     needMore: (n) => `Cần thêm ${n} người...`,
     waitingHost: 'Đang đợi Host bắt đầu...',
+    gameMode: 'Chế độ chơi',
+    modeClassic: 'Classic',
+    modeAverage: 'Average ×0.8',
 
     // Game - Picking
     round: 'Vòng',
     target: 'Mục tiêu',
     safeHint: (t) => `Tổng các số ≤ ${t} = An toàn`,
+    pickRange: 'Chọn số từ 0 đến 100',
+    averageResult: (avg, magic) => `Trung bình: ${avg} × 0.8 = ${magic}`,
+    closestWins: 'Người gần nhất thắng!',
     lockNumber: 'Chốt Số!',
     locked: 'Đã chốt!',
     waitingOthers: 'Đang đợi người chơi khác...',
@@ -112,6 +118,11 @@ const translations = {
     tutorialLine2: '🏆 Nếu tổng ≤ Target → Người chọn số CAO NHẤT thắng',
     tutorialLine3: '💥 Nếu tổng > Target → Người chọn số THẤP NHẤT thắng',
     tutorialDismiss: 'Chạm để bắt đầu',
+    // Tutorial Average
+    tutorialAvgTitle: 'CÁCH CHƠI - Average ×0.8',
+    tutorialAvgLine1: '🎲 Chọn một số từ 0 đến 100',
+    tutorialAvgLine2: '📊 Tính trung bình tất cả các số × 0.8',
+    tutorialAvgLine3: '🏆 Ai chọn số GẦN NHẤT với kết quả đó thắng!',
   },
   en: {
     // Home
@@ -168,11 +179,17 @@ const translations = {
     startGame: 'Start Game!',
     needMore: (n) => `Need ${n} more player${n > 1 ? 's' : ''}...`,
     waitingHost: 'Waiting for Host to start...',
+    gameMode: 'Game Mode',
+    modeClassic: 'Classic',
+    modeAverage: 'Average ×0.8',
 
     // Game - Picking
     round: 'Round',
     target: 'Target',
     safeHint: (t) => `Sum of numbers ≤ ${t} = Safe`,
+    pickRange: 'Pick a number from 0 to 100',
+    averageResult: (avg, magic) => `Average: ${avg} × 0.8 = ${magic}`,
+    closestWins: 'Closest number wins!',
     lockNumber: 'Lock In!',
     locked: 'Locked!',
     waitingOthers: 'Waiting for other players...',
@@ -224,6 +241,11 @@ const translations = {
     tutorialLine2: '🏆 If total ≤ Target → HIGHEST number wins',
     tutorialLine3: '💥 If total > Target → LOWEST number wins',
     tutorialDismiss: 'Tap to start',
+    // Tutorial Average
+    tutorialAvgTitle: 'HOW TO PLAY - Average ×0.8',
+    tutorialAvgLine1: '🎲 Pick a number from 0 to 100',
+    tutorialAvgLine2: '📊 Calculate the average of all numbers × 0.8',
+    tutorialAvgLine3: '🏆 Whoever picks the CLOSEST number to that result wins!',
   },
 };
 

@@ -42,6 +42,7 @@ class GameManager {
       readyPlayers: new Set(), // Set of ready player IDs
       isPublic: true, // phòng public mặc định
       roomName: nickname, // tên phòng = tên host mặc định
+      gameMode: 'classic', // classic | average
     };
 
     // Add host as first player
@@ -89,7 +90,31 @@ class GameManager {
     return true;
   }
 
-  // ------------------------------------------
+  setGameMode(roomCode, hostId, mode) {
+    const room = this.rooms.get(roomCode);
+    if (!room || room.hostId !== hostId) return false;
+    if (!['classic', 'average'].includes(mode)) return false;
+    room.gameMode = mode;
+    return true;
+  }
+
+  swapSeat(roomCode, socketId, targetIndex) {
+    const room = this.rooms.get(roomCode);
+    if (!room) return false;
+    const playerIds = Array.from(room.players.keys());
+    const myIndex = playerIds.indexOf(socketId);
+    if (myIndex === -1 || targetIndex < 0 || targetIndex >= playerIds.length || targetIndex === myIndex) return false;
+    // Rebuild players Map with swapped order
+    const targetId = playerIds[targetIndex];
+    playerIds[myIndex] = targetId;
+    playerIds[targetIndex] = socketId;
+    const newPlayers = new Map();
+    for (const id of playerIds) {
+      newPlayers.set(id, room.players.get(id));
+    }
+    room.players = newPlayers;
+    return true;
+  }
   // Ready System
   // ------------------------------------------
 
@@ -196,8 +221,13 @@ class GameManager {
       return { phase: 'finished', finalScores: this.getFinalScores(roomCode) };
     }
 
-    // Generate target: random integer >= 16
-    // Scale target based on player count to keep the game interesting
+    if (room.gameMode === 'average') {
+      return this._startRoundAverage(room);
+    }
+    return this._startRoundClassic(room);
+  }
+
+  _startRoundClassic(room) {
     const playerCount = room.players.size;
     const minTarget = 16;
     const maxTarget = Math.max(minTarget + 10, playerCount * 8);
@@ -206,7 +236,7 @@ class GameManager {
     room.phase = 'picking';
     room.roundData = {
       target,
-      picks: new Map(), // playerId -> number
+      picks: new Map(),
       startTime: Date.now(),
     };
 
@@ -215,6 +245,22 @@ class GameManager {
       round: room.currentRound,
       totalRounds: room.totalRounds,
       target,
+      gameMode: room.gameMode,
+    };
+  }
+
+  _startRoundAverage(room) {
+    room.phase = 'picking';
+    room.roundData = {
+      picks: new Map(),
+      startTime: Date.now(),
+    };
+
+    return {
+      phase: 'picking',
+      round: room.currentRound,
+      totalRounds: room.totalRounds,
+      gameMode: room.gameMode,
     };
   }
 
@@ -250,9 +296,15 @@ class GameManager {
     const room = this.rooms.get(roomCode);
     if (!room || !room.roundData) return null;
 
+    if (room.gameMode === 'average') {
+      return this._calculateAverage(room);
+    }
+    return this._calculateClassic(room);
+  }
+
+  _calculateClassic(room) {
     const { target, picks } = room.roundData;
 
-    // Calculate total sum
     let totalSum = 0;
     const playerPicks = [];
     for (const [playerId, number] of picks) {
@@ -267,23 +319,16 @@ class GameManager {
 
     const isSafe = totalSum <= target;
 
-    // Sort based on safe/overloaded rule
     if (isSafe) {
-      // SAFE: Sort DESCENDING (higher is better)
       playerPicks.sort((a, b) => b.number - a.number);
     } else {
-      // OVERLOADED: Sort ASCENDING (lower is better)
       playerPicks.sort((a, b) => a.number - b.number);
     }
 
-
-    // Assign ranks with tie handling
     const results = [];
     let currentRank = 1;
     for (let i = 0; i < playerPicks.length; i++) {
-      // Check for tie with previous player
       if (i > 0 && playerPicks[i].number === playerPicks[i - 1].number) {
-        // Same rank as previous
         results.push({
           ...playerPicks[i],
           rank: results[i - 1].rank,
@@ -298,27 +343,88 @@ class GameManager {
           points,
         });
       }
-      currentRank = i + 2; // Next rank skips tied positions
+      currentRank = i + 2;
     }
 
-    // Update total scores
     for (const r of results) {
       const current = room.scores.get(r.id) || 0;
       room.scores.set(r.id, current + r.points);
     }
 
-    // Save round history
     const roundResult = {
       round: room.currentRound,
       target,
       totalSum,
       isSafe,
       results,
+      gameMode: 'classic',
     };
     room.roundHistory.push(roundResult);
-
     room.phase = 'scoreboard';
+    return roundResult;
+  }
 
+  _calculateAverage(room) {
+    const { picks } = room.roundData;
+
+    const playerPicks = [];
+    let sum = 0;
+    for (const [playerId, number] of picks) {
+      sum += number;
+      const player = room.players.get(playerId);
+      playerPicks.push({
+        id: playerId,
+        nickname: player ? player.nickname : 'Unknown',
+        number,
+      });
+    }
+
+    const average = sum / playerPicks.length;
+    const magicNumber = Math.round(average * 0.8 * 100) / 100; // 2 decimal places
+
+    // Calculate distance to magic number
+    for (const p of playerPicks) {
+      p.distance = Math.abs(p.number - magicNumber);
+    }
+    // Sort by distance ascending (closest first)
+    playerPicks.sort((a, b) => a.distance - b.distance);
+
+    // Assign ranks with tie handling
+    const results = [];
+    let currentRank = 1;
+    for (let i = 0; i < playerPicks.length; i++) {
+      if (i > 0 && playerPicks[i].distance === playerPicks[i - 1].distance) {
+        results.push({
+          ...playerPicks[i],
+          rank: results[i - 1].rank,
+          points: results[i - 1].points,
+        });
+      } else {
+        const rankIndex = currentRank - 1;
+        const points = rankIndex < SCORE_TABLE.length ? SCORE_TABLE[rankIndex] : 0;
+        results.push({
+          ...playerPicks[i],
+          rank: currentRank,
+          points,
+        });
+      }
+      currentRank = i + 2;
+    }
+
+    for (const r of results) {
+      const current = room.scores.get(r.id) || 0;
+      room.scores.set(r.id, current + r.points);
+    }
+
+    const roundResult = {
+      round: room.currentRound,
+      average,
+      magicNumber,
+      results,
+      gameMode: 'average',
+    };
+    room.roundHistory.push(roundResult);
+    room.phase = 'scoreboard';
     return roundResult;
   }
 
@@ -366,6 +472,7 @@ class GameManager {
       playerCount: room.players.size,
       isPublic: room.isPublic,
       roomName: room.roomName,
+      gameMode: room.gameMode,
       players: Array.from(room.players.values()).map(p => ({
         id: p.id,
         nickname: p.nickname,
@@ -390,6 +497,7 @@ class GameManager {
           playerCount: room.players.size,
           maxPlayers: 8,
           totalRounds: room.totalRounds,
+          gameMode: room.gameMode,
         });
       }
     }

@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Target, Clock, Send, CheckCircle, HelpCircle,
   Trophy, ChevronRight, Shield, AlertTriangle,
-  Crown, Medal, Award, Circle
+  Crown, Medal, Award, Circle, Gamepad2
 } from 'lucide-react';
 import { useLang } from '../i18n';
 
@@ -22,7 +22,7 @@ export default function GamePage({
   const timerRef = useRef(null);
   const { t } = useLang();
 
-  // Chỉ reset khi vòng mới bắt đầu (round number thay đổi), KHÔNG reset khi player status update
+  // Chá»‰ reset khi vÃ²ng má»›i báº¯t Ä‘áº§u (round number thay Ä‘á»•i), KHÃ”NG reset khi player status update
   const currentRound = roundData?.round;
   useEffect(() => {
     if (gamePhase === 'picking') {
@@ -65,11 +65,11 @@ export default function GamePage({
   const handleSubmit = async (val, auto = false) => {
     if (submitted) return;
     const num = auto ? 0 : parseInt(number) || 0;
-    // Hiện số đã chọn ngay lập tức (optimistic update)
+    // Hiá»‡n sá»‘ Ä‘Ã£ chá»n ngay láº­p tá»©c (optimistic update)
     setSubmittedNumber(num);
     setSubmitted(true);
     clearInterval(timerRef.current);
-    // Gửi server, nếu lỗi thì revert
+    // Gá»­i server, náº¿u lá»—i thÃ¬ revert
     const success = await onSubmitNumber(num);
     if (!success) {
       setSubmitted(false);
@@ -107,12 +107,22 @@ export default function GamePage({
                 style={{ padding: '32px 28px', maxWidth: '380px' }}
               >
                 <h2 className="text-xl font-black text-primary" style={{ fontFamily: 'var(--font-display)', marginBottom: '20px' }}>
-                  {t('tutorialTitle')}
+                  {roundData.gameMode === 'average' ? t('tutorialAvgTitle') : t('tutorialTitle')}
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
-                  <p className="text-sm font-semibold text-text-dark">{t('tutorialLine1')}</p>
-                  <p className="text-sm font-semibold text-text-dark">{t('tutorialLine2')}</p>
-                  <p className="text-sm font-semibold text-text-dark">{t('tutorialLine3')}</p>
+                  {roundData.gameMode === 'average' ? (
+                    <>
+                      <p className="text-sm font-semibold text-text-dark">{t('tutorialAvgLine1')}</p>
+                      <p className="text-sm font-semibold text-text-dark">{t('tutorialAvgLine2')}</p>
+                      <p className="text-sm font-semibold text-text-dark">{t('tutorialAvgLine3')}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-semibold text-text-dark">{t('tutorialLine1')}</p>
+                      <p className="text-sm font-semibold text-text-dark">{t('tutorialLine2')}</p>
+                      <p className="text-sm font-semibold text-text-dark">{t('tutorialLine3')}</p>
+                    </>
+                  )}
                 </div>
                 <p className="text-xs text-text-light" style={{ marginTop: '24px' }}>
                   {t('tutorialDismiss')}
@@ -128,7 +138,7 @@ export default function GamePage({
           </span>
         </motion.div>
 
-        {/* Target */}
+        {/* Target / Mode card */}
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -136,17 +146,35 @@ export default function GamePage({
           className="cartoon-card text-center w-full max-w-sm"
           style={{ padding: '28px 32px', marginBottom: '20px' }}
         >
-          <div className="flex items-center justify-center gap-2" style={{ marginBottom: '12px' }}>
-            <Target size={20} className="text-accent-orange" />
-            <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('target')}</span>
-          </div>
-          <div
-            className="text-7xl md:text-8xl font-black text-accent-orange"
-            style={{ fontFamily: 'var(--font-display)', textShadow: '3px 3px 0 #cc7a40' }}
-          >
-            {roundData.target}
-          </div>
-          <p className="text-xs text-text-light" style={{ marginTop: '12px' }}>{t('safeHint', roundData.target)}</p>
+          {roundData.gameMode === 'average' ? (
+            <>
+              <div className="flex items-center justify-center gap-2" style={{ marginBottom: '12px' }}>
+                <Gamepad2 size={20} className="text-accent-purple" />
+                <span className="text-sm font-bold text-text-mid uppercase tracking-wider">Average Ã—0.8</span>
+              </div>
+              <div
+                className="text-5xl md:text-6xl font-black text-accent-purple"
+                style={{ fontFamily: 'var(--font-display)', textShadow: '3px 3px 0 #8b5cf6' }}
+              >
+                0 â€” 100
+              </div>
+              <p className="text-xs text-text-light" style={{ marginTop: '12px' }}>{t('pickRange')}</p>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center justify-center gap-2" style={{ marginBottom: '12px' }}>
+                <Target size={20} className="text-accent-orange" />
+                <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('target')}</span>
+              </div>
+              <div
+                className="text-7xl md:text-8xl font-black text-accent-orange"
+                style={{ fontFamily: 'var(--font-display)', textShadow: '3px 3px 0 #cc7a40' }}
+              >
+                {roundData.target}
+              </div>
+              <p className="text-xs text-text-light" style={{ marginTop: '12px' }}>{t('safeHint', roundData.target)}</p>
+            </>
+          )}
         </motion.div>
 
         {/* Timer */}
@@ -171,7 +199,11 @@ export default function GamePage({
               value={number}
               onChange={(e) => {
                 const v = e.target.value;
-                if (v === '' || (parseInt(v) >= 0 && v.length <= 6)) setNumber(v);
+                if (roundData.gameMode === 'average') {
+                  if (v === '' || (parseInt(v) >= 0 && parseInt(v) <= 100)) setNumber(v);
+                } else {
+                  if (v === '' || (parseInt(v) >= 0 && v.length <= 6)) setNumber(v);
+                }
               }}
               placeholder="0"
               className="cartoon-input text-center text-5xl font-black"
@@ -205,9 +237,9 @@ export default function GamePage({
         )}
 
         {/* Player status */}
-        {/* Trạng thái chọn số + Bảng điểm */}
+        {/* Tráº¡ng thÃ¡i chá»n sá»‘ + Báº£ng Ä‘iá»ƒm */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="w-full max-w-sm" style={{ marginTop: '24px' }}>
-          {/* Trạng thái đã chọn/chưa */}
+          {/* Tráº¡ng thÃ¡i Ä‘Ã£ chá»n/chÆ°a */}
           <div className="flex flex-wrap gap-2.5 justify-center" style={{ marginBottom: '16px' }}>
             {roundData.players?.map((p) => (
               <div key={p.id} className={`flex items-center gap-2 rounded-full text-sm font-medium border-2 transition-all duration-300 ${
@@ -221,11 +253,11 @@ export default function GamePage({
             ))}
           </div>
 
-          {/* Bảng điểm mini */}
+          {/* Báº£ng Ä‘iá»ƒm mini */}
           {leaderboard && leaderboard.length > 0 && (
             <div className="cartoon-card" style={{ padding: '16px 20px' }}>
               <p className="text-xs font-bold text-text-light uppercase tracking-wider" style={{ marginBottom: '10px' }}>
-                🏆 {t('leaderboard')}
+                ðŸ† {t('leaderboard')}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {leaderboard.map((p, i) => (
@@ -259,189 +291,124 @@ export default function GamePage({
   // REVEAL PHASE
   // ==========================================
   if (gamePhase === 'reveal' && revealData && !showScoreboard) {
-    const { target, totalSum, isSafe, results } = revealData;
-    const showTotal = revealStep > results.length;
+    const { results } = revealData;
+    const isAvgMode = revealData.gameMode === 'average';
+    const showCalc = revealStep > results.length;
     const showWinner = revealStep >= results.length + 2;
     const revealDone = revealStep >= results.length + 3;
 
-    // Calculate running sum based on revealed numbers
     const runningSum = results.slice(0, Math.min(revealStep, results.length)).reduce((s, r) => s + r.number, 0);
 
-    // Find winner (highest if safe, lowest if overloaded)
-    const winner = results.length > 0 ? results.reduce((best, r) =>
-      isSafe ? (r.number > best.number ? r : best) : (r.number < best.number ? r : best)
-    , results[0]) : null;
+    let winner = null;
+    if (isAvgMode) {
+      winner = results.length > 0 ? results[0] : null;
+    } else {
+      const { isSafe } = revealData;
+      winner = results.length > 0 ? results.reduce((best, r) =>
+        isSafe ? (r.number > best.number ? r : best) : (r.number < best.number ? r : best)
+      , results[0]) : null;
+    }
 
     return (
       <div className="min-h-screen flex flex-col items-center px-6" style={{ paddingTop: '32px', paddingBottom: '32px' }}>
-        {/* Round badge */}
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ marginBottom: '16px' }}>
           <span className="badge badge-purple text-sm" style={{ padding: '10px 20px' }}>
             {t('round')} {revealData.round}
           </span>
         </motion.div>
 
-        {/* Target display */}
         <div className="flex items-center gap-2" style={{ marginBottom: '24px' }}>
-          <Target size={16} className="text-accent-orange" />
-          <span className="text-sm text-text-mid">{t('target')}: <span className="text-accent-orange font-bold text-lg">{target}</span></span>
+          {isAvgMode ? (
+            <><Gamepad2 size={16} className="text-accent-purple" /><span className="text-sm text-text-mid">Average Ã—0.8</span></>
+          ) : (
+            <><Target size={16} className="text-accent-orange" /><span className="text-sm text-text-mid">{t('target')}: <span className="text-accent-orange font-bold text-lg">{revealData.target}</span></span></>
+          )}
         </div>
 
-        {/* === Numbers reveal horizontally === */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="cartoon-card w-full max-w-md text-center"
-          style={{ padding: '24px 16px', marginBottom: '24px' }}
-        >
-          {/* Player numbers in a horizontal row */}
+        <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="cartoon-card w-full max-w-md text-center" style={{ padding: '24px 16px', marginBottom: '24px' }}>
           <div className="flex flex-wrap items-center justify-center gap-1" style={{ marginBottom: '16px', minHeight: '50px' }}>
             {results.map((r, i) => (
               <AnimatePresence key={r.id}>
                 {revealStep > i && (
                   <>
-                    {i > 0 && (
-                      <motion.span
-                        initial={{ opacity: 0, scale: 0 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-lg font-bold text-text-light"
-                      >
-                        +
-                      </motion.span>
-                    )}
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: 'spring', damping: 10, stiffness: 200 }}
-                      className="flex flex-col items-center"
-                    >
-                      <span
-                        className={`text-3xl font-black ${r.id === socketId ? 'text-accent-blue' : 'text-primary'}`}
-                        style={{ fontFamily: 'var(--font-display)' }}
-                      >
-                        {r.number}
-                      </span>
-                      <span className={`text-[10px] font-semibold ${r.id === socketId ? 'text-accent-blue/70' : 'text-text-light'}`}>
-                        {r.nickname}
-                      </span>
+                    {i > 0 && (<motion.span initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} className="text-lg font-bold text-text-light">+</motion.span>)}
+                    <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 10, stiffness: 200 }} className="flex flex-col items-center">
+                      <span className={`text-3xl font-black ${r.id === socketId ? 'text-accent-blue' : isAvgMode ? 'text-accent-purple' : 'text-primary'}`} style={{ fontFamily: 'var(--font-display)' }}>{r.number}</span>
+                      <span className={`text-[10px] font-semibold ${r.id === socketId ? 'text-accent-blue/70' : 'text-text-light'}`}>{r.nickname}</span>
                     </motion.div>
                   </>
                 )}
               </AnimatePresence>
             ))}
           </div>
-
-          {/* Divider */}
           <div className="h-px bg-[#e8e0d4]" style={{ marginBottom: '12px' }} />
-
-          {/* Running sum */}
           <div className="flex items-center justify-center gap-2">
             <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('total')}:</span>
-            <motion.span
-              key={runningSum}
-              initial={{ scale: 1.4, color: '#2bb5a0' }}
-              animate={{ scale: 1, color: runningSum > target ? '#e85d75' : '#2bb5a0' }}
-              className="text-3xl font-black"
-              style={{ fontFamily: 'var(--font-display)' }}
-            >
+            <motion.span key={runningSum} initial={{ scale: 1.4 }} animate={{ scale: 1 }} className={`text-3xl font-black ${isAvgMode ? 'text-accent-purple' : (runningSum > (revealData.target || Infinity) ? 'text-accent-red' : 'text-primary')}`} style={{ fontFamily: 'var(--font-display)' }}>
               {revealStep > 0 ? runningSum : '?'}
             </motion.span>
           </div>
         </motion.div>
 
-        {/* === Sum vs Target comparison === */}
         <AnimatePresence>
-          {showTotal && (
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', damping: 12 }}
-              className="cartoon-card w-full max-w-md text-center"
-              style={{ padding: '24px 20px', marginBottom: '20px' }}
-            >
-              <div className="flex items-center justify-center gap-4" style={{ marginBottom: '16px' }}>
-                <div className="flex flex-col items-center">
-                  <span className="text-xs font-bold text-text-light uppercase">{t('total')}</span>
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', delay: 0.3 }}
-                    className={`text-4xl font-black ${isSafe ? 'text-primary' : 'text-accent-red'}`}
-                    style={{ fontFamily: 'var(--font-display)' }}
-                  >
-                    {totalSum}
-                  </motion.span>
+          {showCalc && (
+            <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 12 }} className="cartoon-card w-full max-w-md text-center" style={{ padding: '24px 20px', marginBottom: '20px' }}>
+              {isAvgMode ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-text-light uppercase">avg</span>
+                    <span className="text-2xl font-black text-accent-purple" style={{ fontFamily: 'var(--font-display)' }}>
+                      {revealData.average !== undefined ? Math.round(revealData.average * 100) / 100 : '?'}
+                    </span>
+                  </div>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-text-light">Ã—</span>
+                    <span className="text-2xl font-black text-accent-purple" style={{ fontFamily: 'var(--font-display)' }}>0.8</span>
+                    <span className="text-2xl font-black text-text-light">=</span>
+                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.6 }} className="text-4xl font-black text-accent-orange" style={{ fontFamily: 'var(--font-display)' }}>
+                      {revealData.magicNumber}
+                    </motion.span>
+                  </motion.div>
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="text-sm font-bold text-primary">{t('closestWins')}</motion.p>
                 </div>
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className={`text-2xl font-black ${isSafe ? 'text-primary' : 'text-accent-red'}`}
-                >
-                  {isSafe ? '≤' : '>'}
-                </motion.span>
-                <div className="flex flex-col items-center">
-                  <span className="text-xs font-bold text-text-light uppercase">{t('target')}</span>
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', delay: 0.3 }}
-                    className="text-4xl font-black text-accent-orange"
-                    style={{ fontFamily: 'var(--font-display)' }}
-                  >
-                    {target}
-                  </motion.span>
+              ) : (
+                <div className="flex items-center justify-center gap-4">
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-bold text-text-light uppercase">{t('total')}</span>
+                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} className={`text-4xl font-black ${revealData.isSafe ? 'text-primary' : 'text-accent-red'}`} style={{ fontFamily: 'var(--font-display)' }}>{revealData.totalSum}</motion.span>
+                  </div>
+                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5 }} className={`text-2xl font-black ${revealData.isSafe ? 'text-primary' : 'text-accent-red'}`}>{revealData.isSafe ? 'â‰¤' : '>'}</motion.span>
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-bold text-text-light uppercase">{t('target')}</span>
+                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} className="text-4xl font-black text-accent-orange" style={{ fontFamily: 'var(--font-display)' }}>{revealData.target}</motion.span>
+                  </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* === Winner announcement === */}
         <AnimatePresence>
           {showWinner && winner && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0, rotate: -5 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              transition={{ type: 'spring', damping: 10 }}
-              className={`cartoon-card w-full max-w-md text-center border-2 ${isSafe ? 'border-primary/30' : 'border-accent-red/30'}`}
-              style={{ padding: '24px 20px', marginBottom: '24px' }}
-            >
-              <motion.div
-                animate={{ rotate: [0, -10, 10, -5, 5, 0] }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                style={{ marginBottom: '8px' }}
-              >
+            <motion.div initial={{ scale: 0, opacity: 0, rotate: -5 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: 'spring', damping: 10 }} className={`cartoon-card w-full max-w-md text-center border-2 ${isAvgMode ? 'border-accent-purple/30' : (revealData.isSafe ? 'border-primary/30' : 'border-accent-red/30')}`} style={{ padding: '24px 20px', marginBottom: '24px' }}>
+              <motion.div animate={{ rotate: [0, -10, 10, -5, 5, 0] }} transition={{ duration: 0.8, delay: 0.3 }} style={{ marginBottom: '8px' }}>
                 <Crown size={32} className="text-accent-yellow mx-auto" />
               </motion.div>
               <p className="text-xs font-bold text-text-light uppercase tracking-wider" style={{ marginBottom: '4px' }}>
-                {isSafe ? t('highestWins') : t('lowestWins')}
+                {isAvgMode ? t('closestWins') : (revealData.isSafe ? t('highestWins') : t('lowestWins'))}
               </p>
-              <p className="text-2xl font-black text-text-dark" style={{ fontFamily: 'var(--font-display)', marginBottom: '4px' }}>
-                {winner.nickname}
-              </p>
-              <span
-                className={`text-4xl font-black ${isSafe ? 'text-primary' : 'text-accent-red'}`}
-                style={{ fontFamily: 'var(--font-display)' }}
-              >
-                {winner.number}
-              </span>
+              <p className="text-2xl font-black text-text-dark" style={{ fontFamily: 'var(--font-display)', marginBottom: '4px' }}>{winner.nickname}</p>
+              <span className={`text-4xl font-black ${isAvgMode ? 'text-accent-purple' : (revealData.isSafe ? 'text-primary' : 'text-accent-red')}`} style={{ fontFamily: 'var(--font-display)' }}>{winner.number}</span>
+              {isAvgMode && winner.distance !== undefined && (
+                <p className="text-xs text-text-light" style={{ marginTop: '4px' }}>(Î” {Math.round(winner.distance * 100) / 100})</p>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* View leaderboard button */}
         <AnimatePresence>
           {revealDone && (
-            <motion.button
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setShowScoreboard(true)}
-              className="pill-btn pill-btn-accent w-full max-w-md flex items-center justify-center gap-3 text-lg py-4"
-            >
+            <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setShowScoreboard(true)} className="pill-btn pill-btn-accent w-full max-w-md flex items-center justify-center gap-3 text-lg py-4">
               <Trophy size={20} />
               {t('viewLeaderboard')}
             </motion.button>
@@ -450,6 +417,7 @@ export default function GamePage({
       </div>
     );
   }
+
 
   // ==========================================
   // SCOREBOARD PHASE
@@ -474,7 +442,7 @@ export default function GamePage({
           <span className="text-sm text-text-light">{t('afterRound', revealData.round)}</span>
         </motion.div>
 
-        {/* Leaderboard (trên) */}
+        {/* Leaderboard (trÃªn) */}
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}
           className="cartoon-card w-full max-w-md"
           style={{ padding: '24px 28px', marginBottom: '20px' }}
@@ -562,7 +530,7 @@ export default function GamePage({
           })()}
         </motion.div>
 
-        {/* Round points recap (dưới cùng) */}
+        {/* Round points recap (dÆ°á»›i cÃ¹ng) */}
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}
           className="cartoon-card w-full max-w-md"
           style={{ padding: '24px 28px', marginTop: '20px' }}

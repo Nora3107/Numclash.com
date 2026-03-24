@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut, Globe, Lock, MessageCircle, Send, X } from 'lucide-react';
+import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut, Globe, Lock, MessageCircle, Send, X, Gamepad2 } from 'lucide-react';
 import { useLang } from '../i18n';
 
 const ROUND_OPTIONS = [1, 4, 8, 18, 36];
 
-export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName, chatMessages = [], onSendMessage, onKickPlayer }) {
+export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName, chatMessages = [], onSendMessage, onKickPlayer, onSetGameMode, onSwapSeat }) {
   const [copied, setCopied] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef(null);
@@ -167,6 +167,38 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
         </motion.div>
       )}
 
+      {/* Game Mode selector */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.25 }}
+        className="cartoon-card w-full max-w-md"
+        style={{ padding: '18px 24px', marginBottom: '14px' }}
+      >
+        <div className="flex items-center gap-2" style={{ marginBottom: '12px' }}>
+          <Gamepad2 size={16} className="text-accent-orange" />
+          <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('gameMode')}</span>
+        </div>
+        <div className="flex gap-3">
+          {[{ key: 'classic', label: t('modeClassic') }, { key: 'average', label: t('modeAverage') }].map((mode) => (
+            <motion.button
+              key={mode.key}
+              whileHover={isHost ? { scale: 1.03 } : {}}
+              whileTap={isHost ? { scale: 0.97 } : {}}
+              onClick={() => isHost && onSetGameMode(mode.key)}
+              className={`flex-1 rounded-2xl font-bold text-sm transition-all duration-200 border-2 ${
+                roomInfo.gameMode === mode.key
+                  ? 'bg-accent-orange/10 text-accent-orange border-accent-orange/40 shadow-md'
+                  : 'bg-bg-warm text-text-mid border-[#e0d8cc]'
+              } ${isHost ? 'cursor-pointer hover:border-text-light' : 'cursor-default'}`}
+              style={{ padding: '10px 0' }}
+            >
+              {mode.label}
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+
       {/* Player List */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
@@ -192,8 +224,11 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.1 * index }}
-              className="flex items-center gap-3 rounded-2xl bg-bg-soft border-2 border-[#e8e0d4]"
+              className={`flex items-center gap-3 rounded-2xl bg-bg-soft border-2 border-[#e8e0d4] ${player.id !== socketId ? 'cursor-pointer hover:border-primary/30' : ''}`}
               style={{ padding: '12px 14px' }}
+              onClick={() => {
+                if (player.id !== socketId) onSwapSeat(index);
+              }}
             >
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg text-white ${
                 player.isHost ? 'bg-gradient-to-br from-accent-yellow to-accent-orange' : 'bg-gradient-to-br from-primary to-primary-dark'

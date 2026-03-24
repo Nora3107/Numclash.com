@@ -156,6 +156,8 @@ function App() {
   const handleSetRoomName = useCallback((name) => { socket.emit('set-room-name', { roomCode, name }); }, [roomCode]);
   const handleSendMessage = useCallback((text) => { socket.emit('send-message', { roomCode, text }); }, [roomCode]);
   const handleKickPlayer = useCallback((targetId) => { socket.emit('kick-player', { roomCode, targetId }); }, [roomCode]);
+  const handleSetGameMode = useCallback((mode) => { socket.emit('set-game-mode', { roomCode, mode }); }, [roomCode]);
+  const handleSwapSeat = useCallback((targetIndex) => { socket.emit('swap-seat', { roomCode, targetIndex }); }, [roomCode]);
   const handleLeaveRoom = useCallback(() => { socket.emit('leave-room'); }, []);
 
   useEffect(() => {
@@ -253,7 +255,7 @@ function App() {
         )}
         {screen === 'lobby' && (
           <motion.div key="lobby" {...pageVariants}>
-            <LobbyPage roomInfo={roomInfo} roomCode={roomCode} isHost={isHost} onStartGame={handleStartGame} onSetRounds={handleSetRounds} onToggleReady={handleToggleReady} onLeaveRoom={handleLeaveRoom} socketId={socket.id} onToggleRoomPublic={handleToggleRoomPublic} onSetRoomName={handleSetRoomName} chatMessages={chatMessages} onSendMessage={handleSendMessage} onKickPlayer={handleKickPlayer} />
+            <LobbyPage roomInfo={roomInfo} roomCode={roomCode} isHost={isHost} onStartGame={handleStartGame} onSetRounds={handleSetRounds} onToggleReady={handleToggleReady} onLeaveRoom={handleLeaveRoom} socketId={socket.id} onToggleRoomPublic={handleToggleRoomPublic} onSetRoomName={handleSetRoomName} chatMessages={chatMessages} onSendMessage={handleSendMessage} onKickPlayer={handleKickPlayer} onSetGameMode={handleSetGameMode} onSwapSeat={handleSwapSeat} />
           </motion.div>
         )}
         {screen === 'game' && (

@@ -99,6 +99,22 @@ function setupSocketHandlers(io) {
       }
     });
 
+    socket.on('set-game-mode', ({ roomCode, mode }) => {
+      const success = gameManager.setGameMode(roomCode, socket.id, mode);
+      if (success) {
+        io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+        const modeName = mode === 'average' ? 'Average ×0.8' : 'Classic';
+        io.to(roomCode).emit('new-message', { system: true, text: `Chế độ chơi: ${modeName}`, time: Date.now() });
+      }
+    });
+
+    socket.on('swap-seat', ({ roomCode, targetIndex }) => {
+      const success = gameManager.swapSeat(roomCode, socket.id, targetIndex);
+      if (success) {
+        io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+      }
+    });
+
     socket.on('kick-player', ({ roomCode, targetId }) => {
       const room = gameManager.getRoom(roomCode);
       if (!room || room.hostId !== socket.id) return;
