@@ -16,6 +16,7 @@ function App() {
   const [roomInfo, setRoomInfo] = useState(null);
   const [isHost, setIsHost] = useState(false);
   const [error, setError] = useState('');
+  const [oldMaidInitialState, setOldMaidInitialState] = useState(null);
 
   const [roundData, setRoundData] = useState(null);
   const [revealData, setRevealData] = useState(null);
@@ -36,7 +37,8 @@ function App() {
       setGamePhase('picking');
       setScreen('game');
     });
-    socket.on('oldmaid-state', () => {
+    socket.on('oldmaid-state', (state) => {
+      setOldMaidInitialState(state);
       setScreen('oldmaid');
     });
     socket.on('player-status-updated', (players) => {
@@ -279,7 +281,7 @@ function App() {
         )}
         {screen === 'oldmaid' && (
           <motion.div key="oldmaid" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
-            <OldMaidPage socket={socket} roomInfo={roomInfo} onLeave={handleLeaveOldMaid} />
+            <OldMaidPage socket={socket} roomInfo={roomInfo} onLeave={handleLeaveOldMaid} initialState={oldMaidInitialState} />
           </motion.div>
         )}
       </AnimatePresence>

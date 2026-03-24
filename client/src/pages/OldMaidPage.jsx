@@ -56,8 +56,8 @@ function slotToCoords(slotName) {
   }
 }
 
-export default function OldMaidPage({ socket, roomInfo, onLeave }) {
-  const [gameState, setGameState] = useState(null);
+export default function OldMaidPage({ socket, roomInfo, onLeave, initialState }) {
+  const [gameState, setGameState] = useState(initialState || null);
   const [timer, setTimer] = useState(15);
   const [showChat, setShowChat] = useState(false);
   const [chatBubbles, setChatBubbles] = useState({});
