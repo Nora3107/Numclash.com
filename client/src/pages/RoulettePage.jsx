@@ -249,29 +249,40 @@ function DeckStack({ count }) {
 // ==========================================
 
 function PlayerSeat({ position, rotation, name, hp, maxHp, status, isActive, isSelf, cardCount, slotIndex }) {
-  const groupRef = useRef();
   const bodyRef = useRef();
   const glowRef = useRef();
+  const headRef = useRef();
 
   const bodyColor = useMemo(() => {
-    const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12'];
+    const colors = ['#c0392b', '#2980b9', '#27ae60', '#e67e22'];
     return status === 'dead' ? '#444' : colors[slotIndex % 4];
   }, [slotIndex, status]);
 
-  const skinColor = status === 'dead' ? '#666' : '#f5d0a9';
+  const darkerBody = useMemo(() => {
+    const colors = ['#922b21', '#1f6da0', '#1e8449', '#b8651a'];
+    return status === 'dead' ? '#333' : colors[slotIndex % 4];
+  }, [slotIndex, status]);
+
+  const skinColor = status === 'dead' ? '#666' : '#f0c8a0';
+  const isDead = status === 'dead';
+  const opacity = isDead ? 0.3 : 1;
 
   useFrame((state) => {
     if (!bodyRef.current) return;
-
-    // Breathing animation
-    const breathe = Math.sin(state.clock.getElapsedTime() * 1.5 + slotIndex) * 0.015;
+    // Breathing
+    const breathe = Math.sin(state.clock.getElapsedTime() * 1.5 + slotIndex) * 0.012;
     bodyRef.current.scale.y = 1 + breathe;
-    bodyRef.current.position.y = 0.8 + breathe * 2;
 
-    // Active glow pulse
+    // Head gentle sway
+    if (headRef.current && !isDead) {
+      headRef.current.rotation.z = Math.sin(state.clock.getElapsedTime() * 0.8 + slotIndex * 2) * 0.03;
+      headRef.current.rotation.x = Math.sin(state.clock.getElapsedTime() * 0.6 + slotIndex) * 0.02;
+    }
+
+    // Active glow
     if (glowRef.current && isActive) {
-      const pulse = 0.5 + Math.sin(state.clock.getElapsedTime() * 3) * 0.3;
-      glowRef.current.material.emissiveIntensity = pulse;
+      const p = 0.5 + Math.sin(state.clock.getElapsedTime() * 3) * 0.3;
+      glowRef.current.material.emissiveIntensity = p;
     }
   });
 
@@ -280,118 +291,216 @@ function PlayerSeat({ position, rotation, name, hp, maxHp, status, isActive, isS
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Shadow circle */}
+      {/* Ground shadow */}
       <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.4, 32]} />
-        <meshBasicMaterial color="#000" transparent opacity={0.25} />
+        <circleGeometry args={[0.5, 32]} />
+        <meshBasicMaterial color="#000" transparent opacity={0.2} />
       </mesh>
 
-      {/* Active ring with glow */}
+      {/* Active ring */}
       {isActive && (
         <mesh ref={glowRef} position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[0.55, 0.04, 8, 32]} />
-          <meshStandardMaterial color="#ffd700" emissive="#ffa000" emissiveIntensity={0.5} metalness={0.8} roughness={0.3} />
+          <torusGeometry args={[0.6, 0.05, 8, 32]} />
+          <meshStandardMaterial color="#d4af37" emissive="#d4af37" emissiveIntensity={0.5} metalness={0.8} roughness={0.3} />
         </mesh>
       )}
 
-      {/* Body */}
-      <group ref={bodyRef} position={[0, 0.8, 0]}>
-        {/* Torso */}
-        <mesh castShadow>
-          <capsuleGeometry args={[0.2, 0.45, 12, 20]} />
-          <meshStandardMaterial
-            color={bodyColor}
-            roughness={0.6}
-            metalness={0.05}
-            transparent={status === 'dead'}
-            opacity={status === 'dead' ? 0.35 : 1}
-          />
+      {/* === BODY === */}
+      <group ref={bodyRef}>
+        {/* Lower body / pants */}
+        <mesh position={[0, 0.35, 0]} castShadow>
+          <capsuleGeometry args={[0.18, 0.25, 10, 16]} />
+          <meshStandardMaterial color={darkerBody} roughness={0.7} transparent={isDead} opacity={opacity} />
         </mesh>
-        {/* Collar detail */}
-        <mesh position={[0, 0.28, 0]}>
-          <torusGeometry args={[0.18, 0.03, 8, 16]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.5} metalness={0.1} />
+        {/* Upper body / shirt */}
+        <mesh position={[0, 0.75, 0]} castShadow>
+          <capsuleGeometry args={[0.22, 0.3, 10, 16]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.55} transparent={isDead} opacity={opacity} />
         </mesh>
-        {/* Arms */}
-        <mesh position={[-0.28, 0, 0.05]} rotation={[0, 0, 0.2]} castShadow>
-          <capsuleGeometry args={[0.06, 0.35, 8, 12]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.6} transparent={status === 'dead'} opacity={status === 'dead' ? 0.35 : 1} />
+        {/* Belt */}
+        <mesh position={[0, 0.55, 0]}>
+          <torusGeometry args={[0.19, 0.02, 8, 16]} />
+          <meshStandardMaterial color="#222" metalness={0.6} roughness={0.3} transparent={isDead} opacity={opacity} />
         </mesh>
-        <mesh position={[0.28, 0, 0.05]} rotation={[0, 0, -0.2]} castShadow>
-          <capsuleGeometry args={[0.06, 0.35, 8, 12]} />
-          <meshStandardMaterial color={bodyColor} roughness={0.6} transparent={status === 'dead'} opacity={status === 'dead' ? 0.35 : 1} />
+        {/* Belt buckle */}
+        <mesh position={[0, 0.55, 0.18]}>
+          <boxGeometry args={[0.06, 0.05, 0.01]} />
+          <meshStandardMaterial color="#d4af37" metalness={0.9} roughness={0.2} transparent={isDead} opacity={opacity} />
+        </mesh>
+
+        {/* Left arm (upper) */}
+        <mesh position={[-0.3, 0.78, 0.05]} rotation={[0.15, 0, 0.35]} castShadow>
+          <capsuleGeometry args={[0.055, 0.22, 8, 10]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.55} transparent={isDead} opacity={opacity} />
+        </mesh>
+        {/* Left forearm */}
+        <mesh position={[-0.42, 0.58, 0.12]} rotation={[0.5, 0, 0.15]} castShadow>
+          <capsuleGeometry args={[0.045, 0.2, 8, 10]} />
+          <meshStandardMaterial color={skinColor} roughness={0.65} transparent={isDead} opacity={opacity} />
+        </mesh>
+        {/* Left hand */}
+        <mesh position={[-0.46, 0.42, 0.2]}>
+          <sphereGeometry args={[0.05, 10, 10]} />
+          <meshStandardMaterial color={skinColor} roughness={0.65} transparent={isDead} opacity={opacity} />
+        </mesh>
+
+        {/* Right arm (upper) */}
+        <mesh position={[0.3, 0.78, 0.05]} rotation={[0.15, 0, -0.35]} castShadow>
+          <capsuleGeometry args={[0.055, 0.22, 8, 10]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.55} transparent={isDead} opacity={opacity} />
+        </mesh>
+        {/* Right forearm */}
+        <mesh position={[0.42, 0.58, 0.12]} rotation={[0.5, 0, -0.15]} castShadow>
+          <capsuleGeometry args={[0.045, 0.2, 8, 10]} />
+          <meshStandardMaterial color={skinColor} roughness={0.65} transparent={isDead} opacity={opacity} />
+        </mesh>
+        {/* Right hand */}
+        <mesh position={[0.46, 0.42, 0.2]}>
+          <sphereGeometry args={[0.05, 10, 10]} />
+          <meshStandardMaterial color={skinColor} roughness={0.65} transparent={isDead} opacity={opacity} />
+        </mesh>
+
+        {/* Left leg */}
+        <mesh position={[-0.1, 0.1, 0]} castShadow>
+          <capsuleGeometry args={[0.07, 0.2, 8, 10]} />
+          <meshStandardMaterial color={darkerBody} roughness={0.7} transparent={isDead} opacity={opacity} />
+        </mesh>
+        {/* Right leg */}
+        <mesh position={[0.1, 0.1, 0]} castShadow>
+          <capsuleGeometry args={[0.07, 0.2, 8, 10]} />
+          <meshStandardMaterial color={darkerBody} roughness={0.7} transparent={isDead} opacity={opacity} />
+        </mesh>
+        {/* Shoes */}
+        <mesh position={[-0.1, -0.02, 0.03]}>
+          <boxGeometry args={[0.1, 0.04, 0.15]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.5} transparent={isDead} opacity={opacity} />
+        </mesh>
+        <mesh position={[0.1, -0.02, 0.03]}>
+          <boxGeometry args={[0.1, 0.04, 0.15]} />
+          <meshStandardMaterial color="#1a1a1a" roughness={0.5} transparent={isDead} opacity={opacity} />
         </mesh>
       </group>
 
-      {/* Head */}
-      <mesh position={[0, 1.45, 0]} castShadow>
-        <sphereGeometry args={[0.2, 20, 20]} />
-        <meshStandardMaterial color={skinColor} roughness={0.65} />
-      </mesh>
-      {/* Hair */}
-      <mesh position={[0, 1.58, -0.02]}>
-        <sphereGeometry args={[0.18, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color={status === 'dead' ? '#555' : '#2a1a0a'} roughness={0.8} />
-      </mesh>
-
-      {/* Eyes */}
-      {status !== 'dead' && (
-        <>
-          <mesh position={[-0.07, 1.48, 0.17]}>
-            <sphereGeometry args={[0.03, 8, 8]} />
-            <meshBasicMaterial color="#1a1a1a" />
-          </mesh>
-          <mesh position={[0.07, 1.48, 0.17]}>
-            <sphereGeometry args={[0.03, 8, 8]} />
-            <meshBasicMaterial color="#1a1a1a" />
-          </mesh>
-        </>
-      )}
-      {/* Dead X eyes */}
-      {status === 'dead' && (
-        <Text position={[0, 1.48, 0.19]} fontSize={0.12} color="#ff0000" anchorX="center">
-          ✕ ✕
-        </Text>
-      )}
-
-      {/* Name plate */}
-      <group position={[0, 1.85, 0]}>
-        {/* Background */}
-        <mesh>
-          <boxGeometry args={[name ? name.length * 0.1 + 0.3 : 0.8, 0.2, 0.02]} />
-          <meshStandardMaterial color="#000" transparent opacity={0.6} />
+      {/* === HEAD === */}
+      <group ref={headRef} position={[0, 1.2, 0]}>
+        {/* Neck */}
+        <mesh position={[0, -0.12, 0]} castShadow>
+          <cylinderGeometry args={[0.06, 0.08, 0.1, 10]} />
+          <meshStandardMaterial color={skinColor} roughness={0.65} transparent={isDead} opacity={opacity} />
         </mesh>
-        <Text position={[0, 0.01, 0.02]} fontSize={0.12} color={isSelf ? '#4fc3f7' : '#fff'} anchorX="center" anchorY="middle">
+        {/* Head */}
+        <mesh castShadow>
+          <sphereGeometry args={[0.2, 20, 20]} />
+          <meshStandardMaterial color={skinColor} roughness={0.6} transparent={isDead} opacity={opacity} />
+        </mesh>
+        {/* Hair */}
+        <mesh position={[0, 0.08, -0.02]}>
+          <sphereGeometry args={[0.19, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
+          <meshStandardMaterial color={isDead ? '#444' : '#1a0e05'} roughness={0.85} transparent={isDead} opacity={opacity} />
+        </mesh>
+        {/* Ears */}
+        <mesh position={[-0.19, 0, 0]}>
+          <sphereGeometry args={[0.04, 8, 8]} />
+          <meshStandardMaterial color={skinColor} roughness={0.65} transparent={isDead} opacity={opacity} />
+        </mesh>
+        <mesh position={[0.19, 0, 0]}>
+          <sphereGeometry args={[0.04, 8, 8]} />
+          <meshStandardMaterial color={skinColor} roughness={0.65} transparent={isDead} opacity={opacity} />
+        </mesh>
+
+        {/* Face */}
+        {!isDead && (
+          <>
+            {/* Eye whites */}
+            <mesh position={[-0.065, 0.03, 0.17]}>
+              <sphereGeometry args={[0.035, 10, 10]} />
+              <meshBasicMaterial color="#fff" />
+            </mesh>
+            <mesh position={[0.065, 0.03, 0.17]}>
+              <sphereGeometry args={[0.035, 10, 10]} />
+              <meshBasicMaterial color="#fff" />
+            </mesh>
+            {/* Pupils */}
+            <mesh position={[-0.065, 0.03, 0.2]}>
+              <sphereGeometry args={[0.02, 8, 8]} />
+              <meshBasicMaterial color="#1a1a1a" />
+            </mesh>
+            <mesh position={[0.065, 0.03, 0.2]}>
+              <sphereGeometry args={[0.02, 8, 8]} />
+              <meshBasicMaterial color="#1a1a1a" />
+            </mesh>
+            {/* Eyebrows */}
+            <mesh position={[-0.065, 0.08, 0.18]} rotation={[0, 0, -0.1]}>
+              <boxGeometry args={[0.06, 0.012, 0.01]} />
+              <meshBasicMaterial color="#1a0e05" />
+            </mesh>
+            <mesh position={[0.065, 0.08, 0.18]} rotation={[0, 0, 0.1]}>
+              <boxGeometry args={[0.06, 0.012, 0.01]} />
+              <meshBasicMaterial color="#1a0e05" />
+            </mesh>
+            {/* Nose */}
+            <mesh position={[0, -0.01, 0.19]}>
+              <sphereGeometry args={[0.02, 6, 6]} />
+              <meshStandardMaterial color={skinColor} roughness={0.7} />
+            </mesh>
+            {/* Mouth */}
+            <mesh position={[0, -0.06, 0.18]} rotation={[0.1, 0, 0]}>
+              <torusGeometry args={[0.03, 0.008, 6, 12, Math.PI]} />
+              <meshBasicMaterial color="#c0392b" />
+            </mesh>
+          </>
+        )}
+        {/* Dead X eyes */}
+        {isDead && (
+          <Text position={[0, 0.03, 0.2]} fontSize={0.1} color="#ff0000" anchorX="center" outlineWidth={0.01} outlineColor="#000">
+            ✕ ✕
+          </Text>
+        )}
+      </group>
+
+      {/* === NAME PLATE === */}
+      <group position={[0, 1.55, 0]}>
+        <mesh position={[0, 0, 0]}>
+          <boxGeometry args={[Math.max(0.8, (name?.length || 3) * 0.09 + 0.3), 0.18, 0.015]} />
+          <meshStandardMaterial color="#0a0a0f" transparent opacity={0.75} metalness={0.2} />
+        </mesh>
+        {/* Gold border top/bottom */}
+        <mesh position={[0, 0.085, 0.008]}>
+          <boxGeometry args={[Math.max(0.8, (name?.length || 3) * 0.09 + 0.3), 0.005, 0.005]} />
+          <meshStandardMaterial color="#d4af37" emissive="#aa8830" emissiveIntensity={0.3} metalness={0.9} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, -0.085, 0.008]}>
+          <boxGeometry args={[Math.max(0.8, (name?.length || 3) * 0.09 + 0.3), 0.005, 0.005]} />
+          <meshStandardMaterial color="#d4af37" emissive="#aa8830" emissiveIntensity={0.3} metalness={0.9} roughness={0.2} />
+        </mesh>
+        <Text position={[0, 0, 0.01]} fontSize={0.09} color={isSelf ? '#4fc3f7' : '#d4af37'} anchorX="center" anchorY="middle" outlineWidth={0.005} outlineColor="#000">
           {name || '???'}
         </Text>
       </group>
 
-      {/* HP bar 3D */}
-      <group position={[0, 1.72, 0]}>
-        {/* BG */}
+      {/* === HP BAR === */}
+      <group position={[0, 1.42, 0]}>
         <mesh>
-          <boxGeometry args={[0.7, 0.06, 0.015]} />
-          <meshBasicMaterial color="#1a1a1a" transparent opacity={0.7} />
+          <boxGeometry args={[0.65, 0.05, 0.012]} />
+          <meshBasicMaterial color="#111" transparent opacity={0.7} />
         </mesh>
-        {/* Fill */}
-        <mesh position={[-(0.7 - 0.7 * hpPercent) / 2, 0, 0.008]}>
-          <boxGeometry args={[Math.max(0.01, 0.7 * hpPercent), 0.045, 0.008]} />
+        <mesh position={[-(0.65 - 0.65 * hpPercent) / 2, 0, 0.007]}>
+          <boxGeometry args={[Math.max(0.01, 0.65 * hpPercent), 0.035, 0.006]} />
           <meshBasicMaterial color={hpColor} />
         </mesh>
-        {/* HP text */}
-        <Text position={[0.42, 0, 0.02]} fontSize={0.06} color="#aaa" anchorX="left">
+        <Text position={[0.38, 0, 0.015]} fontSize={0.04} color="#888" anchorX="left">
           {hp}/{maxHp}
         </Text>
       </group>
 
       {/* Card count badge */}
       {cardCount > 0 && (
-        <group position={[0.45, 1.45, 0]}>
+        <group position={[0.4, 1.15, 0.15]}>
           <mesh>
-            <boxGeometry args={[0.22, 0.18, 0.02]} />
-            <meshStandardMaterial color="#1565c0" roughness={0.3} />
+            <boxGeometry args={[0.18, 0.15, 0.015]} />
+            <meshStandardMaterial color="#0d47a1" roughness={0.3} transparent={isDead} opacity={opacity} />
           </mesh>
-          <Text position={[0, 0, 0.02]} fontSize={0.1} color="#fff" anchorX="center">
+          <Text position={[0, 0, 0.01]} fontSize={0.08} color="#fff" anchorX="center">
             {cardCount}
           </Text>
         </group>
