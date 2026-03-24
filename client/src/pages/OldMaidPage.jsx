@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crown, MessageCircle, ArrowLeft, Trophy } from 'lucide-react';
 import Card from '../components/Card';
@@ -15,7 +15,13 @@ const QUICK_CHATS = [
   '🤔🤔🤔',
 ];
 
-// Player slot positions based on count
+// Stable pile positions — pre-computed once
+const PILE_POSITIONS = Array.from({ length: 8 }, (_, i) => ({
+  left: 30 + ((i * 37 + 13) % 40),
+  top: 25 + ((i * 29 + 7) % 35),
+  rot: ((i * 23 + 5) % 40) - 20,
+}));
+
 function getSlotPositions(count) {
   const slotNames = {
     2: ['bottom', 'top'],
@@ -37,10 +43,14 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
   const [draggedCard, setDraggedCard] = useState(null);
   const [actionLog, setActionLog] = useState([]);
   const [lastDiscardedPair, setLastDiscardedPair] = useState(null);
+  const [pileCount, setPileCount] = useState(0);
+
+  // Animation states
+  const [flyingCard, setFlyingCard] = useState(null);       // { from, to } slot names
+  const [flyingPair, setFlyingPair] = useState(null);       // pair flying to center
 
   const socketId = socket.id;
 
-  // Add action message
   const addAction = useCallback((text) => {
     const id = Date.now() + Math.random();
     setActionLog(prev => [...prev.slice(-2), { id, text }]);
@@ -54,10 +64,10 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     return p ? p.nickname : 'Player';
   }, [roomInfo]);
 
-  // Socket listeners
   useEffect(() => {
     socket.on('oldmaid-state', (state) => {
       setGameState(state);
+      setPileCount(Math.floor((state.discardPile?.length || 0) / 2));
     });
 
     socket.on('oldmaid-turn', (data) => {
@@ -76,24 +86,47 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     });
 
     socket.on('oldmaid-draw', (data) => {
+      // Show flying card animation
+      setFlyingCard({ from: data.from, to: data.to });
       addAction(`🃏 ${getPlayerName(data.to)} rút bài từ ${getPlayerName(data.from)}`);
-      if (data.discarded && data.discarded.length > 0) {
-        setLastDiscardedPair(data.discarded.slice(0, 2));
-        setTimeout(() => {
-          addAction(`✨ ${getPlayerName(data.to)} vứt 1 cặp!`);
-        }, 500);
-      }
+
+      setTimeout(() => {
+        setFlyingCard(null);
+
+        if (data.discarded && data.discarded.length > 0) {
+          // Show pair flying to center
+          setFlyingPair(data.discarded.slice(0, 2));
+          setTimeout(() => {
+            addAction(`✨ ${getPlayerName(data.to)} vứt 1 cặp!`);
+          }, 300);
+          setTimeout(() => {
+            setLastDiscardedPair(data.discarded.slice(0, 2));
+            setFlyingPair(null);
+            setPileCount(prev => prev + 1);
+          }, 900);
+        }
+      }, 700);
     });
 
     socket.on('oldmaid-auto-draw', (data) => {
+      setFlyingCard({ from: data.from, to: data.to });
       addAction(`⏰ Hết giờ! ${getPlayerName(data.to)} tự động rút bài`);
-      if (data.discarded && data.discarded.length > 0) {
-        setLastDiscardedPair(data.discarded.slice(0, 2));
-      }
+      setTimeout(() => {
+        setFlyingCard(null);
+        if (data.discarded && data.discarded.length > 0) {
+          setFlyingPair(data.discarded.slice(0, 2));
+          setTimeout(() => {
+            setLastDiscardedPair(data.discarded.slice(0, 2));
+            setFlyingPair(null);
+            setPileCount(prev => prev + 1);
+          }, 900);
+        }
+      }, 700);
     });
 
     socket.on('oldmaid-initial-discard', (data) => {
       addAction(`♻️ Tự động vứt các cặp bài ban đầu`);
+      setPileCount(Math.floor((data.discardPile?.length || 0) / 2));
     });
 
     socket.on('oldmaid-hand-reordered', ({ playerId, hands }) => {
@@ -172,13 +205,11 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     );
   }
 
-  const { playerIds, myHand, hands, discardPile, currentTurn, drawTarget, rankings, phase } = gameState;
+  const { playerIds, myHand, hands, currentTurn, drawTarget, rankings, phase } = gameState;
   const myIndex = playerIds.indexOf(socketId);
   const isMyTurn = currentTurn === socketId;
   const slots = getSlotPositions(playerIds.length);
-  const players = roomInfo?.players || [];
 
-  // Reorder players so local is always slot 0 (bottom)
   const orderedPlayers = [];
   for (let i = 0; i < playerIds.length; i++) {
     const idx = (myIndex + i) % playerIds.length;
@@ -187,6 +218,27 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
 
   const myHandCount = myHand?.length || 0;
   const amOut = myHandCount === 0 && rankings.includes(socketId);
+
+  // Get slot position name for a player id
+  const getPlayerSlot = (pid) => {
+    const entry = orderedPlayers.find(e => e.pid === pid);
+    return entry ? slots[entry.slotIndex] : 'top';
+  };
+
+  // Map slot position to approximate CSS coordinates for flying animation
+  const slotToCoords = (slotName) => {
+    switch (slotName) {
+      case 'bottom': return { x: '50vw', y: '85vh' };
+      case 'top': return { x: '50vw', y: '8vh' };
+      case 'left': return { x: '8vw', y: '50vh' };
+      case 'right': return { x: '92vw', y: '50vh' };
+      case 'left-top': return { x: '8vw', y: '28vh' };
+      case 'left-bottom': return { x: '8vw', y: '72vh' };
+      case 'right-top': return { x: '92vw', y: '28vh' };
+      case 'right-bottom': return { x: '92vw', y: '72vh' };
+      default: return { x: '50vw', y: '50vh' };
+    }
+  };
 
   return (
     <div className="oldmaid-table">
@@ -201,51 +253,126 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         <ArrowLeft size={16} /> Rời phòng
       </motion.button>
 
-      {/* Discard pile (center) — face-down stacked, only latest pair shown face-up */}
+      {/* Discard pile (center) — stable positions */}
       <div className="discard-pile">
-        {/* Face-down pile base */}
-        {discardPile.length > 2 && (
-          <>
-            {[...Array(Math.min(6, Math.floor(discardPile.length / 2) - 1))].map((_, i) => (
-              <Card
-                key={`pile-${i}`}
-                faceDown
-                small
-                style={{
-                  position: 'absolute',
-                  left: `${40 + (Math.random() * 40)}%`,
-                  top: `${30 + (Math.random() * 30)}%`,
-                  transform: `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`,
-                  opacity: 0.7,
-                }}
-              />
-            ))}
-          </>
-        )}
-        {/* Latest discarded pair shown face-up */}
-        {lastDiscardedPair && lastDiscardedPair.map((card, i) => (
-          <motion.div
-            key={`last-${card.id}`}
-            initial={{ scale: 0.3, opacity: 0, y: -30 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ type: 'spring', damping: 12, delay: i * 0.15 }}
-            style={{
-              position: 'absolute',
-              left: `${42 + i * 28}%`,
-              top: '35%',
-              transform: `translate(-50%, -50%) rotate(${i === 0 ? -8 : 8}deg)`,
-              zIndex: 5,
-            }}
-          >
+        {/* Face-down pile base — stable positions */}
+        {[...Array(Math.min(6, pileCount))].map((_, i) => {
+          const p = PILE_POSITIONS[i];
+          return (
             <Card
-              value={card.value}
-              suit={card.suit}
-              isJoker={card.value === 'JOKER'}
+              key={`pile-base-${i}`}
+              faceDown
               small
+              style={{
+                position: 'absolute',
+                left: `${p.left}%`,
+                top: `${p.top}%`,
+                transform: `translate(-50%, -50%) rotate(${p.rot}deg)`,
+                opacity: 0.7,
+              }}
             />
-          </motion.div>
-        ))}
+          );
+        })}
+        {/* Latest pair face-up */}
+        <AnimatePresence>
+          {lastDiscardedPair && lastDiscardedPair.map((card, i) => (
+            <motion.div
+              key={`last-pair-${card.id}`}
+              initial={{ scale: 0.3, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              transition={{ type: 'spring', damping: 14, delay: i * 0.1 }}
+              style={{
+                position: 'absolute',
+                left: `${38 + i * 30}%`,
+                top: '30%',
+                transform: `translate(-50%, -50%) rotate(${i === 0 ? -6 : 6}deg)`,
+                zIndex: 5,
+              }}
+            >
+              <Card
+                value={card.value}
+                suit={card.suit}
+                isJoker={card.value === 'JOKER'}
+                small
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
+
+      {/* Flying card animation (draw from opponent) */}
+      <AnimatePresence>
+        {flyingCard && (() => {
+          const fromSlot = getPlayerSlot(flyingCard.from);
+          const toSlot = getPlayerSlot(flyingCard.to);
+          const from = slotToCoords(fromSlot);
+          const to = slotToCoords(toSlot);
+          return (
+            <motion.div
+              key="flying-card"
+              initial={{
+                position: 'fixed',
+                left: from.x,
+                top: from.y,
+                x: '-50%', y: '-50%',
+                scale: 0.8,
+                rotate: 0,
+                zIndex: 50,
+              }}
+              animate={{
+                left: to.x,
+                top: to.y,
+                scale: 1.1,
+                rotate: 15,
+              }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ position: 'fixed', zIndex: 50, pointerEvents: 'none' }}
+            >
+              <Card faceDown />
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* Flying pair animation (from player to center) */}
+      <AnimatePresence>
+        {flyingPair && flyingPair.map((card, i) => {
+          const toSlot = getPlayerSlot(gameState.currentTurn || socketId);
+          const fromCoords = slotToCoords(toSlot); // pair comes from the drawing player
+          return (
+            <motion.div
+              key={`fly-pair-${card.id}`}
+              initial={{
+                position: 'fixed',
+                left: fromCoords.x,
+                top: fromCoords.y,
+                x: '-50%', y: '-50%',
+                scale: 0.6,
+                rotate: i === 0 ? -15 : 15,
+                zIndex: 45,
+              }}
+              animate={{
+                left: '50vw',
+                top: '50vh',
+                scale: 1,
+                rotate: i === 0 ? -6 : 6,
+              }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7, delay: i * 0.12, ease: 'easeOut' }}
+              style={{ position: 'fixed', zIndex: 45, pointerEvents: 'none' }}
+            >
+              <Card
+                value={card.value}
+                suit={card.suit}
+                isJoker={card.value === 'JOKER'}
+                small
+              />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
 
       {/* Action Log (center floating) */}
       <div className="action-log">
@@ -277,7 +404,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
 
         return (
           <div key={pid} className={`player-slot player-slot-${pos}`}>
-            {/* Player info badge + timer */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div className={`player-info ${isActiveTurn ? 'player-info-active' : ''}`}>
                 <span>{name}</span>
@@ -289,7 +415,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
                   </span>
                 )}
               </div>
-              {/* Per-player timer bar — only show for active turn player */}
               {isActiveTurn && phase === 'playing' && !playerOut && (
                 <div className="player-timer">
                   <div
@@ -298,7 +423,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
                   />
                 </div>
               )}
-              {/* Chat bubble */}
               <AnimatePresence>
                 {chatBubbles[pid] && (
                   <motion.div
@@ -314,11 +438,9 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
               </AnimatePresence>
             </div>
 
-            {/* Cards */}
             {!playerOut && (
               <div className={`hand-container ${isMe ? 'hand-local' : isVertical ? 'hand-opponent hand-opponent-vertical' : 'hand-opponent'} ${isDrawTarget ? 'hand-draw-target' : ''}`}>
                 {isMe ? (
-                  // Local player: face-up cards
                   (myHand || []).map((card, i) => (
                     <Card
                       key={card.id}
@@ -342,7 +464,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
                     />
                   ))
                 ) : (
-                  // Opponent: face-down cards
                   (playerHand?.cards || []).map((card, i) => (
                     <Card
                       key={card.id}
@@ -394,7 +515,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         )}
       </AnimatePresence>
 
-      {/* Game Over Overlay */}
+      {/* Game Over */}
       <AnimatePresence>
         {showGameOver && gameResult && (
           <motion.div
