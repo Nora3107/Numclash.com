@@ -1,5 +1,5 @@
 // ============================================
-// NumClash.com — Socket.io Event Handlers
+// SuckCard.com — Socket.io Event Handlers
 // All events are room-isolated via Socket.io rooms
 // ============================================
 

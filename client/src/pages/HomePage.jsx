@@ -30,19 +30,19 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
               textShadow: '3px 3px 0 #1a8070, 6px 6px 0 rgba(26,128,112,0.15)',
             }}
           >
-            NUM
+            SUCK
             <span style={{
               color: '#ff7eb3',
               textShadow: '3px 3px 0 #e54d85, 6px 6px 0 rgba(229,77,133,0.15)',
-            }}>CLASH</span>
+            }}>CARD</span>
           </h1>
           <motion.span
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 3, repeat: Infinity }}
-            className="absolute -top-2 -right-8 text-2xl md:text-3xl font-black text-accent-blue"
+            className="absolute -top-2 -right-10 text-xl md:text-2xl font-black text-accent-blue"
             style={{ textShadow: '2px 2px 0 #3a8fd6' }}
           >
-            .io
+            .com
           </motion.span>
         </div>
       </motion.div>

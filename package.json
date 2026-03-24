@@ -1,7 +1,7 @@
 {
-  "name": "numclash-io",
+  "name": "suckcard-com",
   "version": "1.0.0",
-  "description": "NumClash.io - Multiplayer Social Strategy Game",
+  "description": "SuckCard.com - Multiplayer Social Strategy Game",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "node server/index.js",

@@ -1,5 +1,5 @@
 // ============================================
-// NumClash.com — Old Maid Socket Handlers
+// SuckCard.com — Old Maid Socket Handlers
 // All Old Maid-specific socket events
 // ============================================
 

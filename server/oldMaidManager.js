@@ -1,5 +1,5 @@
 // ============================================
-// NumClash.com — Old Maid Game Manager
+// SuckCard.com — Old Maid Game Manager
 // Turn-based card game logic
 // ============================================
 

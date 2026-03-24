@@ -1,5 +1,5 @@
 // ============================================
-// NumClash.com — Server Entry Point
+// SuckCard.com — Server Entry Point
 // Express + Socket.io
 // ============================================
 
@@ -29,7 +29,7 @@ app.use(express.json());
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', game: 'NumClash.com' });
+  res.json({ status: 'ok', game: 'SuckCard.com' });
 });
 
 // In production, serve the built client files
@@ -48,5 +48,5 @@ setupSocketHandlers(io);
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
-  console.log(`\n🎮 NumClash.com Server running on port ${PORT}\n`);
+  console.log(`\n🎮 SuckCard.com Server running on port ${PORT}\n`);
 });

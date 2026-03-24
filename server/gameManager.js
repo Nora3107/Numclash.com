@@ -1,5 +1,5 @@
 // ============================================
-// NumClash.com — Game Manager
+// SuckCard.com — Game Manager
 // Core game state & logic isolated per room
 // ============================================
 
