@@ -18,7 +18,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
     // Only auto-scroll if user is already near the bottom (within 100px)
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
     if (isNearBottom) {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      container.scrollTop = container.scrollHeight;
     }
   }, [chatMessages]);
 

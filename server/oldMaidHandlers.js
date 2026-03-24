@@ -65,22 +65,22 @@ function setupOldMaidHandlers(io, socket, gameManager) {
     // Clear existing timer
     clearTurnTimer(roomCode);
 
-    // Send updated private hands to each player
     const room = gameManager.getRoom(roomCode);
+
+    // Send per-player draw event with their private hand
     if (room) {
       for (const pid of room.players.keys()) {
-        io.to(pid).emit('oldmaid-state', game.getFullState(pid));
+        io.to(pid).emit('oldmaid-draw', {
+          from: result.from,
+          to: result.to,
+          cardIndex,
+          discarded: result.discarded,
+          discardPile: game.discardPile,
+          myHand: game.getPrivateHand(pid),
+          hands: game._getPublicHands(),
+        });
       }
     }
-
-    // Broadcast draw animation
-    io.to(roomCode).emit('oldmaid-draw', {
-      from: result.from,
-      to: result.to,
-      cardIndex,
-      discarded: result.discarded,
-      discardPile: game.discardPile,
-    });
 
     if (result.phase === 'finished') {
       // Game over
@@ -216,19 +216,19 @@ function startTurnTimer(io, roomCode) {
       if (!result) return;
 
 
-      // Send state to all
-      io.to(roomCode).emit('oldmaid-auto-draw', {
-        playerId: currentPlayer,
-        from: result.from,
-        to: result.to,
-        discarded: result.discarded,
-      });
-
-      // Send private updates
-      const sockets = io.sockets.adapter.rooms.get(roomCode);
-      if (sockets) {
-        for (const sid of sockets) {
-          io.to(sid).emit('oldmaid-state', game.getFullState(sid));
+      // Send per-player auto-draw with private hands
+      const gameManager = require('./gameManager');
+      const room = gameManager.getRoom(roomCode);
+      if (room) {
+        for (const pid of room.players.keys()) {
+          io.to(pid).emit('oldmaid-auto-draw', {
+            playerId: currentPlayer,
+            from: result.from,
+            to: result.to,
+            discarded: result.discarded,
+            myHand: game.getPrivateHand(pid),
+            hands: game._getPublicHands(),
+          });
         }
       }
 

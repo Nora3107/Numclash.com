@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, MessageCircle, ArrowLeft, Trophy } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { Crown, MessageCircle, ArrowLeft, Trophy, Shuffle } from 'lucide-react';
 import Card from '../components/Card';
 import '../oldmaid.css';
 
@@ -15,7 +15,6 @@ const QUICK_CHATS = [
   '🤔🤔🤔',
 ];
 
-// Stable pile positions — pre-computed once
 const PILE_POSITIONS = Array.from({ length: 8 }, (_, i) => ({
   left: 30 + ((i * 37 + 13) % 40),
   top: 25 + ((i * 29 + 7) % 35),
@@ -33,6 +32,30 @@ function getSlotPositions(count) {
   return slotNames[count] || slotNames[4];
 }
 
+// Fisher-Yates shuffle
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function slotToCoords(slotName) {
+  switch (slotName) {
+    case 'bottom': return { x: '50vw', y: '85vh' };
+    case 'top': return { x: '50vw', y: '8vh' };
+    case 'left': return { x: '8vw', y: '50vh' };
+    case 'right': return { x: '92vw', y: '50vh' };
+    case 'left-top': return { x: '8vw', y: '28vh' };
+    case 'left-bottom': return { x: '8vw', y: '72vh' };
+    case 'right-top': return { x: '92vw', y: '28vh' };
+    case 'right-bottom': return { x: '92vw', y: '72vh' };
+    default: return { x: '50vw', y: '50vh' };
+  }
+}
+
 export default function OldMaidPage({ socket, roomInfo, onLeave }) {
   const [gameState, setGameState] = useState(null);
   const [timer, setTimer] = useState(15);
@@ -40,15 +63,18 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
   const [chatBubbles, setChatBubbles] = useState({});
   const [showGameOver, setShowGameOver] = useState(false);
   const [gameResult, setGameResult] = useState(null);
-  const [draggedCard, setDraggedCard] = useState(null);
   const [actionLog, setActionLog] = useState([]);
   const [lastDiscardedPair, setLastDiscardedPair] = useState(null);
   const [pileCount, setPileCount] = useState(0);
 
   // Animation states
-  const [flyingCard, setFlyingCard] = useState(null);       // { from, to } slot names
-  const [flyingPair, setFlyingPair] = useState(null);       // pair flying to center
-  const [pairDrawer, setPairDrawer] = useState(null);       // who drew the pair (for animation origin)
+  const [flyingCard, setFlyingCard] = useState(null);
+  const [flyingPair, setFlyingPair] = useState(null);
+  const [pairDrawer, setPairDrawer] = useState(null);
+
+  // Drag state
+  const [dragIdx, setDragIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
 
   const socketId = socket.id;
 
@@ -65,6 +91,19 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     return p ? p.nickname : 'Player';
   }, [roomInfo]);
 
+  // Shuffle my hand locally + emit to server
+  const shuffleMyHand = useCallback(() => {
+    setGameState(prev => {
+      if (!prev || !prev.myHand) return prev;
+      const shuffled = shuffleArray(prev.myHand);
+      socket.emit('oldmaid-reorder', {
+        roomCode: roomInfo.code,
+        newOrder: shuffled.map(c => c.id),
+      });
+      return { ...prev, myHand: shuffled };
+    });
+  }, [socket, roomInfo]);
+
   useEffect(() => {
     socket.on('oldmaid-state', (state) => {
       setGameState(state);
@@ -77,6 +116,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         currentTurn: data.currentTurn,
         drawTarget: data.drawTarget,
         hands: data.hands,
+        myHand: data.myHand || prev.myHand,
       } : prev);
       setTimer(15);
       addAction(`🎯 Đến lượt ${getPlayerName(data.currentTurn)}`);
@@ -94,9 +134,14 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       setTimeout(() => {
         setFlyingCard(null);
 
+        // Update hand with new card (so it shows in hand)
+        if (data.myHand) {
+          setGameState(prev => prev ? { ...prev, myHand: data.myHand, hands: data.hands } : prev);
+        }
+
         if (data.discarded && data.discarded.length > 0) {
-          // Step 2: Pause 1.5s to let player see their drawn card
-          setPairDrawer(data.to); // remember who drew for pair animation origin
+          // Step 2: Pause 1.5s to let player see drawn card IN THEIR HAND
+          setPairDrawer(data.to);
           setTimeout(() => {
             // Step 3: Pair flies from drawer's hand → center
             setFlyingPair(data.discarded.slice(0, 2));
@@ -106,8 +151,39 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
               setFlyingPair(null);
               setPairDrawer(null);
               setPileCount(prev => prev + 1);
+
+              // Update hand after pair removed
+              if (data.finalHand) {
+                setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
+              }
+
+              // Auto-shuffle after draw completes (3s delay)
+              setTimeout(() => {
+                setGameState(prev => {
+                  if (!prev || !prev.myHand || prev.myHand.length <= 1) return prev;
+                  const shuffled = shuffleArray(prev.myHand);
+                  socket.emit('oldmaid-reorder', {
+                    roomCode: roomInfo.code,
+                    newOrder: shuffled.map(c => c.id),
+                  });
+                  return { ...prev, myHand: shuffled };
+                });
+              }, 3000);
             }, 900);
           }, 1500);
+        } else {
+          // No pair — auto-shuffle after 3s
+          setTimeout(() => {
+            setGameState(prev => {
+              if (!prev || !prev.myHand || prev.myHand.length <= 1) return prev;
+              const shuffled = shuffleArray(prev.myHand);
+              socket.emit('oldmaid-reorder', {
+                roomCode: roomInfo.code,
+                newOrder: shuffled.map(c => c.id),
+              });
+              return { ...prev, myHand: shuffled };
+            });
+          }, 3000);
         }
       }, 700);
     });
@@ -117,6 +193,9 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       addAction(`⏰ Hết giờ! ${getPlayerName(data.to)} tự động rút bài`);
       setTimeout(() => {
         setFlyingCard(null);
+        if (data.myHand) {
+          setGameState(prev => prev ? { ...prev, myHand: data.myHand, hands: data.hands } : prev);
+        }
         if (data.discarded && data.discarded.length > 0) {
           setPairDrawer(data.to);
           setTimeout(() => {
@@ -126,6 +205,9 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
               setFlyingPair(null);
               setPairDrawer(null);
               setPileCount(prev => prev + 1);
+              if (data.finalHand) {
+                setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
+              }
             }, 900);
           }, 1500);
         }
@@ -169,7 +251,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       socket.off('oldmaid-game-over');
       socket.off('oldmaid-chat-msg');
     };
-  }, [socket, addAction, getPlayerName]);
+  }, [socket, addAction, getPlayerName, roomInfo]);
 
   const handleDrawCard = useCallback((cardIndex) => {
     if (!gameState || gameState.currentTurn !== socketId) return;
@@ -179,17 +261,33 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     });
   }, [gameState, socketId, socket, roomInfo]);
 
-  const handleReorder = useCallback((fromIdx, toIdx) => {
-    if (!gameState) return;
-    const hand = [...gameState.myHand];
-    const [moved] = hand.splice(fromIdx, 1);
-    hand.splice(toIdx, 0, moved);
-    setGameState(prev => ({ ...prev, myHand: hand }));
-    socket.emit('oldmaid-reorder', {
-      roomCode: roomInfo.code,
-      newOrder: hand.map(c => c.id),
-    });
-  }, [gameState, socket, roomInfo]);
+  // Drag-and-drop reorder
+  const handleDragStart = useCallback((i) => {
+    setDragIdx(i);
+  }, []);
+
+  const handleDragOver = useCallback((e, i) => {
+    e.preventDefault();
+    setDragOverIdx(i);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    if (dragIdx !== null && dragOverIdx !== null && dragIdx !== dragOverIdx) {
+      setGameState(prev => {
+        if (!prev || !prev.myHand) return prev;
+        const hand = [...prev.myHand];
+        const [moved] = hand.splice(dragIdx, 1);
+        hand.splice(dragOverIdx, 0, moved);
+        socket.emit('oldmaid-reorder', {
+          roomCode: roomInfo.code,
+          newOrder: hand.map(c => c.id),
+        });
+        return { ...prev, myHand: hand };
+      });
+    }
+    setDragIdx(null);
+    setDragOverIdx(null);
+  }, [dragIdx, dragOverIdx, socket, roomInfo]);
 
   const handleQuickChat = useCallback((text) => {
     socket.emit('oldmaid-chat', {
@@ -225,25 +323,9 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
   const myHandCount = myHand?.length || 0;
   const amOut = myHandCount === 0 && rankings.includes(socketId);
 
-  // Get slot position name for a player id
   const getPlayerSlot = (pid) => {
     const entry = orderedPlayers.find(e => e.pid === pid);
     return entry ? slots[entry.slotIndex] : 'top';
-  };
-
-  // Map slot position to approximate CSS coordinates for flying animation
-  const slotToCoords = (slotName) => {
-    switch (slotName) {
-      case 'bottom': return { x: '50vw', y: '85vh' };
-      case 'top': return { x: '50vw', y: '8vh' };
-      case 'left': return { x: '8vw', y: '50vh' };
-      case 'right': return { x: '92vw', y: '50vh' };
-      case 'left-top': return { x: '8vw', y: '28vh' };
-      case 'left-bottom': return { x: '8vw', y: '72vh' };
-      case 'right-top': return { x: '92vw', y: '28vh' };
-      case 'right-bottom': return { x: '92vw', y: '72vh' };
-      default: return { x: '50vw', y: '50vh' };
-    }
   };
 
   return (
@@ -259,9 +341,21 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         <ArrowLeft size={16} /> Rời phòng
       </motion.button>
 
-      {/* Discard pile (center) — stable positions */}
+      {/* Shuffle button */}
+      {myHandCount > 1 && (
+        <motion.button
+          className="absolute bottom-3 left-3 z-20"
+          style={{ padding: '8px 14px', borderRadius: 12, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}
+          onClick={shuffleMyHand}
+          whileHover={{ scale: 1.08, background: 'rgba(108,92,231,0.5)' }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Shuffle size={16} /> Xáo bài
+        </motion.button>
+      )}
+
+      {/* Discard pile (center) */}
       <div className="discard-pile">
-        {/* Face-down pile base — stable positions */}
         {[...Array(Math.min(6, pileCount))].map((_, i) => {
           const p = PILE_POSITIONS[i];
           return (
@@ -279,7 +373,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
             />
           );
         })}
-        {/* Latest pair face-up */}
         <AnimatePresence>
           {lastDiscardedPair && lastDiscardedPair.map((card, i) => (
             <motion.div
@@ -307,7 +400,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         </AnimatePresence>
       </div>
 
-      {/* Flying card animation (draw from opponent) */}
+      {/* Flying card animation */}
       <AnimatePresence>
         {flyingCard && (() => {
           const fromSlot = getPlayerSlot(flyingCard.from);
@@ -317,21 +410,8 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
           return (
             <motion.div
               key="flying-card"
-              initial={{
-                position: 'fixed',
-                left: from.x,
-                top: from.y,
-                x: '-50%', y: '-50%',
-                scale: 0.8,
-                rotate: 0,
-                zIndex: 50,
-              }}
-              animate={{
-                left: to.x,
-                top: to.y,
-                scale: 1.1,
-                rotate: 15,
-              }}
+              initial={{ position: 'fixed', left: from.x, top: from.y, x: '-50%', y: '-50%', scale: 0.8, rotate: 0, zIndex: 50 }}
+              animate={{ left: to.x, top: to.y, scale: 1.1, rotate: 15 }}
               exit={{ opacity: 0, scale: 0.5 }}
               transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
               style={{ position: 'fixed', zIndex: 50, pointerEvents: 'none' }}
@@ -342,7 +422,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         })()}
       </AnimatePresence>
 
-      {/* Flying pair animation (from player to center) */}
+      {/* Flying pair animation */}
       <AnimatePresence>
         {flyingPair && flyingPair.map((card, i) => {
           const drawerSlot = getPlayerSlot(pairDrawer || socketId);
@@ -350,37 +430,19 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
           return (
             <motion.div
               key={`fly-pair-${card.id}`}
-              initial={{
-                position: 'fixed',
-                left: fromCoords.x,
-                top: fromCoords.y,
-                x: '-50%', y: '-50%',
-                scale: 0.6,
-                rotate: i === 0 ? -15 : 15,
-                zIndex: 45,
-              }}
-              animate={{
-                left: '50vw',
-                top: '50vh',
-                scale: 1,
-                rotate: i === 0 ? -6 : 6,
-              }}
+              initial={{ position: 'fixed', left: fromCoords.x, top: fromCoords.y, x: '-50%', y: '-50%', scale: 0.6, rotate: i === 0 ? -15 : 15, zIndex: 45 }}
+              animate={{ left: '50vw', top: '50vh', scale: 1, rotate: i === 0 ? -6 : 6 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.7, delay: i * 0.12, ease: 'easeOut' }}
               style={{ position: 'fixed', zIndex: 45, pointerEvents: 'none' }}
             >
-              <Card
-                value={card.value}
-                suit={card.suit}
-                isJoker={card.value === 'JOKER'}
-                small
-              />
+              <Card value={card.value} suit={card.suit} isJoker={card.value === 'JOKER'} small />
             </motion.div>
           );
         })}
       </AnimatePresence>
 
-      {/* Action Log (center floating) */}
+      {/* Action Log */}
       <div className="action-log">
         <AnimatePresence>
           {actionLog.map((action) => (
@@ -447,35 +509,36 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
             {!playerOut && (
               <div className={`hand-container ${isMe ? 'hand-local' : isVertical ? 'hand-opponent hand-opponent-vertical' : 'hand-opponent'} ${isDrawTarget ? 'hand-draw-target' : ''}`}>
                 {isMe ? (
+                  // Local player: face-up, drag-and-drop reordering
                   (myHand || []).map((card, i) => (
-                    <Card
+                    <div
                       key={card.id}
-                      value={card.value}
-                      suit={card.suit}
-                      isJoker={card.value === 'JOKER'}
-                      hoverable
-                      layoutId={`my-card-${card.id}`}
-                      onClick={() => {
-                        if (draggedCard !== null && draggedCard !== i) {
-                          handleReorder(draggedCard, i);
-                          setDraggedCard(null);
-                        } else if (draggedCard === i) {
-                          setDraggedCard(null);
-                        } else {
-                          setDraggedCard(i);
-                        }
+                      draggable
+                      onDragStart={() => handleDragStart(i)}
+                      onDragOver={(e) => handleDragOver(e, i)}
+                      onDragEnd={handleDragEnd}
+                      style={{
+                        opacity: dragIdx === i ? 0.4 : 1,
+                        transform: dragOverIdx === i && dragIdx !== i ? 'translateY(-8px)' : 'none',
+                        transition: 'transform 0.15s ease, opacity 0.15s ease',
+                        cursor: 'grab',
                       }}
-                      selected={draggedCard === i}
-                      dragging={draggedCard === i}
-                    />
+                    >
+                      <Card
+                        value={card.value}
+                        suit={card.suit}
+                        isJoker={card.value === 'JOKER'}
+                        hoverable
+                      />
+                    </div>
                   ))
                 ) : (
+                  // Opponent: face-down
                   (playerHand?.cards || []).map((card, i) => (
                     <Card
                       key={card.id}
                       faceDown
                       hoverable={isDrawTarget}
-                      layoutId={`opp-card-${card.id}`}
                       onClick={() => isDrawTarget && handleDrawCard(i)}
                     />
                   ))
@@ -524,12 +587,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       {/* Game Over */}
       <AnimatePresence>
         {showGameOver && gameResult && (
-          <motion.div
-            className="oldmaid-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+          <motion.div className="oldmaid-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <motion.div
               className="oldmaid-result-card"
               initial={{ scale: 0.5, y: 50 }}
@@ -569,11 +627,8 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: i * 0.15 }}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '8px 16px',
-                        borderRadius: 12,
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '8px 16px', borderRadius: 12,
                         background: isMe ? 'rgba(108,92,231,0.1)' : '#f8f8f8',
                         border: isMe ? '2px solid #6c5ce7' : '1px solid #eee',
                       }}
@@ -587,8 +642,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
                         </span>
                       </div>
                       <span style={{
-                        fontWeight: 900,
-                        fontSize: 16,
+                        fontWeight: 900, fontSize: 16,
                         color: (gameResult.scores[pid] || 0) >= 0 ? '#27ae60' : '#e74c3c',
                         fontFamily: 'var(--font-display)',
                       }}>
@@ -602,24 +656,12 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  setShowGameOver(false);
-                  onLeave();
-                }}
+                onClick={() => { setShowGameOver(false); onLeave(); }}
                 style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: 16,
+                  width: '100%', padding: '12px', borderRadius: 16,
                   background: 'linear-gradient(135deg, #6c5ce7, #a29bfe)',
-                  color: '#fff',
-                  fontWeight: 800,
-                  fontSize: 16,
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
+                  color: '#fff', fontWeight: 800, fontSize: 16, border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 }}
               >
                 <Trophy size={18} /> Về Sảnh Chờ
