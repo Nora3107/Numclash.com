@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, Clock, MessageCircle, ArrowLeft, Trophy } from 'lucide-react';
+import { Crown, MessageCircle, ArrowLeft, Trophy } from 'lucide-react';
 import Card from '../components/Card';
 import '../oldmaid.css';
 
@@ -16,9 +16,7 @@ const QUICK_CHATS = [
 ];
 
 // Player slot positions based on count
-function getSlotPositions(count, myIndex) {
-  // Rotate so myIndex is always at "bottom"
-  const positions = [];
+function getSlotPositions(count) {
   const slotNames = {
     2: ['bottom', 'top'],
     3: ['bottom', 'left', 'right'],
@@ -26,12 +24,7 @@ function getSlotPositions(count, myIndex) {
     5: ['bottom', 'left-bottom', 'left-top', 'top', 'right'],
     6: ['bottom', 'left-bottom', 'left-top', 'top', 'right-top', 'right-bottom'],
   };
-  const slots = slotNames[count] || slotNames[4];
-  for (let i = 0; i < count; i++) {
-    const rotated = (i - myIndex + count) % count;
-    positions.push(slots[rotated]);
-  }
-  return positions;
+  return slotNames[count] || slotNames[4];
 }
 
 export default function OldMaidPage({ socket, roomInfo, onLeave }) {
@@ -41,12 +34,25 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
   const [chatBubbles, setChatBubbles] = useState({});
   const [showGameOver, setShowGameOver] = useState(false);
   const [gameResult, setGameResult] = useState(null);
-  const [drawAnimation, setDrawAnimation] = useState(null);
-  const [discardAnimation, setDiscardAnimation] = useState(null);
   const [draggedCard, setDraggedCard] = useState(null);
-  const [hoveredOpponentCard, setHoveredOpponentCard] = useState(null);
+  const [actionLog, setActionLog] = useState([]);
+  const [lastDiscardedPair, setLastDiscardedPair] = useState(null);
 
   const socketId = socket.id;
+
+  // Add action message
+  const addAction = useCallback((text) => {
+    const id = Date.now() + Math.random();
+    setActionLog(prev => [...prev.slice(-2), { id, text }]);
+    setTimeout(() => {
+      setActionLog(prev => prev.filter(a => a.id !== id));
+    }, 3000);
+  }, []);
+
+  const getPlayerName = useCallback((pid) => {
+    const p = roomInfo?.players?.find(p => p.id === pid);
+    return p ? p.nickname : 'Player';
+  }, [roomInfo]);
 
   // Socket listeners
   useEffect(() => {
@@ -62,6 +68,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         hands: data.hands,
       } : prev);
       setTimer(15);
+      addAction(`🎯 Đến lượt ${getPlayerName(data.currentTurn)}`);
     });
 
     socket.on('oldmaid-timer', ({ remaining }) => {
@@ -69,18 +76,24 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     });
 
     socket.on('oldmaid-draw', (data) => {
-      setDrawAnimation(data);
-      setTimeout(() => setDrawAnimation(null), 800);
+      addAction(`🃏 ${getPlayerName(data.to)} rút bài từ ${getPlayerName(data.from)}`);
+      if (data.discarded && data.discarded.length > 0) {
+        setLastDiscardedPair(data.discarded.slice(0, 2));
+        setTimeout(() => {
+          addAction(`✨ ${getPlayerName(data.to)} vứt 1 cặp!`);
+        }, 500);
+      }
     });
 
     socket.on('oldmaid-auto-draw', (data) => {
-      setDrawAnimation(data);
-      setTimeout(() => setDrawAnimation(null), 800);
+      addAction(`⏰ Hết giờ! ${getPlayerName(data.to)} tự động rút bài`);
+      if (data.discarded && data.discarded.length > 0) {
+        setLastDiscardedPair(data.discarded.slice(0, 2));
+      }
     });
 
     socket.on('oldmaid-initial-discard', (data) => {
-      setDiscardAnimation(data);
-      setTimeout(() => setDiscardAnimation(null), 1500);
+      addAction(`♻️ Tự động vứt các cặp bài ban đầu`);
     });
 
     socket.on('oldmaid-hand-reordered', ({ playerId, hands }) => {
@@ -90,6 +103,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     socket.on('oldmaid-game-over', (data) => {
       setGameResult(data);
       setShowGameOver(true);
+      addAction(`🏁 Trò chơi kết thúc!`);
     });
 
     socket.on('new-message', (msg) => {
@@ -115,7 +129,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       socket.off('oldmaid-hand-reordered');
       socket.off('oldmaid-game-over');
     };
-  }, [socket]);
+  }, [socket, addAction, getPlayerName]);
 
   const handleDrawCard = useCallback((cardIndex) => {
     if (!gameState || gameState.currentTurn !== socketId) return;
@@ -130,7 +144,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     const hand = [...gameState.myHand];
     const [moved] = hand.splice(fromIdx, 1);
     hand.splice(toIdx, 0, moved);
-    // Optimistic update
     setGameState(prev => ({ ...prev, myHand: hand }));
     socket.emit('oldmaid-reorder', {
       roomCode: roomInfo.code,
@@ -162,14 +175,16 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
   const { playerIds, myHand, hands, discardPile, currentTurn, drawTarget, rankings, phase } = gameState;
   const myIndex = playerIds.indexOf(socketId);
   const isMyTurn = currentTurn === socketId;
-  const slotPositions = getSlotPositions(playerIds.length, myIndex);
+  const slots = getSlotPositions(playerIds.length);
   const players = roomInfo?.players || [];
-  const getPlayerName = (pid) => {
-    const p = players.find(p => p.id === pid);
-    return p ? p.nickname : 'Player';
-  };
 
-  // Am I already out?
+  // Reorder players so local is always slot 0 (bottom)
+  const orderedPlayers = [];
+  for (let i = 0; i < playerIds.length; i++) {
+    const idx = (myIndex + i) % playerIds.length;
+    orderedPlayers.push({ pid: playerIds[idx], slotIndex: i });
+  }
+
   const myHandCount = myHand?.length || 0;
   const amOut = myHandCount === 0 && rankings.includes(socketId);
 
@@ -186,45 +201,72 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         <ArrowLeft size={16} /> Rời phòng
       </motion.button>
 
-      {/* Discard pile (center) */}
+      {/* Discard pile (center) — face-down stacked, only latest pair shown face-up */}
       <div className="discard-pile">
-        {discardPile.slice(-20).map((card, i) => (
-          <Card
-            key={card.id}
-            value={card.value}
-            suit={card.suit}
-            isJoker={card.value === 'JOKER'}
+        {/* Face-down pile base */}
+        {discardPile.length > 2 && (
+          <>
+            {[...Array(Math.min(6, Math.floor(discardPile.length / 2) - 1))].map((_, i) => (
+              <Card
+                key={`pile-${i}`}
+                faceDown
+                small
+                style={{
+                  position: 'absolute',
+                  left: `${40 + (Math.random() * 40)}%`,
+                  top: `${30 + (Math.random() * 30)}%`,
+                  transform: `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`,
+                  opacity: 0.7,
+                }}
+              />
+            ))}
+          </>
+        )}
+        {/* Latest discarded pair shown face-up */}
+        {lastDiscardedPair && lastDiscardedPair.map((card, i) => (
+          <motion.div
+            key={`last-${card.id}`}
+            initial={{ scale: 0.3, opacity: 0, y: -30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: 'spring', damping: 12, delay: i * 0.15 }}
             style={{
               position: 'absolute',
-              left: `${50 + (card.offsetX || 0)}%`,
-              top: `${50 + (card.offsetY || 0)}%`,
-              transform: `translate(-50%, -50%) rotate(${card.rotation || 0}deg)`,
+              left: `${42 + i * 28}%`,
+              top: '35%',
+              transform: `translate(-50%, -50%) rotate(${i === 0 ? -8 : 8}deg)`,
+              zIndex: 5,
             }}
-          />
+          >
+            <Card
+              value={card.value}
+              suit={card.suit}
+              isJoker={card.value === 'JOKER'}
+              small
+            />
+          </motion.div>
         ))}
       </div>
 
-      {/* Turn timer */}
-      {phase === 'playing' && (
-        <div className="turn-timer">
-          <Clock size={14} />
-          <span>{timer}s</span>
-          <div className="turn-timer-bar">
-            <div
-              className={`turn-timer-fill ${timer <= 5 ? 'urgent' : ''}`}
-              style={{ width: `${(timer / 15) * 100}%` }}
-            />
-          </div>
-          <span style={{ fontSize: 11, opacity: 0.7 }}>
-            {isMyTurn ? 'Lượt của bạn!' : `${getPlayerName(currentTurn)}...`}
-          </span>
-        </div>
-      )}
+      {/* Action Log (center floating) */}
+      <div className="action-log">
+        <AnimatePresence>
+          {actionLog.map((action) => (
+            <motion.div
+              key={action.id}
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.9 }}
+              className="action-msg"
+            >
+              {action.text}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
 
       {/* Player slots */}
-      {playerIds.map((pid, globalIdx) => {
-        const slotIdx = (globalIdx - myIndex + playerIds.length) % playerIds.length;
-        const pos = slotPositions[globalIdx];
+      {orderedPlayers.map(({ pid, slotIndex }) => {
+        const pos = slots[slotIndex];
         const isMe = pid === socketId;
         const isActiveTurn = pid === currentTurn;
         const isDrawTarget = pid === drawTarget && isMyTurn;
@@ -235,25 +277,36 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
 
         return (
           <div key={pid} className={`player-slot player-slot-${pos}`}>
-            {/* Player info badge */}
-            <div className={`player-info ${isActiveTurn ? 'player-info-active' : ''}`}>
-              <span>{name}</span>
-              {playerOut ? (
-                <span style={{ fontSize: 12 }}>✅ #{rankings.indexOf(pid) + 1}</span>
-              ) : (
-                <span className="player-card-count">
-                  {isMe ? myHandCount : (playerHand?.count || 0)}
-                </span>
+            {/* Player info badge + timer */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div className={`player-info ${isActiveTurn ? 'player-info-active' : ''}`}>
+                <span>{name}</span>
+                {playerOut ? (
+                  <span style={{ fontSize: 12 }}>✅ #{rankings.indexOf(pid) + 1}</span>
+                ) : (
+                  <span className="player-card-count">
+                    {isMe ? myHandCount : (playerHand?.count || 0)}
+                  </span>
+                )}
+              </div>
+              {/* Per-player timer bar — only show for active turn player */}
+              {isActiveTurn && phase === 'playing' && !playerOut && (
+                <div className="player-timer">
+                  <div
+                    className={`player-timer-fill ${timer <= 5 ? 'urgent' : ''}`}
+                    style={{ width: `${(timer / 15) * 100}%` }}
+                  />
+                </div>
               )}
               {/* Chat bubble */}
               <AnimatePresence>
                 {chatBubbles[pid] && (
                   <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                    animate={{ opacity: 1, y: -30, scale: 1 }}
-                    exit={{ opacity: 0, y: -40 }}
+                    animate={{ opacity: 1, y: -6, scale: 1 }}
+                    exit={{ opacity: 0, y: -12 }}
                     className="chat-bubble"
-                    style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)' }}
+                    style={{ marginTop: 6 }}
                   >
                     {chatBubbles[pid]}
                   </motion.div>
@@ -263,10 +316,10 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
 
             {/* Cards */}
             {!playerOut && (
-              <div className={`hand-container ${isMe ? 'hand-local' : isVertical ? 'hand-opponent hand-opponent-vertical' : 'hand-opponent'}`}>
+              <div className={`hand-container ${isMe ? 'hand-local' : isVertical ? 'hand-opponent hand-opponent-vertical' : 'hand-opponent'} ${isDrawTarget ? 'hand-draw-target' : ''}`}>
                 {isMe ? (
                   // Local player: face-up cards
-                  myHand.map((card, i) => (
+                  (myHand || []).map((card, i) => (
                     <Card
                       key={card.id}
                       value={card.value}
@@ -275,7 +328,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
                       hoverable
                       layoutId={`my-card-${card.id}`}
                       onClick={() => {
-                        // Drag-drop reorder: swap with draggedCard
                         if (draggedCard !== null && draggedCard !== i) {
                           handleReorder(draggedCard, i);
                           setDraggedCard(null);
@@ -291,20 +343,13 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
                   ))
                 ) : (
                   // Opponent: face-down cards
-                  playerHand?.cards?.map((card, i) => (
+                  (playerHand?.cards || []).map((card, i) => (
                     <Card
                       key={card.id}
                       faceDown
                       hoverable={isDrawTarget}
                       layoutId={`opp-card-${card.id}`}
                       onClick={() => isDrawTarget && handleDrawCard(i)}
-                      style={
-                        hoveredOpponentCard === `${pid}-${i}`
-                          ? { transform: 'translateY(-8px)', zIndex: 10 }
-                          : {}
-                      }
-                      onHoverStart={isDrawTarget ? () => setHoveredOpponentCard(`${pid}-${i}`) : undefined}
-                      onHoverEnd={() => setHoveredOpponentCard(null)}
                     />
                   ))
                 )}
@@ -386,7 +431,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
                 </h2>
               )}
 
-              {/* Rankings */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                 {gameResult.rankings.map((pid, i) => {
                   const isLoser = i === gameResult.rankings.length - 1;

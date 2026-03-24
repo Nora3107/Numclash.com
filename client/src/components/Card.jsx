@@ -14,15 +14,17 @@ export default function Card({
   hoverable = false,
   selected = false,
   dragging = false,
+  small = false,
   style = {},
   layoutId,
 }) {
   const isJokerCard = isJoker || value === 'JOKER';
+  const sizeClass = small ? 'card-sm' : '';
 
   if (faceDown) {
     return (
       <motion.div
-        className={`card card-back ${hoverable ? 'card-hoverable' : ''} ${selected ? 'card-selected' : ''}`}
+        className={`card card-back ${sizeClass} ${hoverable ? 'card-hoverable' : ''} ${selected ? 'card-selected' : ''}`}
         onClick={onClick}
         onHoverStart={onHoverStart}
         onHoverEnd={onHoverEnd}
@@ -36,7 +38,7 @@ export default function Card({
   if (isJokerCard) {
     return (
       <motion.div
-        className={`card card-front card-joker ${hoverable ? 'card-hoverable' : ''} ${selected ? 'card-selected' : ''} ${dragging ? 'card-dragging' : ''}`}
+        className={`card card-front card-joker ${sizeClass} ${hoverable ? 'card-hoverable' : ''} ${selected ? 'card-selected' : ''} ${dragging ? 'card-dragging' : ''}`}
         onClick={onClick}
         onHoverStart={onHoverStart}
         onHoverEnd={onHoverEnd}
@@ -44,12 +46,9 @@ export default function Card({
         layoutId={layoutId}
       >
         <div className="card-corner">
-          <span className="card-value" style={{ color: '#fff' }}>🃏</span>
+          <span className="card-value" style={{ color: '#fff', fontSize: small ? '14px' : '18px' }}>🃏</span>
         </div>
-        <div className="card-center-suit" style={{ opacity: 0.3, fontSize: '32px' }}>🃏</div>
-        <div className="card-corner card-corner-bottom">
-          <span className="card-value" style={{ color: '#fff' }}>🃏</span>
-        </div>
+        <div className="card-center-suit" style={{ opacity: 0.3, fontSize: small ? '24px' : '36px' }}>🃏</div>
       </motion.div>
     );
   }
@@ -59,7 +58,7 @@ export default function Card({
 
   return (
     <motion.div
-      className={`card card-front ${suitColor} ${hoverable ? 'card-hoverable' : ''} ${selected ? 'card-selected' : ''} ${dragging ? 'card-dragging' : ''}`}
+      className={`card card-front ${suitColor} ${sizeClass} ${hoverable ? 'card-hoverable' : ''} ${selected ? 'card-selected' : ''} ${dragging ? 'card-dragging' : ''}`}
       onClick={onClick}
       onHoverStart={onHoverStart}
       onHoverEnd={onHoverEnd}
@@ -71,10 +70,6 @@ export default function Card({
         <span className="card-suit">{suitSymbol}</span>
       </div>
       <div className="card-center-suit">{suitSymbol}</div>
-      <div className="card-corner card-corner-bottom">
-        <span className="card-value">{value}</span>
-        <span className="card-suit">{suitSymbol}</span>
-      </div>
     </motion.div>
   );
 }

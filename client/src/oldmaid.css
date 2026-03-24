@@ -4,9 +4,9 @@
 
 /* --- Card Base --- */
 .card {
-  width: 60px;
-  height: 88px;
-  border-radius: 10px;
+  width: 80px;
+  height: 112px;
+  border-radius: 12px;
   position: relative;
   cursor: pointer;
   user-select: none;
@@ -15,14 +15,16 @@
   flex-shrink: 0;
 }
 
+.card-sm {
+  width: 48px;
+  height: 68px;
+}
+
 .card-front {
   background: #fff;
   border: 2px solid #d4cbbf;
   box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.5);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 4px 6px;
+  padding: 5px 7px;
 }
 
 .card-back {
@@ -36,9 +38,13 @@
 
 .card-back::after {
   content: '?';
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 900;
   color: rgba(255,255,255,0.3);
+}
+
+.card-sm.card-back::after {
+  font-size: 18px;
 }
 
 .card-joker {
@@ -51,26 +57,33 @@
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
-/* --- Card Content --- */
+/* --- Card Content (top-left corner only) --- */
 .card-corner {
   display: flex;
   flex-direction: column;
   align-items: center;
   line-height: 1;
-}
-
-.card-corner-bottom {
-  transform: rotate(180deg);
+  position: absolute;
+  top: 5px;
+  left: 7px;
 }
 
 .card-value {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 900;
 }
 
-.card-suit {
+.card-sm .card-value {
   font-size: 12px;
+}
+
+.card-suit {
+  font-size: 14px;
   margin-top: -2px;
+}
+
+.card-sm .card-suit {
+  font-size: 10px;
 }
 
 .card-center-suit {
@@ -78,8 +91,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 24px;
-  opacity: 0.15;
+  font-size: 32px;
+  opacity: 0.12;
+}
+
+.card-sm .card-center-suit {
+  font-size: 18px;
 }
 
 .suit-red { color: #e74c3c; }
@@ -87,20 +104,35 @@
 
 /* --- Hover / Selection --- */
 .card-hoverable:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.35);
+  transform: translateY(-12px) !important;
+  box-shadow: 0 12px 24px rgba(108, 92, 231, 0.4);
   z-index: 10;
 }
 
 .card-selected {
-  transform: translateY(-12px);
-  box-shadow: 0 8px 20px rgba(108, 92, 231, 0.5);
+  transform: translateY(-16px) !important;
+  box-shadow: 0 12px 24px rgba(108, 92, 231, 0.5);
   outline: 3px solid #6c5ce7;
 }
 
 .card-dragging {
   opacity: 0.6;
   transform: rotate(5deg) scale(1.05);
+}
+
+/* --- Draw target: opponent cards lift up together --- */
+.hand-draw-target .card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hand-draw-target .card {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 20px rgba(253, 203, 110, 0.3);
+}
+
+.hand-draw-target .card:hover {
+  transform: translateY(-22px) !important;
+  box-shadow: 0 16px 30px rgba(253, 203, 110, 0.5) !important;
 }
 
 /* --- Table Layout --- */
@@ -193,6 +225,7 @@
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
+  position: relative;
 }
 
 .player-info-active {
@@ -217,6 +250,27 @@
   font-weight: 900;
 }
 
+/* --- Per-player timer bar --- */
+.player-timer {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.1);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.player-timer-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: #fdcb6e;
+  transition: width 1s linear;
+}
+
+.player-timer-fill.urgent {
+  background: #e74c3c;
+}
+
 /* --- Hand Display --- */
 .hand-container {
   display: flex;
@@ -225,7 +279,7 @@
 
 /* Local player: cards spread out */
 .hand-local {
-  gap: 2px;
+  gap: 4px;
   flex-wrap: wrap;
   max-width: 90vw;
   justify-content: center;
@@ -237,13 +291,16 @@
 }
 
 .hand-opponent .card {
-  width: 40px;
-  height: 58px;
-  font-size: 10px;
+  width: 52px;
+  height: 72px;
 }
 
 .hand-opponent .card + .card {
-  margin-left: -20px;
+  margin-left: -26px;
+}
+
+.hand-opponent .card-back::after {
+  font-size: 20px;
 }
 
 .hand-opponent-vertical {
@@ -252,12 +309,12 @@
 }
 
 .hand-opponent-vertical .card {
-  width: 48px;
-  height: 36px;
+  width: 56px;
+  height: 42px;
 }
 
-.hand-opponent-vertical .card + .card  {
-  margin-top: -20px;
+.hand-opponent-vertical .card + .card {
+  margin-top: -24px;
   margin-left: 0;
 }
 
@@ -267,61 +324,46 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 160px;
-  height: 120px;
+  width: 180px;
+  height: 130px;
   z-index: 1;
 }
 
 .discard-pile .card {
   position: absolute;
-  width: 44px;
-  height: 64px;
-  opacity: 0.85;
   pointer-events: none;
 }
 
-/* --- Turn Timer --- */
-.turn-timer {
+/* --- Action Log (center floating) --- */
+.action-log {
   position: absolute;
-  top: 50%;
+  top: 38%;
   left: 50%;
-  transform: translate(-50%, calc(-50% + 70px));
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  pointer-events: none;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  border-radius: 20px;
-  background: rgba(0,0,0,0.5);
+  gap: 4px;
+}
+
+.action-msg {
+  padding: 6px 18px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.65);
   backdrop-filter: blur(8px);
   color: #fff;
   font-size: 14px;
   font-weight: 700;
-  z-index: 5;
-}
-
-.turn-timer-bar {
-  width: 80px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.15);
-  overflow: hidden;
-}
-
-.turn-timer-fill {
-  height: 100%;
-  border-radius: 3px;
-  background: #fdcb6e;
-  transition: width 1s linear;
-}
-
-.turn-timer-fill.urgent {
-  background: #e74c3c;
+  white-space: nowrap;
+  text-align: center;
 }
 
 /* --- Quick Chat --- */
 .quick-chat-btn {
   position: absolute;
-  bottom: 120px;
+  bottom: 140px;
   right: 16px;
   z-index: 10;
   width: 44px;
@@ -346,7 +388,7 @@
 
 .quick-chat-panel {
   position: absolute;
-  bottom: 170px;
+  bottom: 190px;
   right: 16px;
   z-index: 10;
   background: rgba(0,0,0,0.7);
