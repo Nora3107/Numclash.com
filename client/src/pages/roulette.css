@@ -1,0 +1,354 @@
+/* SuckCard.com — Tactical Deal: Roulette Styles */
+
+.roulette-page {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: #0a0a0f;
+}
+
+.roulette-page canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* HUD Overlay */
+.roulette-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.roulette-hud > * {
+  pointer-events: auto;
+}
+
+/* Top Bar */
+.roulette-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+}
+
+.roulette-leave-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background 0.2s;
+}
+
+.roulette-leave-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.roulette-gun-info {
+  color: #ffd54f;
+  font-weight: 700;
+  font-size: 14px;
+  background: rgba(0,0,0,0.5);
+  padding: 6px 14px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.roulette-turn-info {
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  background: rgba(0,0,0,0.5);
+  padding: 6px 14px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+}
+
+/* Timer Bar */
+.roulette-timer-bar {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 6px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.roulette-timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  border-radius: 3px;
+  transition: width 1s linear;
+}
+
+.roulette-timer-fill.urgent {
+  background: linear-gradient(90deg, #f44336, #ff5722);
+  animation: pulse-urgent 0.5s ease-in-out infinite;
+}
+
+.roulette-timer-text {
+  position: absolute;
+  right: -40px;
+  top: -4px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Action Buttons */
+.roulette-actions {
+  position: absolute;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.roulette-action-btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #fff;
+  min-width: 200px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+}
+
+.roulette-action-btn.draw {
+  background: linear-gradient(135deg, #1565c0, #0d47a1);
+  box-shadow: 0 4px 20px rgba(21, 101, 192, 0.5);
+}
+
+.roulette-action-btn.self {
+  background: linear-gradient(135deg, #ff9800, #e65100);
+  box-shadow: 0 4px 20px rgba(255, 152, 0, 0.4);
+}
+
+.roulette-action-btn.other {
+  background: linear-gradient(135deg, #7b1fa2, #4a148c);
+  box-shadow: 0 4px 20px rgba(123, 31, 162, 0.4);
+}
+
+.roulette-action-btn.fire {
+  background: linear-gradient(135deg, #d32f2f, #b71c1c);
+  box-shadow: 0 6px 24px rgba(211, 47, 47, 0.6);
+  font-size: 20px;
+  padding: 16px 40px;
+  animation: pulse-fire 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-fire {
+  0%, 100% { box-shadow: 0 6px 24px rgba(211, 47, 47, 0.6); }
+  50% { box-shadow: 0 8px 36px rgba(211, 47, 47, 0.9); }
+}
+
+.roulette-choice-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.roulette-choice-panel h3 {
+  color: #fff;
+  font-size: 18px;
+  margin: 0 0 4px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.roulette-fire-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.roulette-fire-panel p {
+  color: #ff5252;
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+/* Hand Cards */
+.roulette-hand {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.roulette-hand h4 {
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.roulette-hand-cards {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.roulette-card-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  min-width: 70px;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s;
+}
+
+.roulette-card-btn:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: rgba(255,255,255,0.4);
+}
+
+.roulette-card-btn .card-icon {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.roulette-card-btn .card-label {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* Drawn Card Notification */
+.roulette-drawn-card {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #ffd54f;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 213, 79, 0.3);
+}
+
+/* Game Over */
+.roulette-game-over {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(12px);
+}
+
+.roulette-game-over-card {
+  text-align: center;
+  color: #fff;
+  padding: 40px 60px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.roulette-game-over-card h2 {
+  font-size: 32px;
+  margin: 0 0 10px;
+}
+
+.roulette-game-over-card p {
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+/* Player HP Sidebar */
+.roulette-player-list {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roulette-player-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  min-width: 140px;
+}
+
+.roulette-player-item.active {
+  border-color: #ffeb3b;
+  box-shadow: 0 0 12px rgba(255, 235, 59, 0.3);
+}
+
+.roulette-player-item.dead {
+  opacity: 0.4;
+}
+
+.roulette-player-item .player-name {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.roulette-player-item .player-hp-bar {
+  display: flex;
+  gap: 2px;
+}
+
+.roulette-player-item .hp-heart {
+  font-size: 12px;
+}
+
+.roulette-player-item .hp-heart.empty {
+  opacity: 0.2;
+}
+
+.roulette-player-item .player-cards {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Pulse on urgent */
+@keyframes pulse-urgent {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

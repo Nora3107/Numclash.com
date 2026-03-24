@@ -8,6 +8,7 @@ import LobbyPage from './pages/LobbyPage';
 import GamePage from './pages/GamePage';
 import ResultsPage from './pages/ResultsPage';
 import OldMaidPage from './pages/OldMaidPage';
+import RoulettePage from './pages/RoulettePage';
 
 function App() {
   const [screen, setScreen] = useState('home');
@@ -17,6 +18,7 @@ function App() {
   const [isHost, setIsHost] = useState(false);
   const [error, setError] = useState('');
   const [oldMaidInitialState, setOldMaidInitialState] = useState(null);
+  const [rouletteInitialState, setRouletteInitialState] = useState(null);
 
   const [roundData, setRoundData] = useState(null);
   const [revealData, setRevealData] = useState(null);
@@ -36,6 +38,10 @@ function App() {
       setRevealData(null);
       setGamePhase('picking');
       setScreen('game');
+    });
+    socket.on('roulette-state', (state) => {
+      setRouletteInitialState(state);
+      setScreen('roulette');
     });
     socket.on('oldmaid-state', (state) => {
       setOldMaidInitialState(state);
@@ -103,6 +109,7 @@ function App() {
       socket.off('public-rooms-updated');
       socket.off('new-message');
       socket.off('oldmaid-state');
+      socket.off('roulette-state');
     };
   }, []);
 
@@ -167,6 +174,14 @@ function App() {
   const handleSwapSeat = useCallback((targetIndex) => { socket.emit('swap-seat', { roomCode, targetIndex }); }, [roomCode]);
   const handleSetDeckType = useCallback((deckType) => { socket.emit('set-deck-type', { roomCode, deckType }); }, [roomCode]);
   const handleLeaveRoom = useCallback(() => { socket.emit('leave-room'); }, []);
+  const handleLeaveRoulette = useCallback(() => {
+    socket.emit('toggle-ready', { roomCode, ready: false });
+    setTimeout(() => {
+      socket.emit('request-room-info', { roomCode });
+    }, 200);
+    setScreen('lobby');
+  }, [roomCode]);
+
   const handleLeaveOldMaid = useCallback(() => {
     // Reset ready state on server before going back to lobby
     socket.emit('toggle-ready', { roomCode, ready: false });
@@ -288,6 +303,11 @@ function App() {
         {screen === 'oldmaid' && (
           <motion.div key="oldmaid" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
             <OldMaidPage socket={socket} roomInfo={roomInfo} onLeave={handleLeaveOldMaid} initialState={oldMaidInitialState} />
+          </motion.div>
+        )}
+        {screen === 'roulette' && (
+          <motion.div key="roulette" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
+            <RoulettePage socket={socket} roomInfo={roomInfo} onLeave={handleLeaveRoulette} initialState={rouletteInitialState} />
           </motion.div>
         )}
       </AnimatePresence>

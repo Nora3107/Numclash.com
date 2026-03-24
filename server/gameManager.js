@@ -104,7 +104,7 @@ class GameManager {
   setGameMode(roomCode, hostId, mode) {
     const room = this.rooms.get(roomCode);
     if (!room || room.hostId !== hostId) return false;
-    if (!['classic', 'average', 'oldmaid'].includes(mode)) return false;
+    if (!['classic', 'average', 'oldmaid', 'roulette'].includes(mode)) return false;
     room.gameMode = mode;
     return true;
   }
