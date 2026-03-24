@@ -145,17 +145,15 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
           setTimeout(() => {
             // Step 4: Pair flies from drawer's hand → center
             setFlyingPair(data.discarded.slice(0, 2));
-            addAction(`✨ ${getPlayerName(data.to)} vứt 1 cặp!`);
+            // Update hand immediately so cards vanish when animation starts
+            if (data.finalHand) {
+              setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
+            }
             setTimeout(() => {
               setLastDiscardedPair(data.discarded.slice(0, 2));
               setFlyingPair(null);
               setPairDrawer(null);
               setPileCount(prev => prev + 1);
-
-              // Step 5: Update to final hand (after pair removal)
-              if (data.finalHand) {
-                setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
-              }
 
               // Auto-shuffle after 3s
               setTimeout(() => {
@@ -204,14 +202,14 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
           setPairDrawer(data.to);
           setTimeout(() => {
             setFlyingPair(data.discarded.slice(0, 2));
+            if (data.finalHand) {
+              setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
+            }
             setTimeout(() => {
               setLastDiscardedPair(data.discarded.slice(0, 2));
               setFlyingPair(null);
               setPairDrawer(null);
               setPileCount(prev => prev + 1);
-              if (data.finalHand) {
-                setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
-              }
             }, 900);
           }, 1500);
         } else {
@@ -350,6 +348,18 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       >
         <ArrowLeft size={16} /> Rời phòng
       </motion.button>
+
+      {/* Clockwise turn direction arrow ring */}
+      <div className="turn-arrow-ring">
+        <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="85" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeDasharray="12 8" />
+          {/* Arrow heads at 4 positions */}
+          <polygon points="100,8 106,22 94,22" fill="rgba(255,255,255,0.6)" />
+          <polygon points="192,100 178,94 178,106" fill="rgba(255,255,255,0.6)" />
+          <polygon points="100,192 94,178 106,178" fill="rgba(255,255,255,0.6)" />
+          <polygon points="8,100 22,106 22,94" fill="rgba(255,255,255,0.6)" />
+        </svg>
+      </div>
 
       {/* Shuffle button */}
       {myHandCount > 1 && (
