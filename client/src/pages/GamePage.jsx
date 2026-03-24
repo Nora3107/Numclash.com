@@ -55,7 +55,7 @@ export default function GamePage({
     setRevealStep(0);
     let step = 0;
     const totalSteps = revealData.gameMode === 'average'
-      ? revealData.results.length + 5  // numbers + sum + ÷N + ×0.8 + winner + button
+      ? revealData.results.length + 4  // numbers + ÷N + ×0.8 + winner + button
       : revealData.results.length + 3; // numbers + comparison + winner + button
     const interval = setInterval(() => {
       step++;
@@ -292,17 +292,16 @@ export default function GamePage({
     const { results } = revealData;
     const isAvgMode = revealData.gameMode === 'average';
 
-    // For Average: N numbers + sum + ÷N + ×0.8 + winner + button = N+5
+    // For Average: N numbers + ÷N + ×0.8 + winner + button = N+4
     // For Classic: N numbers + comparison + winner + button = N+3
-    const showSum = revealStep > results.length;           // step N+1
-    const showDivide = isAvgMode && revealStep > results.length + 1;  // step N+2 (avg only)
-    const showMultiply = isAvgMode && revealStep > results.length + 2; // step N+3 (avg only)
+    const showDivide = isAvgMode && revealStep > results.length;      // step N+1 (avg only)
+    const showMultiply = isAvgMode && revealStep > results.length + 1; // step N+2 (avg only)
     const showClassicCalc = !isAvgMode && revealStep > results.length; // step N+1 (classic)
     const showWinner = isAvgMode
-      ? revealStep >= results.length + 4
+      ? revealStep >= results.length + 3
       : revealStep >= results.length + 2;
     const revealDone = isAvgMode
-      ? revealStep >= results.length + 5
+      ? revealStep >= results.length + 4
       : revealStep >= results.length + 3;
 
     const runningSum = results.slice(0, Math.min(revealStep, results.length)).reduce((s, r) => s + r.number, 0);
@@ -364,33 +363,7 @@ export default function GamePage({
         {/* === AVERAGE MODE: Step-by-step calculation cards === */}
         {isAvgMode && (
           <>
-            {/* Step 1: SUM card */}
-            <AnimatePresence>
-              {showSum && (
-                <motion.div
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', damping: 12 }}
-                  className="cartoon-card w-full max-w-md text-center"
-                  style={{ padding: '20px', marginBottom: '16px' }}
-                >
-                  <div className="flex items-center justify-center gap-3">
-                    <span className="text-sm font-bold text-text-light uppercase">Tổng</span>
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', delay: 0.2 }}
-                      className="text-4xl font-black text-accent-purple"
-                      style={{ fontFamily: 'var(--font-display)' }}
-                    >
-                      {totalSum}
-                    </motion.span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Step 2: DIVISION card — sum ÷ N = average */}
+            {/* Step 1: DIVISION card — sum ÷ N = average */}
             <AnimatePresence>
               {showDivide && (
                 <motion.div

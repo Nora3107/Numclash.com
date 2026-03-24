@@ -5,7 +5,7 @@ import { useLang } from '../i18n';
 
 const ROUND_OPTIONS = [1, 4, 8, 18, 36];
 
-export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName, chatMessages = [], onSendMessage, onKickPlayer, onSetGameMode, onSwapSeat }) {
+export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onSetRounds, onToggleReady, onLeaveRoom, socketId, onToggleRoomPublic, onSetRoomName, chatMessages = [], onSendMessage, onKickPlayer, onSetGameMode, onSwapSeat, onSetDeckType }) {
   const [copied, setCopied] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const chatEndRef = useRef(null);
@@ -179,8 +179,8 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
           <Gamepad2 size={16} className="text-accent-orange" />
           <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('gameMode')}</span>
         </div>
-        <div className="flex gap-3">
-          {[{ key: 'classic', label: t('modeClassic') }, { key: 'average', label: t('modeAverage') }].map((mode) => (
+        <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
+          {[{ key: 'classic', label: t('modeClassic') }, { key: 'average', label: t('modeAverage') }, { key: 'oldmaid', label: 'Old Maid 🃏' }].map((mode) => (
             <motion.button
               key={mode.key}
               whileHover={isHost ? { scale: 1.03 } : {}}
@@ -191,12 +191,38 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
                   ? 'bg-accent-orange/10 text-accent-orange border-accent-orange/40 shadow-md'
                   : 'bg-bg-warm text-text-mid border-[#e0d8cc]'
               } ${isHost ? 'cursor-pointer hover:border-text-light' : 'cursor-default'}`}
-              style={{ padding: '10px 0' }}
+              style={{ padding: '10px 0', minWidth: '80px' }}
             >
               {mode.label}
             </motion.button>
           ))}
         </div>
+
+        {/* Deck type selector (Old Maid only) */}
+        {roomInfo.gameMode === 'oldmaid' && (
+          <div style={{ marginTop: '12px' }}>
+            <span className="text-xs font-bold text-text-light uppercase tracking-wider" style={{ marginBottom: '8px', display: 'block' }}>Bộ bài</span>
+            <div className="flex gap-2">
+              {[{ key: 'quick', label: 'Nhanh (29 lá)', desc: '8→A' }, { key: 'full', label: 'Đầy đủ (53 lá)', desc: '2→A' }].map((deck) => (
+                <motion.button
+                  key={deck.key}
+                  whileHover={isHost ? { scale: 1.03 } : {}}
+                  whileTap={isHost ? { scale: 0.97 } : {}}
+                  onClick={() => isHost && onSetDeckType(deck.key)}
+                  className={`flex-1 rounded-xl font-semibold text-xs transition-all duration-200 border-2 ${
+                    (roomInfo.deckType || 'quick') === deck.key
+                      ? 'bg-accent-purple/10 text-accent-purple border-accent-purple/40'
+                      : 'bg-bg-warm text-text-mid border-[#e0d8cc]'
+                  } ${isHost ? 'cursor-pointer' : 'cursor-default'}`}
+                  style={{ padding: '8px 4px' }}
+                >
+                  <div>{deck.label}</div>
+                  <div style={{ opacity: 0.6, fontSize: 10 }}>{deck.desc}</div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* Player List */}
@@ -213,7 +239,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
             <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('playerList')}</span>
           </div>
           <span className={`badge ${roomInfo.players.length >= 4 ? 'badge-teal' : 'badge-pink'}`}>
-            {roomInfo.players.length}/8
+            {roomInfo.players.length}/{roomInfo.gameMode === 'oldmaid' ? 6 : 8}
           </span>
         </div>
 

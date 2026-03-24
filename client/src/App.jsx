@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage';
 import LobbyPage from './pages/LobbyPage';
 import GamePage from './pages/GamePage';
 import ResultsPage from './pages/ResultsPage';
+import OldMaidPage from './pages/OldMaidPage';
 
 function App() {
   const [screen, setScreen] = useState('home');
@@ -34,6 +35,9 @@ function App() {
       setRevealData(null);
       setGamePhase('picking');
       setScreen('game');
+    });
+    socket.on('oldmaid-state', () => {
+      setScreen('oldmaid');
     });
     socket.on('player-status-updated', (players) => {
       setRoundData(prev => prev ? { ...prev, players } : prev);
@@ -96,6 +100,7 @@ function App() {
       socket.off('connect_error');
       socket.off('public-rooms-updated');
       socket.off('new-message');
+      socket.off('oldmaid-state');
     };
   }, []);
 
@@ -158,7 +163,12 @@ function App() {
   const handleKickPlayer = useCallback((targetId) => { socket.emit('kick-player', { roomCode, targetId }); }, [roomCode]);
   const handleSetGameMode = useCallback((mode) => { socket.emit('set-game-mode', { roomCode, mode }); }, [roomCode]);
   const handleSwapSeat = useCallback((targetIndex) => { socket.emit('swap-seat', { roomCode, targetIndex }); }, [roomCode]);
+  const handleSetDeckType = useCallback((deckType) => { socket.emit('set-deck-type', { roomCode, deckType }); }, [roomCode]);
   const handleLeaveRoom = useCallback(() => { socket.emit('leave-room'); }, []);
+  const handleLeaveOldMaid = useCallback(() => {
+    setScreen('lobby');
+    socket.emit('play-again', { roomCode });
+  }, [roomCode]);
 
   useEffect(() => {
     if (roomInfo) setIsHost(roomInfo.hostId === socket.id);
@@ -255,7 +265,7 @@ function App() {
         )}
         {screen === 'lobby' && (
           <motion.div key="lobby" {...pageVariants}>
-            <LobbyPage roomInfo={roomInfo} roomCode={roomCode} isHost={isHost} onStartGame={handleStartGame} onSetRounds={handleSetRounds} onToggleReady={handleToggleReady} onLeaveRoom={handleLeaveRoom} socketId={socket.id} onToggleRoomPublic={handleToggleRoomPublic} onSetRoomName={handleSetRoomName} chatMessages={chatMessages} onSendMessage={handleSendMessage} onKickPlayer={handleKickPlayer} onSetGameMode={handleSetGameMode} onSwapSeat={handleSwapSeat} />
+            <LobbyPage roomInfo={roomInfo} roomCode={roomCode} isHost={isHost} onStartGame={handleStartGame} onSetRounds={handleSetRounds} onToggleReady={handleToggleReady} onLeaveRoom={handleLeaveRoom} socketId={socket.id} onToggleRoomPublic={handleToggleRoomPublic} onSetRoomName={handleSetRoomName} chatMessages={chatMessages} onSendMessage={handleSendMessage} onKickPlayer={handleKickPlayer} onSetGameMode={handleSetGameMode} onSwapSeat={handleSwapSeat} onSetDeckType={handleSetDeckType} />
           </motion.div>
         )}
         {screen === 'game' && (
@@ -266,6 +276,11 @@ function App() {
         {screen === 'results' && (
           <motion.div key="results" {...pageVariants}>
             <ResultsPage finalScores={finalScores} isHost={isHost} onPlayAgain={handlePlayAgain} onLeaveRoom={handleLeaveRoom} socketId={socket.id} />
+          </motion.div>
+        )}
+        {screen === 'oldmaid' && (
+          <motion.div key="oldmaid" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
+            <OldMaidPage socket={socket} roomInfo={roomInfo} onLeave={handleLeaveOldMaid} />
           </motion.div>
         )}
       </AnimatePresence>

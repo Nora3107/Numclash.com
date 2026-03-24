@@ -82,6 +82,17 @@ class GameManager {
     return { room };
   }
 
+  getRoom(roomCode) {
+    return this.rooms.get(roomCode) || null;
+  }
+
+  findRoomByPlayer(socketId) {
+    for (const [code, room] of this.rooms) {
+      if (room.players.has(socketId)) return code;
+    }
+    return null;
+  }
+
   setTotalRounds(roomCode, hostId, rounds) {
     const room = this.rooms.get(roomCode);
     if (!room || room.hostId !== hostId) return false;
@@ -93,7 +104,7 @@ class GameManager {
   setGameMode(roomCode, hostId, mode) {
     const room = this.rooms.get(roomCode);
     if (!room || room.hostId !== hostId) return false;
-    if (!['classic', 'average'].includes(mode)) return false;
+    if (!['classic', 'average', 'oldmaid'].includes(mode)) return false;
     room.gameMode = mode;
     return true;
   }
@@ -473,6 +484,7 @@ class GameManager {
       isPublic: room.isPublic,
       roomName: room.roomName,
       gameMode: room.gameMode,
+      deckType: room.deckType || 'quick',
       players: Array.from(room.players.values()).map(p => ({
         id: p.id,
         nickname: p.nickname,

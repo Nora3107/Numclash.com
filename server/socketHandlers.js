@@ -4,6 +4,7 @@
 // ============================================
 
 const gameManager = require('./gameManager');
+const { setupOldMaidHandlers, startOldMaidGame } = require('./oldMaidHandlers');
 
 const PICK_TIME = 36; // seconds
 
@@ -15,6 +16,9 @@ function setupSocketHandlers(io) {
 
   io.on('connection', (socket) => {
     console.log(`[+] Connected: ${socket.id}`);
+
+    // Setup Old Maid handlers for this connection
+    setupOldMaidHandlers(io, socket, gameManager);
 
     // ------------------------------------------
     // Room Browser Events
@@ -172,6 +176,15 @@ function setupSocketHandlers(io) {
     // ------------------------------------------
 
     socket.on('start-game', ({ roomCode }, callback) => {
+      const room = gameManager.getRoom(roomCode);
+      if (!room) return callback({ success: false, error: 'ROOM_NOT_FOUND' });
+
+      // Route to Old Maid if that mode is selected
+      if (room.gameMode === 'oldmaid') {
+        startOldMaidGame(io, socket, gameManager, roomCode, callback);
+        return;
+      }
+
       const result = gameManager.startGame(roomCode, socket.id);
       if (result.error) {
         callback({ success: false, error: result.error });
