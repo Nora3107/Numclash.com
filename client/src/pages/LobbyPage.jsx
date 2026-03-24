@@ -187,7 +187,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
           <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('gameMode')}</span>
         </div>
         <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
-          {[{ key: 'classic', label: t('modeClassic') }, { key: 'average', label: t('modeAverage') }, { key: 'oldmaid', label: 'Old Maid 🃏' }].map((mode) => (
+          {[{ key: 'classic', label: t('modeClassic') }, { key: 'average', label: t('modeAverage') }, { key: 'oldmaid', label: 'Old Maid 🃏' }, { key: 'roulette', label: 'Roulette 🔫' }].map((mode) => (
             <motion.button
               key={mode.key}
               whileHover={isHost ? { scale: 1.03 } : {}}
@@ -246,7 +246,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
             <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('playerList')}</span>
           </div>
           <span className={`badge ${roomInfo.players.length >= 4 ? 'badge-teal' : 'badge-pink'}`}>
-            {roomInfo.players.length}/{roomInfo.gameMode === 'oldmaid' ? 6 : 8}
+            {roomInfo.players.length}/{roomInfo.gameMode === 'roulette' ? 4 : roomInfo.gameMode === 'oldmaid' ? 6 : 8}
           </span>
         </div>
 

@@ -16,12 +16,12 @@ function Table() {
   return (
     <group>
       {/* Table surface */}
-      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh position={[0, -0.075, 0]} receiveShadow>
         <cylinderGeometry args={[4, 4, 0.15, 64]} />
         <meshStandardMaterial color="#1a5c3a" roughness={0.8} metalness={0.1} />
       </mesh>
       {/* Table rim */}
-      <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <torusGeometry args={[4, 0.15, 16, 64]} />
         <meshStandardMaterial color="#4a2810" roughness={0.5} metalness={0.3} />
       </mesh>
@@ -137,7 +137,7 @@ function PlayerSeat({ position, rotation, name, hp, maxHp, status, isActive, isS
         )}
       </group>
       {/* Name */}
-      <Text position={[0, 2, 0]} fontSize={0.2} color="white" anchorX="center" anchorY="middle" font="/fonts/Inter-Bold.woff">
+      <Text position={[0, 2, 0]} fontSize={0.18} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000">
         {name || 'Player'}
       </Text>
       {/* HP bar */}
@@ -186,19 +186,20 @@ function Scene({ players, currentTurn, socketId, gun, deckCount, getPlayerName }
   return (
     <>
       {/* Lighting */}
-      <ambientLight intensity={0.4} />
+      <ambientLight intensity={0.6} />
       <directionalLight position={[5, 10, 5]} intensity={1.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
       <pointLight position={[0, 5, 0]} intensity={0.5} color="#ffeebb" />
 
       {/* Environment */}
-      <color attach="background" args={['#0a0a0f']} />
-      <fog attach="fog" args={['#0a0a0f', 15, 30]} />
+      <color attach="background" args={['#0d1117']} />
+      <fog attach="fog" args={['#0a0a0f', 20, 50]} />
 
       {/* Floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.4, 0]} receiveShadow>
-        <planeGeometry args={[40, 40]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.9} />
+        <planeGeometry args={[60, 60]} />
+        <meshStandardMaterial color="#1a1a2a" roughness={0.9} />
       </mesh>
+      <gridHelper args={[40, 40, '#222233', '#1a1a2a']} position={[0, -2.39, 0]} />
 
       {/* Table */}
       <Table />
