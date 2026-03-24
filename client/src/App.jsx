@@ -167,8 +167,7 @@ function App() {
   const handleLeaveRoom = useCallback(() => { socket.emit('leave-room'); }, []);
   const handleLeaveOldMaid = useCallback(() => {
     setScreen('lobby');
-    socket.emit('play-again', { roomCode });
-  }, [roomCode]);
+  }, []);
 
   useEffect(() => {
     if (roomInfo) setIsHost(roomInfo.hostId === socket.id);

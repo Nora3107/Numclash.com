@@ -139,17 +139,15 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       addAction(`🏁 Trò chơi kết thúc!`);
     });
 
-    socket.on('new-message', (msg) => {
-      if (msg.playerId && msg.quickChat) {
-        setChatBubbles(prev => ({ ...prev, [msg.playerId]: msg.text }));
-        setTimeout(() => {
-          setChatBubbles(prev => {
-            const next = { ...prev };
-            delete next[msg.playerId];
-            return next;
-          });
-        }, 3000);
-      }
+    socket.on('oldmaid-chat-msg', ({ playerId, text }) => {
+      setChatBubbles(prev => ({ ...prev, [playerId]: text }));
+      setTimeout(() => {
+        setChatBubbles(prev => {
+          const next = { ...prev };
+          delete next[playerId];
+          return next;
+        });
+      }, 3000);
     });
 
     return () => {
@@ -161,6 +159,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       socket.off('oldmaid-initial-discard');
       socket.off('oldmaid-hand-reordered');
       socket.off('oldmaid-game-over');
+      socket.off('oldmaid-chat-msg');
     };
   }, [socket, addAction, getPlayerName]);
 
@@ -185,10 +184,9 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
   }, [gameState, socket, roomInfo]);
 
   const handleQuickChat = useCallback((text) => {
-    socket.emit('send-message', {
+    socket.emit('oldmaid-chat', {
       roomCode: roomInfo.code,
       text,
-      quickChat: true,
     });
     setShowChat(false);
   }, [socket, roomInfo]);

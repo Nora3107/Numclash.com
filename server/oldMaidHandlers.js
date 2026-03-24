@@ -90,7 +90,15 @@ function setupOldMaidHandlers(io, socket, gameManager) {
         loserId: result.rankings[result.rankings.length - 1],
       });
       activeGames.delete(roomCode);
-      if (room) room.phase = 'lobby';
+      clearTurnTimer(roomCode);
+      if (room) {
+        room.phase = 'lobby';
+        room.readyPlayers.clear();
+        // Send everyone back to lobby after a short delay
+        setTimeout(() => {
+          io.to(roomCode).emit('back-to-lobby', gameManager.getRoomInfo(roomCode));
+        }, 5000);
+      }
     } else {
       // Broadcast turn change
       io.to(roomCode).emit('oldmaid-turn', {
@@ -116,6 +124,22 @@ function setupOldMaidHandlers(io, socket, gameManager) {
         io.to(roomCode).emit('oldmaid-hand-reordered', {
           playerId: socket.id,
           hands: game._getPublicHands(),
+        });
+      }
+    }
+  });
+
+  // In-game chat (separate from lobby)
+  socket.on('oldmaid-chat', ({ roomCode, text }) => {
+    const game = activeGames.get(roomCode);
+    if (!game) return;
+    // Only broadcast to players in the game
+    const room = gameManager.getRoom(roomCode);
+    if (room) {
+      for (const pid of room.players.keys()) {
+        io.to(pid).emit('oldmaid-chat-msg', {
+          playerId: socket.id,
+          text,
         });
       }
     }

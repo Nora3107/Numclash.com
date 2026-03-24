@@ -120,19 +120,22 @@
   transform: rotate(5deg) scale(1.05);
 }
 
-/* --- Draw target: opponent cards lift up together --- */
-.hand-draw-target .card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* --- Draw target: opponent cards spread out and lift up --- */
+.hand-draw-target {
+  gap: 6px !important;
 }
 
 .hand-draw-target .card {
-  transform: translateY(-10px);
-  box-shadow: 0 8px 20px rgba(253, 203, 110, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, margin 0.3s ease;
+  transform: translateY(-24px);
+  box-shadow: 0 12px 24px rgba(253, 203, 110, 0.35);
+  margin-left: 0 !important;
+  margin-top: 0 !important;
 }
 
 .hand-draw-target .card:hover {
-  transform: translateY(-22px) !important;
-  box-shadow: 0 16px 30px rgba(253, 203, 110, 0.5) !important;
+  transform: translateY(-36px) !important;
+  box-shadow: 0 20px 36px rgba(253, 203, 110, 0.55) !important;
 }
 
 /* --- Table Layout --- */
