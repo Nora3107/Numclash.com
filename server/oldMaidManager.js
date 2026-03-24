@@ -248,8 +248,8 @@ class OldMaidGame {
       };
     }
 
-    // Advance turn
-    this._advanceTurn();
+    // Advance turn to the draw target (person who was drawn from)
+    this._advanceTurnToTarget(targetId);
 
     return {
       phase: 'playing',
@@ -273,7 +273,26 @@ class OldMaidGame {
   }
 
   _advanceTurn() {
-    this.currentTurnIndex = this._getNextActiveIndex(this.currentTurnIndex);
+    // In Old Maid: after drawer draws from target, the TARGET gets the next turn
+    // This is set by drawCard() directly, so this just updates the timestamp
+    this.turnStartTime = Date.now();
+  }
+
+  _advanceTurnToTarget(targetId) {
+    // Set turn to the draw target (the person who was drawn from)
+    const targetIdx = this.playerIds.indexOf(targetId);
+    if (targetIdx !== -1) {
+      const hand = this.hands.get(targetId);
+      if (hand && hand.length > 0) {
+        // Target still has cards, they go next
+        this.currentTurnIndex = targetIdx;
+      } else {
+        // Target ran out of cards, advance to next active player from target
+        this.currentTurnIndex = this._getNextActiveIndex(targetIdx);
+      }
+    } else {
+      this.currentTurnIndex = this._getNextActiveIndex(this.currentTurnIndex);
+    }
     this.turnStartTime = Date.now();
   }
 
