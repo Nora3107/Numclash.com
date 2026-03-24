@@ -1,176 +1,450 @@
-// SuckCard.com — Tactical Deal: Roulette — 3D Game Page
-import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+// SuckCard.com — Tactical Deal: Roulette — Premium 3D Game Page
+import { useState, useEffect, useCallback, useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Text, RoundedBox, Environment, Center } from '@react-three/drei';
+import { OrbitControls, Text, Environment, Float, Sparkles } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MessageCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import * as THREE from 'three';
 import useRouletteStore from '../stores/useRouletteStore';
 import './roulette.css';
 
 // ==========================================
-// 3D Components
+// 3D Materials (reusable)
+// ==========================================
+
+function FeltMaterial({ color = '#1a5c3a' }) {
+  return (
+    <meshStandardMaterial
+      color={color}
+      roughness={0.92}
+      metalness={0.02}
+      bumpScale={0.003}
+    />
+  );
+}
+
+// ==========================================
+// Premium Table
 // ==========================================
 
 function Table() {
+  const rimRef = useRef();
+
+  useFrame((state) => {
+    // Subtle rim shine animation
+    if (rimRef.current) {
+      rimRef.current.rotation.y = state.clock.getElapsedTime() * 0.01;
+    }
+  });
+
   return (
     <group>
-      {/* Table surface */}
-      <mesh position={[0, -0.075, 0]} receiveShadow>
-        <cylinderGeometry args={[4, 4, 0.15, 64]} />
-        <meshStandardMaterial color="#1a5c3a" roughness={0.8} metalness={0.1} />
+      {/* Felt surface */}
+      <mesh position={[0, 0, 0]} receiveShadow>
+        <cylinderGeometry args={[4.2, 4.2, 0.12, 64]} />
+        <meshStandardMaterial color="#1a6b42" roughness={0.95} metalness={0.01} />
       </mesh>
-      {/* Table rim */}
-      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[4, 0.15, 16, 64]} />
-        <meshStandardMaterial color="#4a2810" roughness={0.5} metalness={0.3} />
+      {/* Inner felt ring (darker) */}
+      <mesh position={[0, 0.065, 0]} receiveShadow>
+        <cylinderGeometry args={[3.8, 3.8, 0.01, 64]} />
+        <meshStandardMaterial color="#145533" roughness={0.98} />
       </mesh>
-      {/* Table legs */}
+      {/* Ornamental gold ring on felt */}
+      <mesh position={[0, 0.07, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[3.0, 0.02, 8, 64]} />
+        <meshStandardMaterial color="#c4a35a" metalness={0.9} roughness={0.3} emissive="#8a7030" emissiveIntensity={0.15} />
+      </mesh>
+      {/* Wooden rim — outer */}
+      <mesh ref={rimRef} position={[0, 0.02, 0]}>
+        <cylinderGeometry args={[4.5, 4.5, 0.22, 64]} />
+        <meshStandardMaterial color="#5c3015" roughness={0.4} metalness={0.2} />
+      </mesh>
+      {/* Wooden rim — inner cutout visual */}
+      <mesh position={[0, 0.03, 0]}>
+        <cylinderGeometry args={[4.2, 4.2, 0.24, 64]} />
+        <meshStandardMaterial color="#3d2010" roughness={0.5} metalness={0.15} />
+      </mesh>
+      {/* Edge highlight */}
+      <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[4.5, 0.06, 12, 64]} />
+        <meshStandardMaterial color="#6d3818" roughness={0.35} metalness={0.3} />
+      </mesh>
+      {/* Table legs — ornate */}
       {[0, 1, 2, 3].map((i) => {
         const angle = (i * Math.PI) / 2 + Math.PI / 4;
+        const x = Math.cos(angle) * 3.5;
+        const z = Math.sin(angle) * 3.5;
         return (
-          <mesh key={i} position={[Math.cos(angle) * 3, -1.2, Math.sin(angle) * 3]} castShadow>
-            <cylinderGeometry args={[0.12, 0.15, 2.4, 12]} />
-            <meshStandardMaterial color="#3d2212" roughness={0.6} metalness={0.2} />
-          </mesh>
+          <group key={i}>
+            <mesh position={[x, -1.1, z]} castShadow>
+              <cylinderGeometry args={[0.1, 0.14, 2.2, 12]} />
+              <meshStandardMaterial color="#3d2010" roughness={0.5} metalness={0.2} />
+            </mesh>
+            {/* Leg cap */}
+            <mesh position={[x, -2.2, z]}>
+              <sphereGeometry args={[0.16, 12, 12]} />
+              <meshStandardMaterial color="#c4a35a" metalness={0.8} roughness={0.3} />
+            </mesh>
+          </group>
         );
       })}
     </group>
   );
 }
 
-function GunModel({ fireState }) {
+// ==========================================
+// Premium Gun Model
+// ==========================================
+
+function GunModel({ animState }) {
   const gunRef = useRef();
   const cylinderRef = useRef();
   const flashRef = useRef();
+  const recoilRef = useRef(0);
 
-  useFrame((state) => {
-    if (gunRef.current) {
-      gunRef.current.rotation.y = Math.sin(state.clock.getElapsedTime() * 0.3) * 0.05;
-    }
+  useFrame((state, delta) => {
+    if (!gunRef.current) return;
+
+    // Idle hover
+    gunRef.current.position.y = 0.35 + Math.sin(state.clock.getElapsedTime() * 1.2) * 0.02;
+    gunRef.current.rotation.y = Math.sin(state.clock.getElapsedTime() * 0.4) * 0.08;
+
+    // Cylinder slow spin
     if (cylinderRef.current) {
-      cylinderRef.current.rotation.x += 0.002;
+      cylinderRef.current.rotation.x += delta * 0.3;
     }
-    if (flashRef.current) {
-      flashRef.current.intensity = flashRef.current.intensity > 0
-        ? flashRef.current.intensity * 0.85
-        : 0;
+
+    // Fire recoil
+    if (animState === 'shootLive' || animState === 'shootBlank') {
+      recoilRef.current = 0.3;
+      if (flashRef.current && animState === 'shootLive') {
+        flashRef.current.intensity = 40;
+      }
+    }
+    if (recoilRef.current > 0) {
+      gunRef.current.rotation.x = -recoilRef.current;
+      recoilRef.current *= 0.9;
+      if (recoilRef.current < 0.01) recoilRef.current = 0;
+    } else {
+      gunRef.current.rotation.x *= 0.9;
+    }
+
+    // Flash decay
+    if (flashRef.current && flashRef.current.intensity > 0) {
+      flashRef.current.intensity *= 0.85;
+      if (flashRef.current.intensity < 0.1) flashRef.current.intensity = 0;
     }
   });
 
   return (
-    <group ref={gunRef} position={[0, 0.35, 0]} scale={0.5}>
-      {/* Barrel */}
-      <mesh position={[0, 0.15, 0.6]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.08, 0.08, 1.2, 16]} />
-        <meshStandardMaterial color="#2a2a2a" metalness={0.9} roughness={0.2} />
+    <group ref={gunRef} position={[0, 0.35, 0]} scale={0.55}>
+      {/* Main barrel */}
+      <mesh position={[0, 0.12, 0.65]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.06, 0.07, 1.3, 16]} />
+        <meshStandardMaterial color="#1a1a1a" metalness={0.95} roughness={0.15} />
       </mesh>
-      {/* Cylinder (revolver chamber) */}
-      <mesh ref={cylinderRef} position={[0, 0.15, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.22, 0.22, 0.35, 6]} />
-        <meshStandardMaterial color="#3a3a3a" metalness={0.8} roughness={0.3} />
+      {/* Front sight */}
+      <mesh position={[0, 0.2, 1.25]} castShadow>
+        <boxGeometry args={[0.02, 0.06, 0.04]} />
+        <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Cylinder (chamber) */}
+      <group ref={cylinderRef}>
+        <mesh position={[0, 0.12, 0.05]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.2, 0.2, 0.32, 6]} />
+          <meshStandardMaterial color="#2a2a2a" metalness={0.85} roughness={0.25} />
+        </mesh>
+        {/* Chamber holes */}
+        {[0, 1, 2, 3, 4, 5].map((i) => {
+          const a = (i * Math.PI * 2) / 6;
+          return (
+            <mesh key={i} position={[Math.cos(a) * 0.12, 0.12, 0.05 + Math.sin(a) * 0.12]} rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.04, 0.04, 0.34, 8]} />
+              <meshStandardMaterial color="#111" metalness={0.5} roughness={0.8} />
+            </mesh>
+          );
+        })}
+      </group>
+      {/* Frame/body */}
+      <mesh position={[0, 0.05, -0.05]} castShadow>
+        <boxGeometry args={[0.12, 0.18, 0.4]} />
+        <meshStandardMaterial color="#222" metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Trigger guard */}
+      <mesh position={[0, -0.08, -0.05]} rotation={[0.3, 0, 0]}>
+        <torusGeometry args={[0.08, 0.015, 8, 16, Math.PI]} />
+        <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.2} />
       </mesh>
       {/* Grip */}
-      <mesh position={[0, -0.25, -0.15]} castShadow>
-        <boxGeometry args={[0.15, 0.5, 0.2]} />
-        <meshStandardMaterial color="#4a2810" roughness={0.6} metalness={0.1} />
+      <mesh position={[0, -0.22, -0.18]} rotation={[0.3, 0, 0]} castShadow>
+        <boxGeometry args={[0.13, 0.42, 0.18]} />
+        <meshStandardMaterial color="#4a2510" roughness={0.55} metalness={0.05} />
       </mesh>
-      {/* Muzzle flash light */}
-      <pointLight ref={flashRef} position={[0, 0.15, 1.2]} color="#ff6600" intensity={0} distance={5} />
-    </group>
-  );
-}
-
-function DeckStack({ count }) {
-  const cards = Math.min(count, 10);
-  return (
-    <group position={[0, 0.12, 0]}>
-      {Array.from({ length: cards }, (_, i) => (
-        <mesh key={i} position={[0, i * 0.015, 0]} castShadow>
-          <boxGeometry args={[0.5, 0.01, 0.7]} />
-          <meshStandardMaterial color={i % 2 === 0 ? '#1a237e' : '#1565c0'} roughness={0.4} />
+      {/* Grip texture lines */}
+      {[-0.04, 0, 0.04].map((y, i) => (
+        <mesh key={i} position={[0, -0.15 + y, -0.1]} rotation={[0.3, 0, 0]}>
+          <boxGeometry args={[0.135, 0.008, 0.19]} />
+          <meshStandardMaterial color="#3a1a08" roughness={0.7} />
         </mesh>
       ))}
+      {/* Hammer */}
+      <mesh position={[0, 0.2, -0.2]} castShadow>
+        <boxGeometry args={[0.04, 0.1, 0.08]} />
+        <meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.2} />
+      </mesh>
+
+      {/* Muzzle flash */}
+      <pointLight ref={flashRef} position={[0, 0.12, 1.4]} color="#ff8800" intensity={0} distance={8} />
+      <mesh position={[0, 0.12, 1.35]} visible={false}>
+        <sphereGeometry args={[0.15, 8, 8]} />
+        <meshBasicMaterial color="#ffaa00" transparent opacity={0.8} />
+      </mesh>
     </group>
   );
 }
 
-function PlayerSeat({ position, rotation, name, hp, maxHp, status, isActive, isSelf, cardCount }) {
-  const meshRef = useRef();
+// ==========================================
+// Premium Deck Stack
+// ==========================================
+
+function DeckStack({ count }) {
+  const ref = useRef();
+  const cards = Math.min(count || 10, 15);
 
   useFrame((state) => {
-    if (meshRef.current && isActive) {
-      meshRef.current.position.y = Math.sin(state.clock.getElapsedTime() * 2) * 0.03;
+    if (ref.current) {
+      ref.current.position.y = 0.08 + Math.sin(state.clock.getElapsedTime() * 0.8) * 0.005;
     }
   });
 
-  const hpColor = hp > 3 ? '#4caf50' : hp > 1 ? '#ff9800' : '#f44336';
+  return (
+    <Float speed={1} rotationIntensity={0} floatIntensity={0.05}>
+      <group ref={ref} position={[1.2, 0.08, 0]}>
+        {Array.from({ length: cards }, (_, i) => (
+          <mesh key={i} position={[(Math.random() - 0.5) * 0.02, i * 0.012, (Math.random() - 0.5) * 0.02]} rotation={[0, (Math.random() - 0.5) * 0.05, 0]} castShadow>
+            <boxGeometry args={[0.45, 0.008, 0.65]} />
+            <meshStandardMaterial
+              color={i % 3 === 0 ? '#0d47a1' : i % 3 === 1 ? '#1565c0' : '#1976d2'}
+              roughness={0.3}
+              metalness={0.1}
+            />
+          </mesh>
+        ))}
+        {/* Top card with pattern */}
+        <mesh position={[0, cards * 0.012, 0]} castShadow>
+          <boxGeometry args={[0.45, 0.008, 0.65]} />
+          <meshStandardMaterial color="#1565c0" roughness={0.25} metalness={0.15} />
+        </mesh>
+        {/* Card count text */}
+        <Text position={[0, cards * 0.012 + 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.12} color="#fff" anchorX="center">
+          {count || 0}
+        </Text>
+      </group>
+    </Float>
+  );
+}
+
+// ==========================================
+// Premium Player Model
+// ==========================================
+
+function PlayerSeat({ position, rotation, name, hp, maxHp, status, isActive, isSelf, cardCount, slotIndex }) {
+  const groupRef = useRef();
+  const bodyRef = useRef();
+  const glowRef = useRef();
+
+  const bodyColor = useMemo(() => {
+    const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12'];
+    return status === 'dead' ? '#444' : colors[slotIndex % 4];
+  }, [slotIndex, status]);
+
+  const skinColor = status === 'dead' ? '#666' : '#f5d0a9';
+
+  useFrame((state) => {
+    if (!bodyRef.current) return;
+
+    // Breathing animation
+    const breathe = Math.sin(state.clock.getElapsedTime() * 1.5 + slotIndex) * 0.015;
+    bodyRef.current.scale.y = 1 + breathe;
+    bodyRef.current.position.y = 0.8 + breathe * 2;
+
+    // Active glow pulse
+    if (glowRef.current && isActive) {
+      const pulse = 0.5 + Math.sin(state.clock.getElapsedTime() * 3) * 0.3;
+      glowRef.current.material.emissiveIntensity = pulse;
+    }
+  });
+
+  const hpPercent = hp / maxHp;
+  const hpColor = hpPercent > 0.6 ? '#4caf50' : hpPercent > 0.3 ? '#ff9800' : '#f44336';
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Character body */}
-      <group ref={meshRef}>
-        {/* Body */}
-        <mesh position={[0, 0.8, 0]} castShadow>
-          <capsuleGeometry args={[0.25, 0.6, 8, 16]} />
-          <meshStandardMaterial
-            color={status === 'dead' ? '#555' : (isSelf ? '#4fc3f7' : '#ef5350')}
-            roughness={0.5}
-            transparent={status === 'dead'}
-            opacity={status === 'dead' ? 0.4 : 1}
-          />
+      {/* Shadow circle */}
+      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.4, 32]} />
+        <meshBasicMaterial color="#000" transparent opacity={0.25} />
+      </mesh>
+
+      {/* Active ring with glow */}
+      {isActive && (
+        <mesh ref={glowRef} position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.55, 0.04, 8, 32]} />
+          <meshStandardMaterial color="#ffd700" emissive="#ffa000" emissiveIntensity={0.5} metalness={0.8} roughness={0.3} />
         </mesh>
-        {/* Head */}
-        <mesh position={[0, 1.5, 0]} castShadow>
-          <sphereGeometry args={[0.22, 16, 16]} />
+      )}
+
+      {/* Body */}
+      <group ref={bodyRef} position={[0, 0.8, 0]}>
+        {/* Torso */}
+        <mesh castShadow>
+          <capsuleGeometry args={[0.2, 0.45, 12, 20]} />
           <meshStandardMaterial
-            color={status === 'dead' ? '#555' : '#ffcc80'}
+            color={bodyColor}
             roughness={0.6}
+            metalness={0.05}
+            transparent={status === 'dead'}
+            opacity={status === 'dead' ? 0.35 : 1}
           />
         </mesh>
-        {/* Active indicator ring */}
-        {isActive && (
-          <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.5, 0.05, 8, 32]} />
-            <meshStandardMaterial color="#ffeb3b" emissive="#ffeb3b" emissiveIntensity={0.5} />
-          </mesh>
-        )}
-      </group>
-      {/* Name */}
-      <Text position={[0, 2, 0]} fontSize={0.18} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000">
-        {name || 'Player'}
-      </Text>
-      {/* HP bar */}
-      <group position={[0, 1.85, 0]}>
-        <mesh>
-          <boxGeometry args={[0.8, 0.08, 0.02]} />
-          <meshBasicMaterial color="#333" />
+        {/* Collar detail */}
+        <mesh position={[0, 0.28, 0]}>
+          <torusGeometry args={[0.18, 0.03, 8, 16]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.5} metalness={0.1} />
         </mesh>
-        <mesh position={[-(0.8 - (0.8 * hp / maxHp)) / 2, 0, 0.01]}>
-          <boxGeometry args={[0.8 * hp / maxHp, 0.06, 0.01]} />
+        {/* Arms */}
+        <mesh position={[-0.28, 0, 0.05]} rotation={[0, 0, 0.2]} castShadow>
+          <capsuleGeometry args={[0.06, 0.35, 8, 12]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.6} transparent={status === 'dead'} opacity={status === 'dead' ? 0.35 : 1} />
+        </mesh>
+        <mesh position={[0.28, 0, 0.05]} rotation={[0, 0, -0.2]} castShadow>
+          <capsuleGeometry args={[0.06, 0.35, 8, 12]} />
+          <meshStandardMaterial color={bodyColor} roughness={0.6} transparent={status === 'dead'} opacity={status === 'dead' ? 0.35 : 1} />
+        </mesh>
+      </group>
+
+      {/* Head */}
+      <mesh position={[0, 1.45, 0]} castShadow>
+        <sphereGeometry args={[0.2, 20, 20]} />
+        <meshStandardMaterial color={skinColor} roughness={0.65} />
+      </mesh>
+      {/* Hair */}
+      <mesh position={[0, 1.58, -0.02]}>
+        <sphereGeometry args={[0.18, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color={status === 'dead' ? '#555' : '#2a1a0a'} roughness={0.8} />
+      </mesh>
+
+      {/* Eyes */}
+      {status !== 'dead' && (
+        <>
+          <mesh position={[-0.07, 1.48, 0.17]}>
+            <sphereGeometry args={[0.03, 8, 8]} />
+            <meshBasicMaterial color="#1a1a1a" />
+          </mesh>
+          <mesh position={[0.07, 1.48, 0.17]}>
+            <sphereGeometry args={[0.03, 8, 8]} />
+            <meshBasicMaterial color="#1a1a1a" />
+          </mesh>
+        </>
+      )}
+      {/* Dead X eyes */}
+      {status === 'dead' && (
+        <Text position={[0, 1.48, 0.19]} fontSize={0.12} color="#ff0000" anchorX="center">
+          ✕ ✕
+        </Text>
+      )}
+
+      {/* Name plate */}
+      <group position={[0, 1.85, 0]}>
+        {/* Background */}
+        <mesh>
+          <boxGeometry args={[name ? name.length * 0.1 + 0.3 : 0.8, 0.2, 0.02]} />
+          <meshStandardMaterial color="#000" transparent opacity={0.6} />
+        </mesh>
+        <Text position={[0, 0.01, 0.02]} fontSize={0.12} color={isSelf ? '#4fc3f7' : '#fff'} anchorX="center" anchorY="middle">
+          {name || '???'}
+        </Text>
+      </group>
+
+      {/* HP bar 3D */}
+      <group position={[0, 1.72, 0]}>
+        {/* BG */}
+        <mesh>
+          <boxGeometry args={[0.7, 0.06, 0.015]} />
+          <meshBasicMaterial color="#1a1a1a" transparent opacity={0.7} />
+        </mesh>
+        {/* Fill */}
+        <mesh position={[-(0.7 - 0.7 * hpPercent) / 2, 0, 0.008]}>
+          <boxGeometry args={[Math.max(0.01, 0.7 * hpPercent), 0.045, 0.008]} />
           <meshBasicMaterial color={hpColor} />
         </mesh>
+        {/* HP text */}
+        <Text position={[0.42, 0, 0.02]} fontSize={0.06} color="#aaa" anchorX="left">
+          {hp}/{maxHp}
+        </Text>
       </group>
+
       {/* Card count badge */}
       {cardCount > 0 && (
-        <Text position={[0.5, 1.5, 0]} fontSize={0.15} color="#fff" anchorX="center">
-          🃏{cardCount}
-        </Text>
+        <group position={[0.45, 1.45, 0]}>
+          <mesh>
+            <boxGeometry args={[0.22, 0.18, 0.02]} />
+            <meshStandardMaterial color="#1565c0" roughness={0.3} />
+          </mesh>
+          <Text position={[0, 0, 0.02]} fontSize={0.1} color="#fff" anchorX="center">
+            {cardCount}
+          </Text>
+        </group>
       )}
     </group>
   );
 }
 
-function Scene({ players, currentTurn, socketId, gun, deckCount, getPlayerName }) {
+// ==========================================
+// Atmospheric Effects
+// ==========================================
+
+function Atmosphere() {
+  return (
+    <>
+      {/* Volumetric light cone from above */}
+      <spotLight
+        position={[0, 12, 0]}
+        angle={0.5}
+        penumbra={0.8}
+        intensity={2}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        color="#ffeedd"
+      />
+      {/* Soft overhead fill */}
+      <pointLight position={[0, 8, 0]} intensity={0.4} color="#ffeebb" distance={20} />
+      {/* Rim lights */}
+      <pointLight position={[6, 3, 6]} intensity={0.3} color="#4488ff" distance={15} />
+      <pointLight position={[-6, 3, -6]} intensity={0.3} color="#ff6644" distance={15} />
+      {/* Ambient */}
+      <ambientLight intensity={0.25} />
+
+      {/* Floating dust sparkles */}
+      <Sparkles count={60} scale={[12, 6, 12]} size={1.5} speed={0.3} opacity={0.15} color="#ffd700" />
+    </>
+  );
+}
+
+// ==========================================
+// Main 3D Scene
+// ==========================================
+
+function Scene({ players, currentTurn, socketId, gun, deckCount, getPlayerName, animState }) {
   const playerIds = Object.keys(players);
   const POSITIONS = [
-    { pos: [0, 0, -5], rot: [0, 0, 0] },       // top
-    { pos: [5, 0, 0], rot: [0, -Math.PI / 2, 0] }, // right
-    { pos: [0, 0, 5], rot: [0, Math.PI, 0] },   // bottom (self usually)
-    { pos: [-5, 0, 0], rot: [0, Math.PI / 2, 0] }, // left
+    { pos: [0, 0, 5.5], rot: [0, Math.PI, 0] },       // bottom (self)
+    { pos: [0, 0, -5.5], rot: [0, 0, 0] },             // top
+    { pos: [5.5, 0, 0], rot: [0, -Math.PI / 2, 0] },   // right
+    { pos: [-5.5, 0, 0], rot: [0, Math.PI / 2, 0] },    // left
   ];
 
-  // Sort so self is always at bottom
   const selfIdx = playerIds.indexOf(socketId);
   const orderedIds = [];
   if (selfIdx >= 0) {
@@ -180,39 +454,35 @@ function Scene({ players, currentTurn, socketId, gun, deckCount, getPlayerName }
   } else {
     orderedIds.push(...playerIds);
   }
-  // Map: bottom=self, then clockwise
-  const slotOrder = [2, 0, 1, 3]; // bottom, top, right, left
 
   return (
     <>
-      {/* Lighting */}
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[5, 10, 5]} intensity={1.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
-      <pointLight position={[0, 5, 0]} intensity={0.5} color="#ffeebb" />
+      <Atmosphere />
 
-      {/* Environment */}
-      <color attach="background" args={['#0d1117']} />
-      <fog attach="fog" args={['#0a0a0f', 20, 50]} />
+      {/* Background */}
+      <color attach="background" args={['#080a10']} />
+      <fog attach="fog" args={['#080a10', 18, 40]} />
 
       {/* Floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.4, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.3, 0]} receiveShadow>
         <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color="#1a1a2a" roughness={0.9} />
+        <meshStandardMaterial color="#0a0c14" roughness={0.95} metalness={0.05} />
       </mesh>
-      <gridHelper args={[40, 40, '#222233', '#1a1a2a']} position={[0, -2.39, 0]} />
+      {/* Subtle floor pattern */}
+      <gridHelper args={[40, 80, '#0f1220', '#0d0f18']} position={[0, -2.29, 0]} />
 
       {/* Table */}
       <Table />
 
       {/* Gun */}
-      <GunModel />
+      <GunModel animState={animState} />
 
       {/* Deck */}
       <DeckStack count={deckCount} />
 
       {/* Players */}
       {orderedIds.map((pid, i) => {
-        const slot = POSITIONS[slotOrder[i]] || POSITIONS[0];
+        const slot = POSITIONS[i] || POSITIONS[0];
         const player = players[pid];
         if (!player) return null;
         return (
@@ -227,6 +497,7 @@ function Scene({ players, currentTurn, socketId, gun, deckCount, getPlayerName }
             isActive={pid === currentTurn}
             isSelf={pid === socketId}
             cardCount={pid === socketId ? undefined : player.cardCount}
+            slotIndex={i}
           />
         );
       })}
@@ -235,18 +506,20 @@ function Scene({ players, currentTurn, socketId, gun, deckCount, getPlayerName }
       <OrbitControls
         enablePan={false}
         enableZoom={true}
-        minDistance={5}
-        maxDistance={15}
-        maxPolarAngle={Math.PI / 2.2}
+        minDistance={6}
+        maxDistance={16}
+        maxPolarAngle={Math.PI / 2.3}
         minPolarAngle={Math.PI / 6}
         target={[0, 0.5, 0]}
+        enableDamping
+        dampingFactor={0.05}
       />
     </>
   );
 }
 
 // ==========================================
-// HUD (HTML Overlay)
+// Premium HUD
 // ==========================================
 
 function RouletteHUD({
@@ -255,13 +528,19 @@ function RouletteHUD({
   drawnCard, winner, onLeave, getPlayerName, turnDirection,
 }) {
   const isMyTurn = currentTurn === socketId;
-  const alivePlayers = Object.entries(players).filter(([_, p]) => p.status === 'alive' && p.id !== socketId);
+  const myPlayer = players[socketId];
+  const alivePlayers = Object.entries(players).filter(([pid, p]) => p.status === 'alive' && pid !== socketId);
 
   const handleDraw = () => socket.emit('roulette-draw', { roomCode });
   const handleAimSelf = () => socket.emit('roulette-aim', { roomCode, targetId: 'self' });
   const handleAimOther = (targetId) => socket.emit('roulette-aim', { roomCode, targetId });
   const handleFire = () => socket.emit('roulette-fire', { roomCode });
   const handlePlayCard = (cardId) => socket.emit('roulette-play-card', { roomCode, cardId });
+
+  const cardIcons = {
+    skip: '⏭️', redirect: '🔀', reverse: '🔄', heal: '💚',
+    addBullet: '💀', plusOne: '➕', spin: '🎰',
+  };
 
   return (
     <div className="roulette-hud">
@@ -270,125 +549,177 @@ function RouletteHUD({
         <motion.button className="roulette-leave-btn" onClick={onLeave} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
           <ArrowLeft size={16} /> Rời phòng
         </motion.button>
-        <div className="roulette-gun-info">
-          🔫 Level {gun?.difficultyLevel || 1} — {gun?.remaining || 0}/{gun?.totalChambers || 6} viên còn lại
+
+        <div className="roulette-info-center">
+          <div className="roulette-gun-info">
+            🔫 Cấp {gun?.difficultyLevel || 1}
+            <span className="bullet-count">{gun?.remaining || 0}/{gun?.totalChambers || 6}</span>
+          </div>
+          <div className={`roulette-turn-indicator ${isMyTurn ? 'my-turn' : ''}`}>
+            {isMyTurn ? '🎯 Lượt của bạn!' : `⏳ Lượt: ${getPlayerName(currentTurn)}`}
+          </div>
         </div>
-        <div className="roulette-turn-info" style={{ direction: turnDirection === 1 ? 'ltr' : 'rtl' }}>
-          {turnDirection === 1 ? '🔄' : '🔃'} {isMyTurn ? '🎯 Lượt của bạn!' : `⏳ ${getPlayerName(currentTurn)}`}
+
+        <div className="roulette-direction">
+          {turnDirection === 1 ? '↻' : '↺'}
         </div>
       </div>
 
       {/* Timer */}
       {phase === 'playing' && (
-        <div className="roulette-timer-bar">
-          <div className={`roulette-timer-fill ${timer <= 5 ? 'urgent' : ''}`} style={{ width: `${(timer / 30) * 100}%` }} />
-          <span className="roulette-timer-text">{timer}s</span>
+        <div className="roulette-timer-container">
+          <svg className="roulette-timer-ring" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="3" />
+            <circle
+              cx="50" cy="50" r="45"
+              fill="none"
+              stroke={timer <= 5 ? '#f44336' : timer <= 10 ? '#ff9800' : '#4caf50'}
+              strokeWidth="3"
+              strokeDasharray={`${(timer / 30) * 283} 283`}
+              strokeLinecap="round"
+              transform="rotate(-90 50 50)"
+              style={{ transition: 'stroke-dasharray 1s linear, stroke 0.3s' }}
+            />
+          </svg>
+          <span className={`roulette-timer-number ${timer <= 5 ? 'urgent' : ''}`}>{timer}</span>
         </div>
       )}
 
       {/* Action Buttons */}
-      {isMyTurn && phase === 'playing' && (
-        <div className="roulette-actions">
-          {turnPhase === 'draw' && (
-            <motion.button className="roulette-action-btn draw" onClick={handleDraw} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              🃏 Rút Bài
-            </motion.button>
-          )}
-
-          {turnPhase === 'choice' && (
-            <div className="roulette-choice-panel">
-              <h3>🎯 Chọn mục tiêu</h3>
-              <motion.button className="roulette-action-btn self" onClick={handleAimSelf} whileHover={{ scale: 1.05 }}>
-                🔫 Bắn bản thân (BLANK → lượt thêm!)
+      <AnimatePresence mode="wait">
+        {isMyTurn && phase === 'playing' && (
+          <motion.div className="roulette-actions" key={turnPhase} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} transition={{ duration: 0.3 }}>
+            {turnPhase === 'draw' && (
+              <motion.button className="roulette-action-btn draw" onClick={handleDraw} whileHover={{ scale: 1.08, y: -3 }} whileTap={{ scale: 0.95 }}>
+                <span className="btn-icon">🃏</span>
+                <span>Rút Bài</span>
               </motion.button>
-              {alivePlayers.map(([pid]) => (
-                <motion.button key={pid} className="roulette-action-btn other" onClick={() => handleAimOther(pid)} whileHover={{ scale: 1.05 }}>
-                  🎯 Bắn {getPlayerName(pid)}
+            )}
+
+            {turnPhase === 'choice' && (
+              <div className="roulette-choice-panel">
+                <motion.div className="choice-title" initial={{ scale: 0 }} animate={{ scale: 1 }}>🎯 Chọn mục tiêu</motion.div>
+                <motion.button className="roulette-action-btn self" onClick={handleAimSelf} whileHover={{ scale: 1.05 }} initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
+                  <span className="btn-icon">🔫</span>
+                  <div><span>Bắn bản thân</span><small>BLANK → thêm lượt!</small></div>
+                </motion.button>
+                {alivePlayers.map(([pid], i) => (
+                  <motion.button key={pid} className="roulette-action-btn other" onClick={() => handleAimOther(pid)} whileHover={{ scale: 1.05 }} initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.15 + i * 0.05 }}>
+                    <span className="btn-icon">🎯</span>
+                    <span>Bắn {getPlayerName(pid)}</span>
+                  </motion.button>
+                ))}
+              </div>
+            )}
+
+            {(turnPhase === 'firing' || turnPhase === 'forced_fire') && (
+              <div className="roulette-fire-panel">
+                <div className="fire-count">💥 {shotsFired}/{requiredShots}</div>
+                <motion.button
+                  className="roulette-action-btn fire"
+                  onClick={handleFire}
+                  whileHover={{ scale: 1.12 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{ boxShadow: ['0 0 20px rgba(255,0,0,0.3)', '0 0 40px rgba(255,0,0,0.6)', '0 0 20px rgba(255,0,0,0.3)'] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <span className="btn-icon fire-icon">🔫</span>
+                  <span>BẮN!</span>
+                </motion.button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Card Hand */}
+      <AnimatePresence>
+        {myHand.length > 0 && isMyTurn && ['choice', 'forced_fire', 'firing'].includes(turnPhase) && (
+          <motion.div className="roulette-hand" initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}>
+            <div className="hand-label">Bài hỗ trợ</div>
+            <div className="roulette-hand-cards">
+              {myHand.map((card, i) => (
+                <motion.button
+                  key={card.id}
+                  className="roulette-card-btn"
+                  onClick={() => handlePlayCard(card.id)}
+                  whileHover={{ y: -12, scale: 1.1, rotate: 0 }}
+                  whileTap={{ scale: 0.9 }}
+                  initial={{ y: 40, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1, rotate: (i - myHand.length / 2) * 3 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <span className="card-icon">{cardIcons[card.name] || '🃏'}</span>
+                  <span className="card-label">{card.label}</span>
                 </motion.button>
               ))}
             </div>
-          )}
-
-          {(turnPhase === 'firing' || turnPhase === 'forced_fire') && (
-            <div className="roulette-fire-panel">
-              <p>💥 Bắn {shotsFired}/{requiredShots}</p>
-              <motion.button className="roulette-action-btn fire" onClick={handleFire} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                🔫 BẮN!
-              </motion.button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* My Hand */}
-      {myHand.length > 0 && isMyTurn && (
-        <div className="roulette-hand">
-          <h4>🃏 Bài trên tay</h4>
-          <div className="roulette-hand-cards">
-            {myHand.map((card) => (
-              <motion.button
-                key={card.id}
-                className="roulette-card-btn"
-                onClick={() => handlePlayCard(card.id)}
-                whileHover={{ y: -8, scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="card-icon">
-                  {card.name === 'skip' && '⏭️'}
-                  {card.name === 'redirect' && '🔀'}
-                  {card.name === 'reverse' && '🔄'}
-                  {card.name === 'heal' && '💚'}
-                  {card.name === 'addBullet' && '💀'}
-                  {card.name === 'plusOne' && '➕'}
-                  {card.name === 'spin' && '🎰'}
-                </span>
-                <span className="card-label">{card.label}</span>
-              </motion.button>
-            ))}
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Drawn card notification */}
       <AnimatePresence>
         {drawnCard && (
           <motion.div
             className="roulette-drawn-card"
-            initial={{ y: 50, opacity: 0, scale: 0.5 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -30, opacity: 0 }}
+            initial={{ y: 60, opacity: 0, scale: 0.5, rotateX: 90 }}
+            animate={{ y: 0, opacity: 1, scale: 1, rotateX: 0 }}
+            exit={{ y: -40, opacity: 0, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
           >
-            {drawnCard.type === 'action'
-              ? `⚡ Action Card: Bắn ${drawnCard.value} lần!`
-              : `🃏 ${drawnCard.label}`}
+            <div className="drawn-card-inner">
+              <span className="drawn-card-icon">{drawnCard.type === 'action' ? '⚡' : '🃏'}</span>
+              <span className="drawn-card-text">
+                {drawnCard.type === 'action' ? `Bắn ${drawnCard.value} lần!` : drawnCard.label}
+              </span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Game Over Overlay */}
+      {/* Game Over */}
       <AnimatePresence>
         {phase === 'finished' && (
           <motion.div className="roulette-game-over" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="roulette-game-over-card">
-              <h2>{winner === socketId ? '🎉 Bạn thắng!' : `☠️ ${getPlayerName(winner)} thắng!`}</h2>
-              <p>Quay lại sảnh chờ...</p>
-            </div>
+            <motion.div className="roulette-game-over-card" initial={{ scale: 0.5, y: 40 }} animate={{ scale: 1, y: 0 }} transition={{ type: 'spring', stiffness: 150, damping: 12 }}>
+              <div className="game-over-icon">{winner === socketId ? '🏆' : '💀'}</div>
+              <h2>{winner === socketId ? 'Chiến thắng!' : `${getPlayerName(winner)} thắng!`}</h2>
+              <p>Quay lại sảnh chờ trong giây lát...</p>
+              <div className="game-over-divider" />
+              <div className="game-over-stats">
+                {Object.entries(players).map(([pid, p]) => (
+                  <div key={pid} className={`stat-row ${pid === winner ? 'winner' : ''}`}>
+                    <span>{getPlayerName(pid)}</span>
+                    <span>{p.hp > 0 ? `❤️ ${p.hp}` : '☠️'}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Player HP sidebar */}
+      {/* Player list sidebar */}
       <div className="roulette-player-list">
         {Object.entries(players).map(([pid, p]) => (
-          <div key={pid} className={`roulette-player-item ${pid === currentTurn ? 'active' : ''} ${p.status === 'dead' ? 'dead' : ''}`}>
-            <span className="player-name">{getPlayerName(pid)} {pid === socketId ? '(Bạn)' : ''}</span>
-            <div className="player-hp-bar">
+          <motion.div
+            key={pid}
+            className={`roulette-player-item ${pid === currentTurn ? 'active' : ''} ${p.status === 'dead' ? 'dead' : ''}`}
+            layout
+            animate={pid === currentTurn ? { borderColor: '#ffd700' } : {}}
+          >
+            <div className="player-info-row">
+              <span className="player-name">{getPlayerName(pid)}{pid === socketId ? ' (Bạn)' : ''}</span>
+              {pid === currentTurn && <span className="turn-badge">▶</span>}
+            </div>
+            <div className="player-hp-visual">
               {Array.from({ length: p.maxHp }, (_, i) => (
-                <span key={i} className={`hp-heart ${i < p.hp ? 'filled' : 'empty'}`}>❤️</span>
+                <span key={i} className={`hp-pip ${i < p.hp ? 'filled' : 'empty'}`} />
               ))}
             </div>
-            <span className="player-cards">🃏{p.cardCount || 0}</span>
-          </div>
+            {p.cardCount > 0 && <span className="player-cards">🃏 {p.cardCount}</span>}
+          </motion.div>
         ))}
       </div>
     </div>
@@ -396,7 +727,7 @@ function RouletteHUD({
 }
 
 // ==========================================
-// Main Page Component
+// Main Page
 // ==========================================
 
 export default function RoulettePage({ socket, roomInfo, onLeave, initialState }) {
@@ -409,22 +740,17 @@ export default function RoulettePage({ socket, roomInfo, onLeave, initialState }
     return p?.nickname || pid?.slice(0, 6);
   }, [roomInfo]);
 
-  // Sync initial state
   useEffect(() => {
-    if (initialState) {
-      store.syncState(initialState);
-    }
+    if (initialState) store.syncState(initialState);
   }, [initialState]);
 
-  // Socket listeners
   useEffect(() => {
     socket.on('roulette-state', (state) => store.syncState(state));
     socket.on('roulette-draw-result', (data) => store.onDrawResult(data));
     socket.on('roulette-aim-result', (data) => store.onAimResult(data));
     socket.on('roulette-fire-result', (data) => {
       store.onFireResult(data);
-      // Reset anim after delay
-      setTimeout(() => store.setAnimState('idle'), 1500);
+      setTimeout(() => store.setAnimState('idle'), 1800);
     });
     socket.on('roulette-card-played', (data) => store.onCardPlayed(data));
     socket.on('roulette-timer', ({ remaining }) => store.setTimer(remaining));
@@ -448,8 +774,13 @@ export default function RoulettePage({ socket, roomInfo, onLeave, initialState }
     <div className="roulette-page">
       <Canvas
         shadows
-        camera={{ position: [0, 8, 10], fov: 50 }}
-        gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
+        camera={{ position: [0, 9, 11], fov: 45 }}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.1,
+        }}
+        dpr={[1, 2]}
       >
         <Suspense fallback={null}>
           <Scene
@@ -459,6 +790,7 @@ export default function RoulettePage({ socket, roomInfo, onLeave, initialState }
             gun={store.gun}
             deckCount={store.deckCount}
             getPlayerName={getPlayerName}
+            animState={store.animState}
           />
         </Suspense>
       </Canvas>

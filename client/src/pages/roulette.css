@@ -1,11 +1,12 @@
-/* SuckCard.com — Tactical Deal: Roulette Styles */
+/* SuckCard.com — Tactical Deal: Roulette — Premium Styles */
 
+/* Page Container */
 .roulette-page {
   width: 100vw;
   height: 100vh;
   position: relative;
   overflow: hidden;
-  background: #0a0a0f;
+  background: #080a10;
 }
 
 .roulette-page canvas {
@@ -13,12 +14,16 @@
   height: 100% !important;
 }
 
-/* HUD Overlay */
+/* ==========================================
+   HUD Overlay
+   ========================================== */
+
 .roulette-hud {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 10;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 .roulette-hud > * {
@@ -30,8 +35,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+  padding: 14px 18px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 70%, transparent 100%);
 }
 
 .roulette-leave-btn {
@@ -39,79 +44,108 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 8px;
-  color: #fff;
-  font-size: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition: background 0.2s;
+  backdrop-filter: blur(12px);
+  transition: all 0.25s;
 }
 
 .roulette-leave-btn:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,80,80,0.15);
+  border-color: rgba(255,80,80,0.4);
+  color: #ff6b6b;
+}
+
+.roulette-info-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .roulette-gun-info {
   color: #ffd54f;
   font-weight: 700;
   font-size: 14px;
-  background: rgba(0,0,0,0.5);
-  padding: 6px 14px;
-  border-radius: 8px;
-  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.roulette-turn-info {
-  color: #fff;
+.bullet-count {
+  background: rgba(255, 213, 79, 0.15);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.roulette-turn-indicator {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
   font-weight: 600;
-  font-size: 14px;
-  background: rgba(0,0,0,0.5);
-  padding: 6px 14px;
-  border-radius: 8px;
-  backdrop-filter: blur(8px);
 }
 
-/* Timer Bar */
-.roulette-timer-bar {
+.roulette-turn-indicator.my-turn {
+  color: #4fc3f7;
+  text-shadow: 0 0 12px rgba(79, 195, 247, 0.5);
+  animation: pulse-text 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-text {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.roulette-direction {
+  font-size: 28px;
+  color: rgba(255,255,255,0.3);
+  font-weight: 300;
+}
+
+/* Timer Ring */
+.roulette-timer-container {
   position: absolute;
   top: 70px;
   left: 50%;
   transform: translateX(-50%);
-  width: 300px;
-  height: 6px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 3px;
-  overflow: hidden;
+  width: 52px;
+  height: 52px;
+  pointer-events: none;
 }
 
-.roulette-timer-fill {
+.roulette-timer-ring {
+  width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, #4caf50, #8bc34a);
-  border-radius: 3px;
-  transition: width 1s linear;
 }
 
-.roulette-timer-fill.urgent {
-  background: linear-gradient(90deg, #f44336, #ff5722);
-  animation: pulse-urgent 0.5s ease-in-out infinite;
-}
-
-.roulette-timer-text {
+.roulette-timer-number {
   position: absolute;
-  right: -40px;
-  top: -4px;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.8);
 }
 
-/* Action Buttons */
+.roulette-timer-number.urgent {
+  color: #f44336;
+  animation: pulse-text 0.5s ease-in-out infinite;
+}
+
+/* ==========================================
+   Action Buttons
+   ========================================== */
+
 .roulette-actions {
   position: absolute;
-  bottom: 140px;
+  bottom: 130px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -121,234 +155,337 @@
 }
 
 .roulette-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 14px 28px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 800;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   color: #fff;
-  min-width: 200px;
-  text-align: center;
-  backdrop-filter: blur(8px);
-  transition: all 0.2s;
+  min-width: 220px;
+  justify-content: center;
+  backdrop-filter: blur(16px);
+  transition: all 0.25s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.roulette-action-btn .btn-icon {
+  font-size: 20px;
 }
 
 .roulette-action-btn.draw {
-  background: linear-gradient(135deg, #1565c0, #0d47a1);
-  box-shadow: 0 4px 20px rgba(21, 101, 192, 0.5);
+  background: linear-gradient(135deg, rgba(21, 101, 192, 0.8), rgba(13, 71, 161, 0.9));
+  border-color: rgba(100, 180, 255, 0.3);
+  box-shadow: 0 4px 24px rgba(21, 101, 192, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 .roulette-action-btn.self {
-  background: linear-gradient(135deg, #ff9800, #e65100);
-  box-shadow: 0 4px 20px rgba(255, 152, 0, 0.4);
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.75), rgba(230, 81, 0, 0.85));
+  border-color: rgba(255, 200, 100, 0.3);
+  box-shadow: 0 4px 24px rgba(255, 152, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.roulette-action-btn.self small {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.75;
 }
 
 .roulette-action-btn.other {
-  background: linear-gradient(135deg, #7b1fa2, #4a148c);
-  box-shadow: 0 4px 20px rgba(123, 31, 162, 0.4);
+  background: linear-gradient(135deg, rgba(123, 31, 162, 0.75), rgba(74, 20, 140, 0.85));
+  border-color: rgba(200, 120, 255, 0.3);
+  box-shadow: 0 4px 24px rgba(123, 31, 162, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 .roulette-action-btn.fire {
-  background: linear-gradient(135deg, #d32f2f, #b71c1c);
-  box-shadow: 0 6px 24px rgba(211, 47, 47, 0.6);
-  font-size: 20px;
-  padding: 16px 40px;
-  animation: pulse-fire 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse-fire {
-  0%, 100% { box-shadow: 0 6px 24px rgba(211, 47, 47, 0.6); }
-  50% { box-shadow: 0 8px 36px rgba(211, 47, 47, 0.9); }
-}
-
-.roulette-choice-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-}
-
-.roulette-choice-panel h3 {
-  color: #fff;
+  background: linear-gradient(135deg, rgba(211, 47, 47, 0.85), rgba(183, 28, 28, 0.95));
+  border-color: rgba(255, 100, 100, 0.4);
   font-size: 18px;
-  margin: 0 0 4px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  padding: 16px 40px;
+  min-width: 180px;
 }
 
+.fire-icon {
+  display: inline-block;
+  animation: shake-gun 0.5s ease-in-out infinite;
+}
+
+@keyframes shake-gun {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  75% { transform: rotate(5deg); }
+}
+
+.roulette-choice-panel,
 .roulette-fire-panel {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 8px;
+  align-items: center;
 }
 
-.roulette-fire-panel p {
-  color: #ff5252;
-  font-weight: 700;
+.choice-title {
   font-size: 16px;
-  margin: 0;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
 
-/* Hand Cards */
+.fire-count {
+  color: #ff5252;
+  font-weight: 800;
+  font-size: 18px;
+  text-shadow: 0 0 12px rgba(255, 82, 82, 0.5);
+}
+
+/* ==========================================
+   Card Hand
+   ========================================== */
+
 .roulette-hand {
   position: absolute;
-  bottom: 10px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
 }
 
-.roulette-hand h4 {
-  color: rgba(255,255,255,0.7);
-  font-size: 12px;
-  margin: 0 0 8px;
+.hand-label {
+  color: rgba(255,255,255,0.4);
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
 }
 
 .roulette-hand-cards {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   justify-content: center;
+  perspective: 800px;
 }
 
 .roulette-card-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 14px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
   color: #fff;
   cursor: pointer;
-  min-width: 70px;
-  backdrop-filter: blur(10px);
+  min-width: 68px;
+  backdrop-filter: blur(12px);
   transition: all 0.2s;
+  transform-origin: center bottom;
 }
 
 .roulette-card-btn:hover {
-  background: rgba(255,255,255,0.2);
-  border-color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.3);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
 }
 
 .roulette-card-btn .card-icon {
-  font-size: 22px;
-  margin-bottom: 4px;
+  font-size: 24px;
+  margin-bottom: 3px;
 }
 
 .roulette-card-btn .card-label {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  opacity: 0.8;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Drawn Card Notification */
+/* ==========================================
+   Drawn Card Notification
+   ========================================== */
+
 .roulette-drawn-card {
   position: absolute;
-  top: 100px;
+  top: 130px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0,0,0,0.85);
-  color: #ffd54f;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 213, 79, 0.3);
 }
 
-/* Game Over */
+.drawn-card-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0,0,0,0.85);
+  padding: 12px 24px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 213, 79, 0.3);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.drawn-card-icon {
+  font-size: 24px;
+}
+
+.drawn-card-text {
+  color: #ffd54f;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ==========================================
+   Game Over
+   ========================================== */
+
 .roulette-game-over {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(12px);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(16px);
 }
 
 .roulette-game-over-card {
   text-align: center;
   color: #fff;
-  padding: 40px 60px;
-  background: rgba(255,255,255,0.05);
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.1);
+  padding: 40px 50px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  min-width: 300px;
+}
+
+.game-over-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
 }
 
 .roulette-game-over-card h2 {
-  font-size: 32px;
-  margin: 0 0 10px;
+  font-size: 28px;
+  margin: 0 0 6px;
+  font-weight: 800;
 }
 
 .roulette-game-over-card p {
-  font-size: 16px;
-  opacity: 0.7;
+  font-size: 14px;
+  opacity: 0.5;
+  margin: 0;
 }
 
-/* Player HP Sidebar */
+.game-over-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 20px 0;
+}
+
+.game-over-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+}
+
+.stat-row.winner {
+  background: rgba(255, 215, 0, 0.1);
+  color: #ffd700;
+}
+
+/* ==========================================
+   Player List Sidebar
+   ========================================== */
+
 .roulette-player-list {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .roulette-player-item {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   padding: 10px 14px;
-  background: rgba(0,0,0,0.6);
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
-  min-width: 140px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+  min-width: 130px;
+  transition: all 0.3s;
 }
 
 .roulette-player-item.active {
-  border-color: #ffeb3b;
-  box-shadow: 0 0 12px rgba(255, 235, 59, 0.3);
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.15);
+  background: rgba(255, 215, 0, 0.05);
 }
 
 .roulette-player-item.dead {
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
-.roulette-player-item .player-name {
+.player-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-name {
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
-.roulette-player-item .player-hp-bar {
+.turn-badge {
+  color: #ffd700;
+  font-size: 10px;
+  animation: pulse-text 1s ease-in-out infinite;
+}
+
+.player-hp-visual {
   display: flex;
-  gap: 2px;
+  gap: 3px;
 }
 
-.roulette-player-item .hp-heart {
-  font-size: 12px;
+.hp-pip {
+  width: 12px;
+  height: 5px;
+  border-radius: 2px;
+  transition: all 0.3s;
 }
 
-.roulette-player-item .hp-heart.empty {
-  opacity: 0.2;
+.hp-pip.filled {
+  background: linear-gradient(135deg, #e74c3c, #ff6b6b);
+  box-shadow: 0 0 4px rgba(231, 76, 60, 0.5);
 }
 
-.roulette-player-item .player-cards {
-  font-size: 11px;
-  color: rgba(255,255,255,0.5);
+.hp-pip.empty {
+  background: rgba(255,255,255,0.1);
 }
 
-/* Pulse on urgent */
-@keyframes pulse-urgent {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+.player-cards {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 600;
 }
