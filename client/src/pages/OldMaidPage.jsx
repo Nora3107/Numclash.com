@@ -327,15 +327,10 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
         <ArrowLeft size={16} /> Rời phòng
       </motion.button>
 
-      {/* Clockwise turn direction arrow ring */}
+      {/* Clockwise turn direction ring */}
       <div className="turn-arrow-ring">
         <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="100" cy="100" r="85" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeDasharray="12 8" />
-          {/* Arrow heads pointing clockwise (tangent to circle) */}
-          <polygon points="112,16 100,8 104,22" fill="rgba(255,255,255,0.6)" />
-          <polygon points="192,112 192,100 178,104" fill="rgba(255,255,255,0.6)" />
-          <polygon points="88,184 100,192 96,178" fill="rgba(255,255,255,0.6)" />
-          <polygon points="8,88 8,100 22,96" fill="rgba(255,255,255,0.6)" />
         </svg>
       </div>
 
@@ -504,45 +499,58 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
               </AnimatePresence>
             </div>
 
-            {!playerOut && (
-              <div className={`hand-container ${isMe ? 'hand-local' : isVertical ? 'hand-opponent hand-opponent-vertical' : 'hand-opponent'} ${isDrawTarget ? 'hand-draw-target' : ''}`}>
-                {isMe ? (
-                  // Local player: face-up, drag-and-drop reordering
-                  (myHand || []).map((card, i) => (
-                    <div
-                      key={card.id}
-                      draggable
-                      onDragStart={() => handleDragStart(i)}
-                      onDragOver={(e) => handleDragOver(e, i)}
-                      onDragEnd={handleDragEnd}
-                      style={{
-                        opacity: dragIdx === i ? 0.4 : 1,
-                        transform: dragOverIdx === i && dragIdx !== i ? 'translateY(-8px)' : 'none',
-                        transition: 'transform 0.15s ease, opacity 0.15s ease',
-                        cursor: 'grab',
-                      }}
-                    >
+            {!playerOut && (() => {
+              // Direction-aware transform for draw target
+              const drawTargetStyle = isDrawTarget ? (() => {
+                if (pos === 'top') return { transform: 'translateY(28px) scale(1.1)' };
+                if (pos.includes('left')) return { transform: 'translateX(28px) scale(1.1)' };
+                if (pos.includes('right')) return { transform: 'translateX(-28px) scale(1.1)' };
+                return { transform: 'translateY(-28px) scale(1.1)' };
+              })() : {};
+
+              return (
+                <div
+                  className={`hand-container ${isMe ? 'hand-local' : isVertical ? 'hand-opponent hand-opponent-vertical' : 'hand-opponent'} ${isDrawTarget ? 'hand-draw-target' : ''}`}
+                  style={{ transition: 'transform 0.3s ease', ...drawTargetStyle }}
+                >
+                  {isMe ? (
+                    // Local player: face-up, drag-and-drop reordering
+                    (myHand || []).map((card, i) => (
+                      <div
+                        key={card.id}
+                        draggable
+                        onDragStart={() => handleDragStart(i)}
+                        onDragOver={(e) => handleDragOver(e, i)}
+                        onDragEnd={handleDragEnd}
+                        style={{
+                          opacity: dragIdx === i ? 0.4 : 1,
+                          transform: dragOverIdx === i && dragIdx !== i ? 'translateY(-8px)' : 'none',
+                          transition: 'transform 0.15s ease, opacity 0.15s ease',
+                          cursor: 'grab',
+                        }}
+                      >
+                        <Card
+                          value={card.value}
+                          suit={card.suit}
+                          isJoker={card.value === 'JOKER'}
+                          hoverable
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    // Opponent: face-down
+                    (playerHand?.cards || []).map((card, i) => (
                       <Card
-                        value={card.value}
-                        suit={card.suit}
-                        isJoker={card.value === 'JOKER'}
-                        hoverable
+                        key={card.id}
+                        faceDown
+                        hoverable={isDrawTarget}
+                        onClick={() => isDrawTarget && handleDrawCard(i)}
                       />
-                    </div>
-                  ))
-                ) : (
-                  // Opponent: face-down
-                  (playerHand?.cards || []).map((card, i) => (
-                    <Card
-                      key={card.id}
-                      faceDown
-                      hoverable={isDrawTarget}
-                      onClick={() => isDrawTarget && handleDrawCard(i)}
-                    />
-                  ))
-                )}
-              </div>
-            )}
+                    ))
+                  )}
+                </div>
+              );
+            })()}
           </div>
         );
       })}
