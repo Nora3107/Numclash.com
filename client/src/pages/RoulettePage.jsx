@@ -42,12 +42,12 @@ function Table() {
       {/* Felt surface */}
       <mesh position={[0, 0, 0]} receiveShadow>
         <cylinderGeometry args={[4.2, 4.2, 0.12, 64]} />
-        <meshStandardMaterial color="#1a6b42" roughness={0.95} metalness={0.01} />
+        <meshStandardMaterial color="#2a8b5a" roughness={0.95} metalness={0.01} />
       </mesh>
       {/* Inner felt ring (darker) */}
       <mesh position={[0, 0.065, 0]} receiveShadow>
         <cylinderGeometry args={[3.8, 3.8, 0.01, 64]} />
-        <meshStandardMaterial color="#145533" roughness={0.98} />
+        <meshStandardMaterial color="#1e7545" roughness={0.98} />
       </mesh>
       {/* Ornamental gold ring on felt */}
       <mesh position={[0, 0.07, 0]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -412,19 +412,19 @@ function Atmosphere() {
         position={[0, 12, 0]}
         angle={0.5}
         penumbra={0.8}
-        intensity={2}
+        intensity={3}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
         color="#ffeedd"
       />
       {/* Soft overhead fill */}
-      <pointLight position={[0, 8, 0]} intensity={0.4} color="#ffeebb" distance={20} />
+      <pointLight position={[0, 6, 0]} intensity={0.8} color="#ffeebb" distance={20} />
       {/* Rim lights */}
       <pointLight position={[6, 3, 6]} intensity={0.3} color="#4488ff" distance={15} />
       <pointLight position={[-6, 3, -6]} intensity={0.3} color="#ff6644" distance={15} />
       {/* Ambient */}
-      <ambientLight intensity={0.25} />
+      <ambientLight intensity={0.45} />
 
       {/* Floating dust sparkles */}
       <Sparkles count={60} scale={[12, 6, 12]} size={1.5} speed={0.3} opacity={0.15} color="#ffd700" />
