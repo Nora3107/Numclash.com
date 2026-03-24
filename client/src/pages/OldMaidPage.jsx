@@ -48,6 +48,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
   // Animation states
   const [flyingCard, setFlyingCard] = useState(null);       // { from, to } slot names
   const [flyingPair, setFlyingPair] = useState(null);       // pair flying to center
+  const [pairDrawer, setPairDrawer] = useState(null);       // who drew the pair (for animation origin)
 
   const socketId = socket.id;
 
@@ -86,7 +87,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
     });
 
     socket.on('oldmaid-draw', (data) => {
-      // Show flying card animation
+      // Step 1: Card flies from opponent → drawer (0.7s)
       setFlyingCard({ from: data.from, to: data.to });
       addAction(`🃏 ${getPlayerName(data.to)} rút bài từ ${getPlayerName(data.from)}`);
 
@@ -94,16 +95,19 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
         setFlyingCard(null);
 
         if (data.discarded && data.discarded.length > 0) {
-          // Show pair flying to center
-          setFlyingPair(data.discarded.slice(0, 2));
+          // Step 2: Pause 1.5s to let player see their drawn card
+          setPairDrawer(data.to); // remember who drew for pair animation origin
           setTimeout(() => {
+            // Step 3: Pair flies from drawer's hand → center
+            setFlyingPair(data.discarded.slice(0, 2));
             addAction(`✨ ${getPlayerName(data.to)} vứt 1 cặp!`);
-          }, 300);
-          setTimeout(() => {
-            setLastDiscardedPair(data.discarded.slice(0, 2));
-            setFlyingPair(null);
-            setPileCount(prev => prev + 1);
-          }, 900);
+            setTimeout(() => {
+              setLastDiscardedPair(data.discarded.slice(0, 2));
+              setFlyingPair(null);
+              setPairDrawer(null);
+              setPileCount(prev => prev + 1);
+            }, 900);
+          }, 1500);
         }
       }, 700);
     });
@@ -114,12 +118,16 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       setTimeout(() => {
         setFlyingCard(null);
         if (data.discarded && data.discarded.length > 0) {
-          setFlyingPair(data.discarded.slice(0, 2));
+          setPairDrawer(data.to);
           setTimeout(() => {
-            setLastDiscardedPair(data.discarded.slice(0, 2));
-            setFlyingPair(null);
-            setPileCount(prev => prev + 1);
-          }, 900);
+            setFlyingPair(data.discarded.slice(0, 2));
+            setTimeout(() => {
+              setLastDiscardedPair(data.discarded.slice(0, 2));
+              setFlyingPair(null);
+              setPairDrawer(null);
+              setPileCount(prev => prev + 1);
+            }, 900);
+          }, 1500);
         }
       }, 700);
     });
@@ -337,8 +345,8 @@ export default function OldMaidPage({ socket, roomInfo, onLeave }) {
       {/* Flying pair animation (from player to center) */}
       <AnimatePresence>
         {flyingPair && flyingPair.map((card, i) => {
-          const toSlot = getPlayerSlot(gameState.currentTurn || socketId);
-          const fromCoords = slotToCoords(toSlot); // pair comes from the drawing player
+          const drawerSlot = getPlayerSlot(pairDrawer || socketId);
+          const fromCoords = slotToCoords(drawerSlot);
           return (
             <motion.div
               key={`fly-pair-${card.id}`}
