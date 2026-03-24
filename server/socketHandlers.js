@@ -5,7 +5,6 @@
 
 const gameManager = require('./gameManager');
 const { setupOldMaidHandlers, startOldMaidGame } = require('./oldMaidHandlers');
-const { setupRouletteHandlers, startRouletteGame } = require('./rouletteHandlers');
 
 const PICK_TIME = 36; // seconds
 
@@ -20,7 +19,6 @@ function setupSocketHandlers(io) {
 
     // Setup Old Maid handlers for this connection
     setupOldMaidHandlers(io, socket, gameManager);
-    setupRouletteHandlers(io, socket, gameManager);
 
     // ------------------------------------------
     // Room Browser Events
@@ -196,10 +194,6 @@ function setupSocketHandlers(io) {
         return;
       }
 
-      if (room.gameMode === 'roulette') {
-        startRouletteGame(io, socket, gameManager, roomCode, callback);
-        return;
-      }
 
       const result = gameManager.startGame(roomCode, socket.id);
       if (result.error) {
