@@ -42,32 +42,32 @@ function Table() {
       {/* Felt surface */}
       <mesh position={[0, 0, 0]} receiveShadow>
         <cylinderGeometry args={[4.2, 4.2, 0.12, 64]} />
-        <meshStandardMaterial color="#2a8b5a" roughness={0.95} metalness={0.01} />
+        <meshStandardMaterial color="#3daa6f" roughness={0.85} metalness={0.02} emissive="#0a3018" emissiveIntensity={0.2} />
       </mesh>
-      {/* Inner felt ring (darker) */}
+      {/* Inner felt ring (slightly darker) */}
       <mesh position={[0, 0.065, 0]} receiveShadow>
         <cylinderGeometry args={[3.8, 3.8, 0.01, 64]} />
-        <meshStandardMaterial color="#1e7545" roughness={0.98} />
+        <meshStandardMaterial color="#2e9960" roughness={0.88} emissive="#082510" emissiveIntensity={0.15} />
       </mesh>
       {/* Ornamental gold ring on felt */}
       <mesh position={[0, 0.07, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <torusGeometry args={[3.0, 0.02, 8, 64]} />
-        <meshStandardMaterial color="#c4a35a" metalness={0.9} roughness={0.3} emissive="#8a7030" emissiveIntensity={0.15} />
+        <meshStandardMaterial color="#d4b36a" metalness={0.9} roughness={0.25} emissive="#aa8840" emissiveIntensity={0.4} />
       </mesh>
       {/* Wooden rim — outer */}
       <mesh ref={rimRef} position={[0, 0.02, 0]}>
         <cylinderGeometry args={[4.5, 4.5, 0.22, 64]} />
-        <meshStandardMaterial color="#5c3015" roughness={0.4} metalness={0.2} />
+        <meshStandardMaterial color="#7a4420" roughness={0.35} metalness={0.25} />
       </mesh>
       {/* Wooden rim — inner cutout visual */}
       <mesh position={[0, 0.03, 0]}>
         <cylinderGeometry args={[4.2, 4.2, 0.24, 64]} />
-        <meshStandardMaterial color="#3d2010" roughness={0.5} metalness={0.15} />
+        <meshStandardMaterial color="#5a3018" roughness={0.45} metalness={0.2} />
       </mesh>
       {/* Edge highlight */}
       <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <torusGeometry args={[4.5, 0.06, 12, 64]} />
-        <meshStandardMaterial color="#6d3818" roughness={0.35} metalness={0.3} />
+        <meshStandardMaterial color="#8a4a20" roughness={0.3} metalness={0.35} emissive="#3a1a08" emissiveIntensity={0.2} />
       </mesh>
       {/* Table legs — ornate */}
       {[0, 1, 2, 3].map((i) => {
@@ -141,7 +141,7 @@ function GunModel({ animState }) {
       {/* Main barrel */}
       <mesh position={[0, 0.12, 0.65]} rotation={[Math.PI / 2, 0, 0]} castShadow>
         <cylinderGeometry args={[0.06, 0.07, 1.3, 16]} />
-        <meshStandardMaterial color="#1a1a1a" metalness={0.95} roughness={0.15} />
+        <meshStandardMaterial color="#3a3a3a" metalness={0.95} roughness={0.12} />
       </mesh>
       {/* Front sight */}
       <mesh position={[0, 0.2, 1.25]} castShadow>
@@ -152,7 +152,7 @@ function GunModel({ animState }) {
       <group ref={cylinderRef}>
         <mesh position={[0, 0.12, 0.05]} rotation={[Math.PI / 2, 0, 0]} castShadow>
           <cylinderGeometry args={[0.2, 0.2, 0.32, 6]} />
-          <meshStandardMaterial color="#2a2a2a" metalness={0.85} roughness={0.25} />
+          <meshStandardMaterial color="#4a4a4a" metalness={0.85} roughness={0.2} />
         </mesh>
         {/* Chamber holes */}
         {[0, 1, 2, 3, 4, 5].map((i) => {
@@ -168,7 +168,7 @@ function GunModel({ animState }) {
       {/* Frame/body */}
       <mesh position={[0, 0.05, -0.05]} castShadow>
         <boxGeometry args={[0.12, 0.18, 0.4]} />
-        <meshStandardMaterial color="#222" metalness={0.9} roughness={0.2} />
+        <meshStandardMaterial color="#3a3a3a" metalness={0.9} roughness={0.18} />
       </mesh>
       {/* Trigger guard */}
       <mesh position={[0, -0.08, -0.05]} rotation={[0.3, 0, 0]}>
@@ -407,27 +407,41 @@ function PlayerSeat({ position, rotation, name, hp, maxHp, status, isActive, isS
 function Atmosphere() {
   return (
     <>
-      {/* Volumetric light cone from above */}
+      {/* Main table spotlight — bright and focused */}
       <spotLight
-        position={[0, 12, 0]}
-        angle={0.5}
-        penumbra={0.8}
-        intensity={3}
+        position={[0, 10, 0]}
+        angle={0.65}
+        penumbra={0.6}
+        intensity={6}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        color="#ffeedd"
+        color="#fff5e0"
+        target-position={[0, 0, 0]}
       />
-      {/* Soft overhead fill */}
-      <pointLight position={[0, 6, 0]} intensity={0.8} color="#ffeebb" distance={20} />
-      {/* Rim lights */}
-      <pointLight position={[6, 3, 6]} intensity={0.3} color="#4488ff" distance={15} />
-      <pointLight position={[-6, 3, -6]} intensity={0.3} color="#ff6644" distance={15} />
-      {/* Ambient */}
-      <ambientLight intensity={0.45} />
+      {/* Secondary fill from front */}
+      <spotLight
+        position={[0, 8, 8]}
+        angle={0.5}
+        penumbra={0.9}
+        intensity={2}
+        color="#ffe8cc"
+      />
+      {/* Overhead point fill */}
+      <pointLight position={[0, 5, 0]} intensity={2} color="#ffe8cc" distance={15} />
+      {/* Wide area fills */}
+      <pointLight position={[5, 4, 5]} intensity={0.8} color="#eee" distance={18} />
+      <pointLight position={[-5, 4, -5]} intensity={0.8} color="#eee" distance={18} />
+      {/* Rim lights — colored accents */}
+      <pointLight position={[7, 3, 7]} intensity={0.6} color="#6699ff" distance={18} />
+      <pointLight position={[-7, 3, -7]} intensity={0.6} color="#ff8866" distance={18} />
+      {/* Strong ambient */}
+      <ambientLight intensity={0.7} />
+      {/* Hemisphere light for natural fill */}
+      <hemisphereLight args={['#b0c0ff', '#201510', 0.5]} />
 
       {/* Floating dust sparkles */}
-      <Sparkles count={60} scale={[12, 6, 12]} size={1.5} speed={0.3} opacity={0.15} color="#ffd700" />
+      <Sparkles count={80} scale={[14, 8, 14]} size={2} speed={0.3} opacity={0.2} color="#ffd700" />
     </>
   );
 }
@@ -460,16 +474,16 @@ function Scene({ players, currentTurn, socketId, gun, deckCount, getPlayerName, 
       <Atmosphere />
 
       {/* Background */}
-      <color attach="background" args={['#080a10']} />
-      <fog attach="fog" args={['#080a10', 18, 40]} />
+      <color attach="background" args={['#0e1118']} />
+      <fog attach="fog" args={['#0e1118', 22, 50]} />
 
       {/* Floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.3, 0]} receiveShadow>
         <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color="#0a0c14" roughness={0.95} metalness={0.05} />
+        <meshStandardMaterial color="#151820" roughness={0.9} metalness={0.05} />
       </mesh>
       {/* Subtle floor pattern */}
-      <gridHelper args={[40, 80, '#0f1220', '#0d0f18']} position={[0, -2.29, 0]} />
+      <gridHelper args={[40, 60, '#1a1e2a', '#161922']} position={[0, -2.29, 0]} />
 
       {/* Table */}
       <Table />
@@ -778,7 +792,7 @@ export default function RoulettePage({ socket, roomInfo, onLeave, initialState }
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.1,
+          toneMappingExposure: 1.4,
         }}
         dpr={[1, 2]}
       >
