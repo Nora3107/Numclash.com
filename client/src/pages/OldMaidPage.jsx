@@ -76,6 +76,10 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
   const [dragIdx, setDragIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
 
+  // Throw state
+  const [throwMenuTarget, setThrowMenuTarget] = useState(null); // pid to show throw menu
+  const [flyingThrow, setFlyingThrow] = useState(null); // { from, to, item }
+
   const socketId = socket.id;
 
   const addAction = useCallback((text) => {
@@ -226,6 +230,11 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       }, 3000);
     });
 
+    socket.on('oldmaid-thrown', ({ from, to, item }) => {
+      setFlyingThrow({ from, to, item });
+      setTimeout(() => setFlyingThrow(null), 1000);
+    });
+
     return () => {
       socket.off('oldmaid-state');
       socket.off('oldmaid-turn');
@@ -236,6 +245,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       socket.off('oldmaid-hand-reordered');
       socket.off('oldmaid-game-over');
       socket.off('oldmaid-chat-msg');
+      socket.off('oldmaid-thrown');
     };
   }, [socket, addAction, getPlayerName, roomInfo]);
 
@@ -281,6 +291,15 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       text,
     });
     setShowChat(false);
+  }, [socket, roomInfo]);
+
+  const handleThrow = useCallback((targetPid, item) => {
+    socket.emit('oldmaid-throw', {
+      roomCode: roomInfo.code,
+      targetId: targetPid,
+      item,
+    });
+    setThrowMenuTarget(null);
   }, [socket, roomInfo]);
 
   if (!gameState) {
@@ -463,18 +482,66 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
         const isVertical = pos.includes('left') || pos.includes('right');
         const name = getPlayerName(pid);
 
+        const avatarColors = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#e67e22'];
+        const avatarColor = avatarColors[slotIndex % avatarColors.length];
+        const initial = name.charAt(0).toUpperCase();
+
         return (
           <div key={pid} className={`player-slot player-slot-${pos}`}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div className={`player-info ${isActiveTurn ? 'player-info-active' : ''}`}>
-                <span>{name}</span>
-                {playerOut ? (
-                  <span style={{ fontSize: 12 }}>✅ #{rankings.indexOf(pid) + 1}</span>
-                ) : (
-                  <span className="player-card-count">
-                    {isMe ? myHandCount : (playerHand?.count || 0)}
-                  </span>
-                )}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+              {/* Avatar + Name */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, position: 'relative' }}>
+                <div
+                  onClick={() => !isMe && setThrowMenuTarget(throwMenuTarget === pid ? null : pid)}
+                  style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: avatarColor,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', fontWeight: 900, fontSize: 16,
+                    cursor: isMe ? 'default' : 'pointer',
+                    border: isActiveTurn ? '3px solid #fdcb6e' : '2px solid rgba(255,255,255,0.2)',
+                    transition: 'border 0.3s ease',
+                    flexShrink: 0,
+                  }}
+                >
+                  {initial}
+                </div>
+                <div className={`player-info ${isActiveTurn ? 'player-info-active' : ''}`}>
+                  <span>{name}</span>
+                  {playerOut ? (
+                    <span style={{ fontSize: 12 }}>✅ #{rankings.indexOf(pid) + 1}</span>
+                  ) : (
+                    <span className="player-card-count">
+                      {isMe ? myHandCount : (playerHand?.count || 0)}
+                    </span>
+                  )}
+                </div>
+                {/* Throw menu */}
+                <AnimatePresence>
+                  {throwMenuTarget === pid && !isMe && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.7 }}
+                      style={{
+                        position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+                        background: 'rgba(0,0,0,0.85)', borderRadius: 12, padding: '8px 12px',
+                        display: 'flex', gap: 8, zIndex: 30, marginTop: 4,
+                        backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)',
+                      }}
+                    >
+                      <div
+                        onClick={() => handleThrow(pid, 'tomato')}
+                        style={{ cursor: 'pointer', fontSize: 28, transition: 'transform 0.15s' }}
+                        onMouseEnter={e => e.target.style.transform = 'scale(1.3)'}
+                        onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                        title="Ném cà chua"
+                      >
+                        🍅
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               {isActiveTurn && phase === 'playing' && !playerOut && (
                 <div className="player-timer">
@@ -484,19 +551,6 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
                   />
                 </div>
               )}
-              <AnimatePresence>
-                {chatBubbles[pid] && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                    animate={{ opacity: 1, y: -6, scale: 1 }}
-                    exit={{ opacity: 0, y: -12 }}
-                    className="chat-bubble"
-                    style={{ marginTop: 6 }}
-                  >
-                    {chatBubbles[pid]}
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
 
             {!playerOut && (() => {
@@ -551,9 +605,45 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
                 </div>
               );
             })()}
+            {/* Chat bubble in front of cards */}
+            <AnimatePresence>
+              {chatBubbles[pid] && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="chat-bubble"
+                  style={{ marginTop: 6 }}
+                >
+                  {chatBubbles[pid]}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}
+
+      {/* Flying throw animation */}
+      <AnimatePresence>
+        {flyingThrow && (() => {
+          const fromSlot = getPlayerSlot(flyingThrow.from);
+          const toSlot = getPlayerSlot(flyingThrow.to);
+          const from = slotToCoords(fromSlot);
+          const to = slotToCoords(toSlot);
+          return (
+            <motion.div
+              key="flying-throw"
+              initial={{ position: 'fixed', left: from.x, top: from.y, x: '-50%', y: '-50%', scale: 0.5, rotate: 0, zIndex: 60 }}
+              animate={{ left: to.x, top: to.y, scale: 1.5, rotate: 360 }}
+              exit={{ opacity: 0, scale: 2 }}
+              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+              style={{ position: 'fixed', zIndex: 60, pointerEvents: 'none', fontSize: 36 }}
+            >
+              🍅
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* Quick Chat */}
       <button className="quick-chat-btn" onClick={() => setShowChat(!showChat)}>

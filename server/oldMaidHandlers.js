@@ -134,7 +134,6 @@ function setupOldMaidHandlers(io, socket, gameManager) {
   socket.on('oldmaid-chat', ({ roomCode, text }) => {
     const game = activeGames.get(roomCode);
     if (!game) return;
-    // Only broadcast to players in the game
     const room = gameManager.getRoom(roomCode);
     if (room) {
       for (const pid of room.players.keys()) {
@@ -144,6 +143,17 @@ function setupOldMaidHandlers(io, socket, gameManager) {
         });
       }
     }
+  });
+
+  // Throw item at another player
+  socket.on('oldmaid-throw', ({ roomCode, targetId, item }) => {
+    const game = activeGames.get(roomCode);
+    if (!game) return;
+    io.to(roomCode).emit('oldmaid-thrown', {
+      from: socket.id,
+      to: targetId,
+      item: item || 'tomato',
+    });
   });
 
   // Set deck type (lobby setting)
