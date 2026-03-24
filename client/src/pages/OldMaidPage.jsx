@@ -58,7 +58,7 @@ function slotToCoords(slotName) {
 
 export default function OldMaidPage({ socket, roomInfo, onLeave, initialState }) {
   const [gameState, setGameState] = useState(initialState || null);
-  const [timer, setTimer] = useState(15);
+  const [timer, setTimer] = useState(36);
   const [showChat, setShowChat] = useState(false);
   const [chatBubbles, setChatBubbles] = useState({});
   const [showGameOver, setShowGameOver] = useState(false);
@@ -118,7 +118,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
         hands: data.hands,
         myHand: data.myHand || prev.myHand,
       } : prev);
-      setTimer(15);
+      setTimer(36);
       addAction(`🎯 Đến lượt ${getPlayerName(data.currentTurn)}`);
     });
 
@@ -155,18 +155,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
               setPairDrawer(null);
               setPileCount(prev => prev + 1);
 
-              // Auto-shuffle after 3s
-              setTimeout(() => {
-                setGameState(prev => {
-                  if (!prev || !prev.myHand || prev.myHand.length <= 1) return prev;
-                  const shuffled = shuffleArray(prev.myHand);
-                  socket.emit('oldmaid-reorder', {
-                    roomCode: roomInfo.code,
-                    newOrder: shuffled.map(c => c.id),
-                  });
-                  return { ...prev, myHand: shuffled };
-                });
-              }, 3000);
+
             }, 900);
           }, 1500);
         } else {
@@ -174,18 +163,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
           if (data.finalHand) {
             setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
           }
-          // Auto-shuffle after 3s
-          setTimeout(() => {
-            setGameState(prev => {
-              if (!prev || !prev.myHand || prev.myHand.length <= 1) return prev;
-              const shuffled = shuffleArray(prev.myHand);
-              socket.emit('oldmaid-reorder', {
-                roomCode: roomInfo.code,
-                newOrder: shuffled.map(c => c.id),
-              });
-              return { ...prev, myHand: shuffled };
-            });
-          }, 3000);
+
         }
       }, 700);
     });
@@ -353,11 +331,11 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       <div className="turn-arrow-ring">
         <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="100" cy="100" r="85" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeDasharray="12 8" />
-          {/* Arrow heads at 4 positions */}
-          <polygon points="100,8 106,22 94,22" fill="rgba(255,255,255,0.6)" />
-          <polygon points="192,100 178,94 178,106" fill="rgba(255,255,255,0.6)" />
-          <polygon points="100,192 94,178 106,178" fill="rgba(255,255,255,0.6)" />
-          <polygon points="8,100 22,106 22,94" fill="rgba(255,255,255,0.6)" />
+          {/* Arrow heads pointing clockwise (tangent to circle) */}
+          <polygon points="112,16 100,8 104,22" fill="rgba(255,255,255,0.6)" />
+          <polygon points="192,112 192,100 178,104" fill="rgba(255,255,255,0.6)" />
+          <polygon points="88,184 100,192 96,178" fill="rgba(255,255,255,0.6)" />
+          <polygon points="8,88 8,100 22,96" fill="rgba(255,255,255,0.6)" />
         </svg>
       </div>
 
@@ -507,7 +485,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
                 <div className="player-timer">
                   <div
                     className={`player-timer-fill ${timer <= 5 ? 'urgent' : ''}`}
-                    style={{ width: `${(timer / 15) * 100}%` }}
+                    style={{ width: `${(timer / 36) * 100}%` }}
                   />
                 </div>
               )}

@@ -5,7 +5,7 @@
 
 const { OldMaidGame } = require('./oldMaidManager');
 
-const TURN_TIME = 15; // seconds per turn
+const TURN_TIME = 36; // seconds per turn
 
 // Map of roomCode -> OldMaidGame instance
 const activeGames = new Map();
