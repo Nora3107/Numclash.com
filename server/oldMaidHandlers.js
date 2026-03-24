@@ -101,14 +101,21 @@ function setupOldMaidHandlers(io, socket, gameManager) {
         }, 5000);
       }
     } else {
-      // Broadcast turn change
+      // Broadcast turn change immediately (for highlighting)
       io.to(roomCode).emit('oldmaid-turn', {
         currentTurn: result.currentTurn,
         drawTarget: result.drawTarget,
         hands: result.hands,
+        myHand: undefined,
+        delayed: true, // 3s grace period before timer starts
       });
-      // Start next turn timer
-      startTurnTimer(io, roomCode);
+      // Delay turn timer by 3s for card arrangement
+      setTimeout(() => {
+        if (activeGames.has(roomCode)) {
+          io.to(roomCode).emit('oldmaid-timer-start');
+          startTurnTimer(io, roomCode);
+        }
+      }, 3000);
     }
   });
 
@@ -256,8 +263,14 @@ function startTurnTimer(io, roomCode) {
           currentTurn: result.currentTurn,
           drawTarget: result.drawTarget,
           hands: result.hands,
+          delayed: true,
         });
-        startTurnTimer(io, roomCode);
+        setTimeout(() => {
+          if (activeGames.has(roomCode)) {
+            io.to(roomCode).emit('oldmaid-timer-start');
+            startTurnTimer(io, roomCode);
+          }
+        }, 3000);
       }
     }
   }, 1000);

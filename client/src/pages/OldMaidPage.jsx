@@ -77,7 +77,8 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
   const [dragOverIdx, setDragOverIdx] = useState(null);
 
   // Throw state
-  const [throwMenuTarget, setThrowMenuTarget] = useState(null); // pid to show throw menu
+  const [throwMenuTarget, setThrowMenuTarget] = useState(null);
+  const [timerActive, setTimerActive] = useState(true); // pid to show throw menu
   const [flyingThrow, setFlyingThrow] = useState(null); // { from, to, item }
 
   const socketId = socket.id;
@@ -122,7 +123,12 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
         hands: data.hands,
         myHand: data.myHand || prev.myHand,
       } : prev);
-      setTimer(36);
+      if (data.delayed) {
+        setTimerActive(false); // Don't show timer yet
+      } else {
+        setTimer(36);
+        setTimerActive(true);
+      }
       addAction(`🎯 Đến lượt ${getPlayerName(data.currentTurn)}`);
     });
 
@@ -230,6 +236,11 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       }, 3000);
     });
 
+    socket.on('oldmaid-timer-start', () => {
+      setTimerActive(true);
+      setTimer(36);
+    });
+
     socket.on('oldmaid-thrown', ({ from, to, item }) => {
       setFlyingThrow({ from, to, item });
       setTimeout(() => setFlyingThrow(null), 1000);
@@ -245,6 +256,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       socket.off('oldmaid-hand-reordered');
       socket.off('oldmaid-game-over');
       socket.off('oldmaid-chat-msg');
+      socket.off('oldmaid-timer-start');
       socket.off('oldmaid-thrown');
     };
   }, [socket, addAction, getPlayerName, roomInfo]);
@@ -543,7 +555,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
                   )}
                 </AnimatePresence>
               </div>
-              {isActiveTurn && phase === 'playing' && !playerOut && (
+              {isActiveTurn && phase === 'playing' && !playerOut && timerActive && (
                 <div className="player-timer">
                   <div
                     className={`player-timer-fill ${timer <= 5 ? 'urgent' : ''}`}
