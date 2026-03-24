@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Target, Clock, Send, CheckCircle, HelpCircle,
@@ -54,10 +54,13 @@ export default function GamePage({
     if (gamePhase !== 'reveal' || !revealData) return;
     setRevealStep(0);
     let step = 0;
+    const totalSteps = revealData.gameMode === 'average'
+      ? revealData.results.length + 5  // numbers + sum + ÷N + ×0.8 + winner + button
+      : revealData.results.length + 3; // numbers + comparison + winner + button
     const interval = setInterval(() => {
       step++;
       setRevealStep(step);
-      if (step >= revealData.results.length + 3) clearInterval(interval);
+      if (step >= totalSteps) clearInterval(interval);
     }, 1200);
     return () => clearInterval(interval);
   }, [gamePhase, revealData]);
@@ -285,19 +288,26 @@ export default function GamePage({
         </motion.div>
       </div>
     );
-  }
-
-  // ==========================================
-  // REVEAL PHASE
-  // ==========================================
-  if (gamePhase === 'reveal' && revealData && !showScoreboard) {
+  }  if (gamePhase === 'reveal' && revealData && !showScoreboard) {
     const { results } = revealData;
     const isAvgMode = revealData.gameMode === 'average';
-    const showCalc = revealStep > results.length;
-    const showWinner = revealStep >= results.length + 2;
-    const revealDone = revealStep >= results.length + 3;
+
+    // For Average: N numbers + sum + ÷N + ×0.8 + winner + button = N+5
+    // For Classic: N numbers + comparison + winner + button = N+3
+    const showSum = revealStep > results.length;           // step N+1
+    const showDivide = isAvgMode && revealStep > results.length + 1;  // step N+2 (avg only)
+    const showMultiply = isAvgMode && revealStep > results.length + 2; // step N+3 (avg only)
+    const showClassicCalc = !isAvgMode && revealStep > results.length; // step N+1 (classic)
+    const showWinner = isAvgMode
+      ? revealStep >= results.length + 4
+      : revealStep >= results.length + 2;
+    const revealDone = isAvgMode
+      ? revealStep >= results.length + 5
+      : revealStep >= results.length + 3;
 
     const runningSum = results.slice(0, Math.min(revealStep, results.length)).reduce((s, r) => s + r.number, 0);
+    const totalSum = results.reduce((s, r) => s + r.number, 0);
+    const avgValue = revealData.average !== undefined ? Math.round(revealData.average * 100) / 100 : Math.round((totalSum / results.length) * 100) / 100;
 
     let winner = null;
     if (isAvgMode) {
@@ -319,12 +329,13 @@ export default function GamePage({
 
         <div className="flex items-center gap-2" style={{ marginBottom: '24px' }}>
           {isAvgMode ? (
-            <><Gamepad2 size={16} className="text-accent-purple" /><span className="text-sm text-text-mid">Average Ã—0.8</span></>
+            <><Gamepad2 size={16} className="text-accent-purple" /><span className="text-sm text-text-mid">Average ×0.8</span></>
           ) : (
             <><Target size={16} className="text-accent-orange" /><span className="text-sm text-text-mid">{t('target')}: <span className="text-accent-orange font-bold text-lg">{revealData.target}</span></span></>
           )}
         </div>
 
+        {/* === Horizontal number reveal === */}
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="cartoon-card w-full max-w-md text-center" style={{ padding: '24px 16px', marginBottom: '24px' }}>
           <div className="flex flex-wrap items-center justify-center gap-1" style={{ marginBottom: '16px', minHeight: '50px' }}>
             {results.map((r, i) => (
@@ -350,44 +361,139 @@ export default function GamePage({
           </div>
         </motion.div>
 
-        <AnimatePresence>
-          {showCalc && (
-            <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 12 }} className="cartoon-card w-full max-w-md text-center" style={{ padding: '24px 20px', marginBottom: '20px' }}>
-              {isAvgMode ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-text-light uppercase">avg</span>
-                    <span className="text-2xl font-black text-accent-purple" style={{ fontFamily: 'var(--font-display)' }}>
-                      {revealData.average !== undefined ? Math.round(revealData.average * 100) / 100 : '?'}
-                    </span>
+        {/* === AVERAGE MODE: Step-by-step calculation cards === */}
+        {isAvgMode && (
+          <>
+            {/* Step 1: SUM card */}
+            <AnimatePresence>
+              {showSum && (
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', damping: 12 }}
+                  className="cartoon-card w-full max-w-md text-center"
+                  style={{ padding: '20px', marginBottom: '16px' }}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="text-sm font-bold text-text-light uppercase">Tổng</span>
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', delay: 0.2 }}
+                      className="text-4xl font-black text-accent-purple"
+                      style={{ fontFamily: 'var(--font-display)' }}
+                    >
+                      {totalSum}
+                    </motion.span>
                   </div>
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex items-center gap-3">
-                    <span className="text-lg font-bold text-text-light">Ã—</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Step 2: DIVISION card — sum ÷ N = average */}
+            <AnimatePresence>
+              {showDivide && (
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', damping: 12 }}
+                  className="cartoon-card w-full max-w-md text-center"
+                  style={{ padding: '20px', marginBottom: '16px' }}
+                >
+                  <div className="flex items-center justify-center gap-3 flex-wrap">
+                    <span className="text-2xl font-black text-accent-purple" style={{ fontFamily: 'var(--font-display)' }}>{totalSum}</span>
+                    <span className="text-2xl font-black text-text-light">÷</span>
+                    <span className="text-2xl font-black text-accent-purple" style={{ fontFamily: 'var(--font-display)' }}>{results.length}</span>
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-2xl font-black text-text-light"
+                    >=</motion.span>
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', delay: 0.5 }}
+                      className="text-4xl font-black text-primary"
+                      style={{ fontFamily: 'var(--font-display)' }}
+                    >
+                      {avgValue}
+                    </motion.span>
+                  </div>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7 }}
+                    className="text-xs text-text-light" style={{ marginTop: '8px' }}
+                  >Trung bình</motion.p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Step 3: MULTIPLY card — average × 0.8 = magic number */}
+            <AnimatePresence>
+              {showMultiply && (
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', damping: 12 }}
+                  className="cartoon-card w-full max-w-md text-center border-2 border-accent-orange/30"
+                  style={{ padding: '20px', marginBottom: '20px' }}
+                >
+                  <div className="flex items-center justify-center gap-3 flex-wrap">
+                    <span className="text-2xl font-black text-primary" style={{ fontFamily: 'var(--font-display)' }}>{avgValue}</span>
+                    <span className="text-2xl font-black text-text-light">×</span>
                     <span className="text-2xl font-black text-accent-purple" style={{ fontFamily: 'var(--font-display)' }}>0.8</span>
-                    <span className="text-2xl font-black text-text-light">=</span>
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.6 }} className="text-4xl font-black text-accent-orange" style={{ fontFamily: 'var(--font-display)' }}>
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-2xl font-black text-text-light"
+                    >=</motion.span>
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', delay: 0.5 }}
+                      className="text-5xl font-black text-accent-orange"
+                      style={{ fontFamily: 'var(--font-display)', textShadow: '2px 2px 0 #cc7a40' }}
+                    >
                       {revealData.magicNumber}
                     </motion.span>
-                  </motion.div>
-                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="text-sm font-bold text-primary">{t('closestWins')}</motion.p>
-                </div>
-              ) : (
+                  </div>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                    className="text-sm font-bold text-primary" style={{ marginTop: '10px' }}
+                  >{t('closestWins')}</motion.p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
+
+        {/* === CLASSIC MODE: Sum vs Target comparison === */}
+        {!isAvgMode && (
+          <AnimatePresence>
+            {showClassicCalc && (
+              <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', damping: 12 }} className="cartoon-card w-full max-w-md text-center" style={{ padding: '24px 20px', marginBottom: '20px' }}>
                 <div className="flex items-center justify-center gap-4">
                   <div className="flex flex-col items-center">
                     <span className="text-xs font-bold text-text-light uppercase">{t('total')}</span>
                     <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} className={`text-4xl font-black ${revealData.isSafe ? 'text-primary' : 'text-accent-red'}`} style={{ fontFamily: 'var(--font-display)' }}>{revealData.totalSum}</motion.span>
                   </div>
-                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5 }} className={`text-2xl font-black ${revealData.isSafe ? 'text-primary' : 'text-accent-red'}`}>{revealData.isSafe ? 'â‰¤' : '>'}</motion.span>
+                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5 }} className={`text-2xl font-black ${revealData.isSafe ? 'text-primary' : 'text-accent-red'}`}>{revealData.isSafe ? '≤' : '>'}</motion.span>
                   <div className="flex flex-col items-center">
                     <span className="text-xs font-bold text-text-light uppercase">{t('target')}</span>
                     <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', delay: 0.3 }} className="text-4xl font-black text-accent-orange" style={{ fontFamily: 'var(--font-display)' }}>{revealData.target}</motion.span>
                   </div>
                 </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
 
+        {/* === Winner announcement === */}
         <AnimatePresence>
           {showWinner && winner && (
             <motion.div initial={{ scale: 0, opacity: 0, rotate: -5 }} animate={{ scale: 1, opacity: 1, rotate: 0 }} transition={{ type: 'spring', damping: 10 }} className={`cartoon-card w-full max-w-md text-center border-2 ${isAvgMode ? 'border-accent-purple/30' : (revealData.isSafe ? 'border-primary/30' : 'border-accent-red/30')}`} style={{ padding: '24px 20px', marginBottom: '24px' }}>
@@ -400,12 +506,13 @@ export default function GamePage({
               <p className="text-2xl font-black text-text-dark" style={{ fontFamily: 'var(--font-display)', marginBottom: '4px' }}>{winner.nickname}</p>
               <span className={`text-4xl font-black ${isAvgMode ? 'text-accent-purple' : (revealData.isSafe ? 'text-primary' : 'text-accent-red')}`} style={{ fontFamily: 'var(--font-display)' }}>{winner.number}</span>
               {isAvgMode && winner.distance !== undefined && (
-                <p className="text-xs text-text-light" style={{ marginTop: '4px' }}>(Î” {Math.round(winner.distance * 100) / 100})</p>
+                <p className="text-xs text-text-light" style={{ marginTop: '4px' }}>(Δ {Math.round(winner.distance * 100) / 100})</p>
               )}
             </motion.div>
           )}
         </AnimatePresence>
 
+        {/* === View leaderboard button === */}
         <AnimatePresence>
           {revealDone && (
             <motion.button initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setShowScoreboard(true)} className="pill-btn pill-btn-accent w-full max-w-md flex items-center justify-center gap-3 text-lg py-4">
@@ -417,7 +524,6 @@ export default function GamePage({
       </div>
     );
   }
-
 
   // ==========================================
   // SCOREBOARD PHASE

@@ -190,6 +190,7 @@ function setupSocketHandlers(io) {
         target: result.target,
         timeLimit: PICK_TIME,
         players: gameManager.getPlayersStatus(roomCode),
+        gameMode: result.gameMode,
       });
 
       // Start the countdown timer
@@ -245,6 +246,7 @@ function setupSocketHandlers(io) {
         target: result.target,
         timeLimit: PICK_TIME,
         players: gameManager.getPlayersStatus(roomCode),
+        gameMode: result.gameMode,
       });
 
       startRoundTimer(io, roomCode);
@@ -375,6 +377,9 @@ function proceedToReveal(io, roomCode) {
     results: roundResult.results,
     leaderboard,
     isLastRound: room.currentRound >= room.totalRounds,
+    gameMode: roundResult.gameMode,
+    average: roundResult.average,
+    magicNumber: roundResult.magicNumber,
   });
 }
 
