@@ -58,6 +58,7 @@ function setupOldMaidHandlers(io, socket, gameManager) {
   socket.on('oldmaid-draw-card', ({ roomCode, cardIndex }) => {
     const game = activeGames.get(roomCode);
     if (!game) return;
+    if (drawLocked.get(roomCode)) return; // Block during 3s grace period
 
     const result = game.drawCard(socket.id, cardIndex);
     if (result.error) return;
@@ -92,6 +93,7 @@ function setupOldMaidHandlers(io, socket, gameManager) {
       });
       activeGames.delete(roomCode);
       clearTurnTimer(roomCode);
+      drawLocked.delete(roomCode);
       if (room) {
         room.phase = 'lobby';
         room.readyPlayers.clear();
@@ -109,8 +111,10 @@ function setupOldMaidHandlers(io, socket, gameManager) {
         myHand: undefined,
         delayed: true, // 3s grace period before timer starts
       });
-      // Delay turn timer by 3s for card arrangement
+      // Lock draws for 3s grace period
+      drawLocked.set(roomCode, true);
       setTimeout(() => {
+        drawLocked.delete(roomCode);
         if (activeGames.has(roomCode)) {
           io.to(roomCode).emit('oldmaid-timer-start');
           startTurnTimer(io, roomCode);
@@ -212,6 +216,7 @@ function setupOldMaidHandlers(io, socket, gameManager) {
 // ------------------------------------------
 
 const turnTimers = new Map();
+const drawLocked = new Map(); // roomCode -> true during 3s grace period
 
 function startTurnTimer(io, roomCode) {
   clearTurnTimer(roomCode);
@@ -265,7 +270,9 @@ function startTurnTimer(io, roomCode) {
           hands: result.hands,
           delayed: true,
         });
+        drawLocked.set(roomCode, true);
         setTimeout(() => {
+          drawLocked.delete(roomCode);
           if (activeGames.has(roomCode)) {
             io.to(roomCode).emit('oldmaid-timer-start');
             startTurnTimer(io, roomCode);
