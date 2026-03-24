@@ -51,22 +51,22 @@ function Table() {
       </mesh>
       {/* Ornamental gold ring on felt */}
       <mesh position={[0, 0.07, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[3.0, 0.02, 8, 64]} />
+        <torusGeometry args={[3.0, 0.025, 8, 64]} />
         <meshStandardMaterial color="#d4b36a" metalness={0.9} roughness={0.25} emissive="#aa8840" emissiveIntensity={0.4} />
       </mesh>
-      {/* Wooden rim — outer */}
-      <mesh ref={rimRef} position={[0, 0.02, 0]}>
-        <cylinderGeometry args={[4.5, 4.5, 0.22, 64]} />
+      {/* Second gold ring */}
+      <mesh position={[0, 0.07, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[3.8, 0.02, 8, 64]} />
+        <meshStandardMaterial color="#c4a35a" metalness={0.9} roughness={0.3} emissive="#8a7030" emissiveIntensity={0.3} />
+      </mesh>
+      {/* Wooden rim — sits BELOW felt level */}
+      <mesh ref={rimRef} position={[0, -0.05, 0]}>
+        <cylinderGeometry args={[4.5, 4.6, 0.15, 64]} />
         <meshStandardMaterial color="#7a4420" roughness={0.35} metalness={0.25} />
       </mesh>
-      {/* Wooden rim — inner cutout visual */}
-      <mesh position={[0, 0.03, 0]}>
-        <cylinderGeometry args={[4.2, 4.2, 0.24, 64]} />
-        <meshStandardMaterial color="#5a3018" roughness={0.45} metalness={0.2} />
-      </mesh>
-      {/* Edge highlight */}
-      <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[4.5, 0.06, 12, 64]} />
+      {/* Edge highlight torus */}
+      <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[4.35, 0.08, 12, 64]} />
         <meshStandardMaterial color="#8a4a20" roughness={0.3} metalness={0.35} emissive="#3a1a08" emissiveIntensity={0.2} />
       </mesh>
       {/* Table legs — ornate */}
