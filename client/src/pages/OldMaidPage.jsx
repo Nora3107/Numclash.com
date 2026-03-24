@@ -134,16 +134,16 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       setTimeout(() => {
         setFlyingCard(null);
 
-        // Update hand with new card (so it shows in hand)
-        if (data.myHand) {
-          setGameState(prev => prev ? { ...prev, myHand: data.myHand, hands: data.hands } : prev);
+        // Step 2: Show drawn card IN HAND (intermediate state)
+        if (data.intermediateHand) {
+          setGameState(prev => prev ? { ...prev, myHand: data.intermediateHand, hands: data.hands } : prev);
         }
 
         if (data.discarded && data.discarded.length > 0) {
-          // Step 2: Pause 1.5s to let player see drawn card IN THEIR HAND
+          // Step 3: Pause 1.5s to let player see both cards in hand
           setPairDrawer(data.to);
           setTimeout(() => {
-            // Step 3: Pair flies from drawer's hand → center
+            // Step 4: Pair flies from drawer's hand → center
             setFlyingPair(data.discarded.slice(0, 2));
             addAction(`✨ ${getPlayerName(data.to)} vứt 1 cặp!`);
             setTimeout(() => {
@@ -152,12 +152,12 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
               setPairDrawer(null);
               setPileCount(prev => prev + 1);
 
-              // Update hand after pair removed
+              // Step 5: Update to final hand (after pair removal)
               if (data.finalHand) {
                 setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
               }
 
-              // Auto-shuffle after draw completes (3s delay)
+              // Auto-shuffle after 3s
               setTimeout(() => {
                 setGameState(prev => {
                   if (!prev || !prev.myHand || prev.myHand.length <= 1) return prev;
@@ -172,7 +172,11 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
             }, 900);
           }, 1500);
         } else {
-          // No pair — auto-shuffle after 3s
+          // No pair — update to final hand immediately
+          if (data.finalHand) {
+            setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
+          }
+          // Auto-shuffle after 3s
           setTimeout(() => {
             setGameState(prev => {
               if (!prev || !prev.myHand || prev.myHand.length <= 1) return prev;
@@ -193,8 +197,8 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
       addAction(`⏰ Hết giờ! ${getPlayerName(data.to)} tự động rút bài`);
       setTimeout(() => {
         setFlyingCard(null);
-        if (data.myHand) {
-          setGameState(prev => prev ? { ...prev, myHand: data.myHand, hands: data.hands } : prev);
+        if (data.intermediateHand) {
+          setGameState(prev => prev ? { ...prev, myHand: data.intermediateHand, hands: data.hands } : prev);
         }
         if (data.discarded && data.discarded.length > 0) {
           setPairDrawer(data.to);
@@ -210,6 +214,10 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
               }
             }, 900);
           }, 1500);
+        } else {
+          if (data.finalHand) {
+            setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
+          }
         }
       }, 700);
     });
@@ -225,8 +233,10 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
 
     socket.on('oldmaid-game-over', (data) => {
       setGameResult(data);
-      setShowGameOver(true);
-      addAction(`🏁 Trò chơi kết thúc!`);
+      addAction('Joker: ' + getPlayerName(data.loserId));
+      setTimeout(() => {
+        setShowGameOver(true);
+      }, 4000);
     });
 
     socket.on('oldmaid-chat-msg', ({ playerId, text }) => {

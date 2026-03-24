@@ -67,7 +67,7 @@ function setupOldMaidHandlers(io, socket, gameManager) {
 
     const room = gameManager.getRoom(roomCode);
 
-    // Send per-player draw event with their private hand
+    // Send per-player draw event with intermediate + final hands
     if (room) {
       for (const pid of room.players.keys()) {
         io.to(pid).emit('oldmaid-draw', {
@@ -76,7 +76,8 @@ function setupOldMaidHandlers(io, socket, gameManager) {
           cardIndex,
           discarded: result.discarded,
           discardPile: game.discardPile,
-          myHand: game.getPrivateHand(pid),
+          intermediateHand: result.intermediateHands[pid], // hand WITH drawn card
+          finalHand: game.getPrivateHand(pid),             // hand AFTER pair removal
           hands: game._getPublicHands(),
         });
       }
@@ -216,7 +217,7 @@ function startTurnTimer(io, roomCode) {
       if (!result) return;
 
 
-      // Send per-player auto-draw with private hands
+      // Send per-player auto-draw with intermediate + final hands
       const gameManager = require('./gameManager');
       const room = gameManager.getRoom(roomCode);
       if (room) {
@@ -226,7 +227,8 @@ function startTurnTimer(io, roomCode) {
             from: result.from,
             to: result.to,
             discarded: result.discarded,
-            myHand: game.getPrivateHand(pid),
+            intermediateHand: result.intermediateHands[pid],
+            finalHand: game.getPrivateHand(pid),
             hands: game._getPublicHands(),
           });
         }

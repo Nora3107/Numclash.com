@@ -217,6 +217,12 @@ class OldMaidGame {
     const drawerHand = this.hands.get(drawerId);
     drawerHand.push(drawnCard);
 
+    // Capture INTERMEDIATE hand (with drawn card, BEFORE pair removal)
+    const intermediateHands = {};
+    for (const pid of this.playerIds) {
+      intermediateHands[pid] = this.getPrivateHand(pid);
+    }
+
     // Check for new pairs
     const discarded = this.autoDiscardPairs(drawerId);
 
@@ -227,7 +233,6 @@ class OldMaidGame {
     const activePlayers = this._getActivePlayers();
     if (activePlayers.length <= 1) {
       this.phase = 'finished';
-      // The remaining player is the loser
       if (activePlayers.length === 1) {
         this.rankings.push(activePlayers[0]);
       }
@@ -239,6 +244,7 @@ class OldMaidGame {
         to: drawerId,
         rankings: this.rankings,
         scores: this._calculateScores(),
+        intermediateHands,
       };
     }
 
@@ -254,6 +260,7 @@ class OldMaidGame {
       currentTurn: this.getCurrentTurnPlayer(),
       drawTarget: this.getDrawTarget(),
       hands: this._getPublicHands(),
+      intermediateHands,
     };
   }
 
