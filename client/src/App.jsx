@@ -8,6 +8,7 @@ import LobbyPage from './pages/LobbyPage';
 import GamePage from './pages/GamePage';
 import ResultsPage from './pages/ResultsPage';
 import OldMaidPage from './pages/OldMaidPage';
+import LiarDeckPage from './pages/LiarDeckPage';
 
 function App() {
   const [screen, setScreen] = useState('home');
@@ -17,6 +18,7 @@ function App() {
   const [isHost, setIsHost] = useState(false);
   const [error, setError] = useState('');
   const [oldMaidInitialState, setOldMaidInitialState] = useState(null);
+  const [liarDeckInitialState, setLiarDeckInitialState] = useState(null);
 
   const [roundData, setRoundData] = useState(null);
   const [revealData, setRevealData] = useState(null);
@@ -37,9 +39,9 @@ function App() {
       setGamePhase('picking');
       setScreen('game');
     });
-    socket.on('roulette-state', (state) => {
-      setRouletteInitialState(state);
-      setScreen('roulette');
+    socket.on('liardeck-state', (state) => {
+      setLiarDeckInitialState(state);
+      setScreen('liardeck');
     });
     socket.on('oldmaid-state', (state) => {
       setOldMaidInitialState(state);
@@ -107,6 +109,7 @@ function App() {
       socket.off('public-rooms-updated');
       socket.off('new-message');
       socket.off('oldmaid-state');
+      socket.off('liardeck-state');
     };
   }, []);
 
@@ -176,6 +179,14 @@ function App() {
     // Reset ready state on server before going back to lobby
     socket.emit('toggle-ready', { roomCode, ready: false });
     // Request fresh room info
+    setTimeout(() => {
+      socket.emit('request-room-info', { roomCode });
+    }, 200);
+    setScreen('lobby');
+  }, [roomCode]);
+
+  const handleLeaveLiarDeck = useCallback(() => {
+    socket.emit('toggle-ready', { roomCode, ready: false });
     setTimeout(() => {
       socket.emit('request-room-info', { roomCode });
     }, 200);
@@ -293,6 +304,11 @@ function App() {
         {screen === 'oldmaid' && (
           <motion.div key="oldmaid" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
             <OldMaidPage socket={socket} roomInfo={roomInfo} onLeave={handleLeaveOldMaid} initialState={oldMaidInitialState} />
+          </motion.div>
+        )}
+        {screen === 'liardeck' && (
+          <motion.div key="liardeck" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
+            <LiarDeckPage socket={socket} roomInfo={roomInfo} onLeave={handleLeaveLiarDeck} initialState={liarDeckInitialState} />
           </motion.div>
         )}
       </AnimatePresence>

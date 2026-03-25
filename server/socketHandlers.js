@@ -5,6 +5,7 @@
 
 const gameManager = require('./gameManager');
 const { setupOldMaidHandlers, startOldMaidGame } = require('./oldMaidHandlers');
+const { setupLiarDeckHandlers, startLiarDeckGame } = require('./liarDeckHandlers');
 
 const PICK_TIME = 36; // seconds
 
@@ -19,6 +20,7 @@ function setupSocketHandlers(io) {
 
     // Setup Old Maid handlers for this connection
     setupOldMaidHandlers(io, socket, gameManager);
+    setupLiarDeckHandlers(io, socket, gameManager);
 
     // ------------------------------------------
     // Room Browser Events
@@ -191,6 +193,11 @@ function setupSocketHandlers(io) {
       // Route to Old Maid if that mode is selected
       if (room.gameMode === 'oldmaid') {
         startOldMaidGame(io, socket, gameManager, roomCode, callback);
+        return;
+      }
+
+      if (room.gameMode === 'liardeck') {
+        startLiarDeckGame(io, socket, gameManager, roomCode, callback);
         return;
       }
 
