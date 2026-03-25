@@ -47,9 +47,6 @@ export default function Card({
         layoutId={layoutId}
       >
         <img src={jokerImg} alt="Joker" className="card-joker-img" />
-        <div className="card-corner">
-          <span className="card-value" style={{ color: '#d4af37', fontSize: small ? '12px' : '14px', fontWeight: 900 }}>🃏</span>
-        </div>
       </motion.div>
     );
   }
