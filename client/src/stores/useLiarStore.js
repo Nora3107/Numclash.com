@@ -50,20 +50,14 @@ const useLiarStore = create((set, get) => ({
     resolution: null,
     showResolution: false,
     selectedCards: [],
-    message: {
-      text: `Round ${data.round}: Mục tiêu là ${data.targetLabel}!`,
-      type: 'info',
-    },
+    message: null,
   }),
 
   onPlayed: (data) => set((state) => ({
     lastPlay: { playerId: data.playerId, count: data.count },
-    message: {
-      text: data.auto
-        ? `Hết giờ! Tự động đánh 1 lá.`
-        : `Đánh ${data.count} lá bài.`,
-      type: 'play',
-    },
+    message: data.auto
+      ? { text: `Hết giờ! Tự động đánh 1 lá.`, type: 'play' }
+      : null,
   })),
 
   onResolution: (data) => set({
