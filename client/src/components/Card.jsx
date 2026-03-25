@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import jokerImg from '../assets/jokerdomixi.jpg';
 
 const SUIT_SYMBOLS = { spades: '♠', hearts: '♥', diamonds: '♦', clubs: '♣' };
 const SUIT_COLORS = { spades: 'suit-black', hearts: 'suit-red', diamonds: 'suit-red', clubs: 'suit-black' };
@@ -45,10 +46,10 @@ export default function Card({
         style={style}
         layoutId={layoutId}
       >
+        <img src={jokerImg} alt="Joker" className="card-joker-img" />
         <div className="card-corner">
-          <span className="card-value" style={{ color: '#fff', fontSize: small ? '14px' : '18px' }}>🃏</span>
+          <span className="card-value" style={{ color: '#d4af37', fontSize: small ? '12px' : '14px', fontWeight: 900 }}>🃏</span>
         </div>
-        <div className="card-center-suit" style={{ opacity: 0.3, fontSize: small ? '24px' : '36px' }}>🃏</div>
       </motion.div>
     );
   }
