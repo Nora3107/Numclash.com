@@ -58,6 +58,52 @@ function setupLiarDeckHandlers(io, socket, gameManager) {
       return;
     }
 
+    // Handle empty-hand win (player played all cards, opponent didn't call liar)
+    if (result.emptyHand) {
+      clearTurnTimer(roomCode);
+      const eh = result.emptyHand;
+
+      // Broadcast empty-hand event
+      io.to(roomCode).emit('liardeck-empty-hand', {
+        winnerId: eh.winnerId,
+        loserId: eh.loserId,
+        livesLeft: eh.livesLeft,
+        eliminated: eh.eliminated,
+      });
+
+      // Broadcast updated state
+      broadcastState(io, roomCode, game);
+
+      if (eh.gameOver) {
+        io.to(roomCode).emit('liardeck-game-over', { winner: eh.winner });
+        setTimeout(() => {
+          const room = gameManager.getRoom(roomCode);
+          if (room) {
+            room.phase = 'lobby';
+            gameManager.resetReady(roomCode);
+            const info = gameManager.getRoomInfo(roomCode);
+            io.to(roomCode).emit('back-to-lobby', info);
+          }
+          activeGames.delete(roomCode);
+        }, 15000);
+      } else {
+        // Start new round after delay
+        setTimeout(() => {
+          if (activeGames.has(roomCode)) {
+            const g = activeGames.get(roomCode);
+            const ri = g.startRound();
+            const pids = g._getAlive();
+            for (const pid of pids) {
+              io.to(pid).emit('liardeck-state', g.getClientState(pid));
+            }
+            io.to(roomCode).emit('liardeck-round-start', ri);
+            startTurnTimer(io, roomCode);
+          }
+        }, RESOLUTION_DELAY);
+      }
+      return;
+    }
+
     // Clear old timer, start new
     clearTurnTimer(roomCode);
 

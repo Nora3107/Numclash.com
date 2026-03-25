@@ -19,7 +19,7 @@ import './liarDeck.css';
 const RANK_SUIT_MAP = { J: 'spades', Q: 'hearts', K: 'diamonds', A: 'clubs' };
 
 // Opponent display
-function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position, lastPlay, socketId, chatBubble }) {
+function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position, lastPlay, socketId }) {
   const hasLastPlay = lastPlay && lastPlay.playerId === pid;
 
   return (
@@ -32,16 +32,6 @@ function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position,
           ))}
         </span>
       </div>
-
-      {/* Chat bubble */}
-      <AnimatePresence>
-        {chatBubble && (
-          <motion.div className="opp-chat-bubble"
-            initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.7, opacity: 0 }}>
-            {chatBubble}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Face-down hand */}
       <div className="opp-cards">
@@ -75,25 +65,6 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
 
   const prevTurnRef = useRef(null);
   const [resPhase, setResPhase] = useState(0);
-  const [chatInput, setChatInput] = useState('');
-  const [chatBubbles, setChatBubbles] = useState({}); // { [senderId]: text }
-
-  // Listen for chat messages from all players
-  useEffect(() => {
-    const onMsg = (msg) => {
-      if (msg.system) return;
-      setChatBubbles(prev => ({ ...prev, [msg.senderId]: msg.text }));
-      setTimeout(() => {
-        setChatBubbles(prev => {
-          const next = { ...prev };
-          delete next[msg.senderId];
-          return next;
-        });
-      }, 4000);
-    };
-    socket.on('new-message', onMsg);
-    return () => socket.off('new-message', onMsg);
-  }, [socket]);
 
   useEffect(() => { if (initialState) store.syncState(initialState); }, [initialState]);
 
@@ -132,6 +103,13 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
       'liardeck-timer': ({ remaining }) => {
         store.setTimer(remaining);
         if (remaining <= 5 && remaining > 0) sfxTimerTick();
+      },
+      'liardeck-empty-hand': (d) => {
+        store.setMessage({
+          text: `${getPlayerName(d.winnerId)} hết bài — ${getPlayerName(d.loserId)} mất 1 ♥`,
+          type: 'danger'
+        });
+        sfxLoseLife();
       },
       'liardeck-error': (e) => console.warn('LiarDeck:', e),
     };
@@ -181,8 +159,9 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
       <div className="ld-topbar">
         <button className="ld-leave" onClick={onLeave}><ArrowLeft size={14} /> Rời</button>
         <div className="ld-header">
-        {store.targetCard && <span className="ld-target">Mục tiêu: <strong>{store.targetLabel}</strong></span>}
-          <span className="ld-round">Round {store.roundNumber}</span>
+        {store.targetCard && (
+          <span className="ld-target">Mục tiêu: <strong className={`target-${store.targetCard}`}>{store.targetLabel}</strong></span>
+        )}
         </div>
         <span className={`ld-timer ${store.phase === 'playing' && store.timer <= 5 ? 'urgent' : ''}`}>
           {store.phase === 'playing' ? store.timer : '--'}
@@ -194,8 +173,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         <OpponentSlot key={o.pid} pid={o.pid} name={o.name} lives={o.lives}
           cardCount={o.cardCount} isActive={o.pid === store.currentTurn}
           isDead={o.status === 'ELIMINATED'} position={o.position}
-          lastPlay={store.lastPlay} socketId={socketId}
-          chatBubble={chatBubbles[o.pid]} />
+          lastPlay={store.lastPlay} socketId={socketId} />
       ))}
 
       {/* Center zone */}
@@ -387,46 +365,6 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* My chat bubble — right side */}
-      <AnimatePresence>
-        {chatBubbles[socketId] && (
-          <motion.div className="ld-chat-bubble"
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.7, opacity: 0 }}
-          >
-            {chatBubbles[socketId]}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Chat input */}
-      <div className="ld-chat-box">
-        <input
-          type="text"
-          value={chatInput}
-          onChange={(e) => setChatInput(e.target.value.slice(0, 60))}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && chatInput.trim()) {
-              socket.emit('send-message', { roomCode: roomInfo?.code, text: chatInput.trim() });
-              setChatInput('');
-            }
-          }}
-          placeholder="Chat..."
-          className="ld-chat-input"
-          maxLength={60}
-        />
-        <button
-          className="ld-chat-send"
-          onClick={() => {
-            if (chatInput.trim()) {
-              socket.emit('send-message', { roomCode: roomInfo?.code, text: chatInput.trim() });
-              setChatInput('');
-            }
-          }}
-        >➤</button>
-      </div>
 
       {/* Game Over */}
       <AnimatePresence>

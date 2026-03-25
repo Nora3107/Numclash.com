@@ -129,6 +129,46 @@ class LiarDeckGame {
     const player = this.players.get(playerId);
     if (!player || player.status !== 'ALIVE') return { error: 'PLAYER_DEAD' };
 
+    // Check: if lastPlay player has 0 cards and current player chose to play (not call liar),
+    // that means they let the empty-hand player survive
+    let emptyHandResult = null;
+    if (this.lastPlay) {
+      const prevPlayer = this.players.get(this.lastPlay.playerId);
+      if (prevPlayer && prevPlayer.status === 'ALIVE' && prevPlayer.hand.length === 0) {
+        const alive = this._getAlive();
+        if (alive.length === 2) {
+          // 1v1: empty-hand player wins, the other loses 1 life
+          const loserId = playerId;
+          const loser = this.players.get(loserId);
+          loser.lives--;
+          let eliminated = false;
+          if (loser.lives <= 0) {
+            loser.status = 'ELIMINATED';
+            loser.lives = 0;
+            eliminated = true;
+          }
+          const aliveAfter = this._getAlive();
+          let gameOver = aliveAfter.length <= 1;
+          if (gameOver) {
+            this.phase = 'finished';
+            this.winner = aliveAfter[0] || null;
+          }
+          emptyHandResult = {
+            type: 'EMPTY_HAND_WIN',
+            winnerId: this.lastPlay.playerId,
+            loserId,
+            livesLeft: loser.lives,
+            eliminated,
+            gameOver,
+            winner: this.winner,
+          };
+          return { success: true, emptyHand: emptyHandResult };
+        }
+        // 3+ players: empty-hand player is safe, round continues without them
+        // They skip turns until next round
+      }
+    }
+
     // Verify all cards exist in hand
     const cards = [];
     for (const cid of cardIds) {
@@ -158,9 +198,6 @@ class LiarDeckGame {
 
     // Advance turn
     this._advanceTurn();
-
-    // Check: if the player has 0 cards, they just played their last cards
-    // Continue the round — they're safe, it keeps going until challenge or all played
 
     return {
       success: true,

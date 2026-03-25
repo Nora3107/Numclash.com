@@ -48,12 +48,13 @@
   color: rgba(255,255,255,0.85);
   font-size: 18px;
 }
-.ld-target strong { color: #fff; font-size: 20px; }
-.ld-round {
-  color: rgba(255,255,255,0.25);
-  font-size: 10px;
-  font-weight: 600;
-}
+.ld-target strong { font-size: 22px; }
+
+/* Target card colors */
+.target-J { color: #64b5f6; text-shadow: 0 0 12px rgba(100,181,246,0.4); }
+.target-Q { color: #f48fb1; text-shadow: 0 0 12px rgba(244,143,177,0.4); }
+.target-K { color: #ffd54f; text-shadow: 0 0 12px rgba(255,213,79,0.4); }
+.target-A { color: #81c784; text-shadow: 0 0 12px rgba(129,199,132,0.4); }
 
 .ld-timer {
   width: 44px;
@@ -133,19 +134,6 @@
 .opp-play-cards {
   display: flex;
   gap: 4px;
-}
-
-/* Opponent chat bubble */
-.opp-chat-bubble {
-  padding: 4px 10px;
-  border-radius: 10px 10px 10px 2px;
-  background: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.85);
-  font-size: 11px;
-  font-weight: 600;
-  max-width: 140px;
-  word-break: break-word;
-  text-align: center;
 }
 
 /* ===== Center ===== */
@@ -438,70 +426,6 @@
 .ld-toast-hand.play { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
 .ld-toast-hand.success { background: rgba(46,204,113,0.12); color: #2ecc71; }
 .ld-toast-hand.danger { background: rgba(239,83,80,0.12); color: #ef5350; }
-
-/* ===== Chat bubble (my) ===== */
-.ld-chat-bubble {
-  position: absolute;
-  bottom: 160px;
-  right: 20px;
-  z-index: 35;
-  padding: 6px 14px;
-  border-radius: 12px 12px 2px 12px;
-  background: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.85);
-  font-size: 13px;
-  font-weight: 600;
-  max-width: 200px;
-  word-break: break-word;
-  backdrop-filter: blur(6px);
-}
-
-/* ===== Chat box ===== */
-.ld-chat-box {
-  position: absolute;
-  bottom: 14px;
-  left: 14px;
-  z-index: 20;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-.ld-chat-input {
-  width: 130px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(0,0,0,0.4);
-  color: rgba(255,255,255,0.8);
-  font-size: 12px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.ld-chat-input:focus {
-  border-color: rgba(255,255,255,0.25);
-}
-.ld-chat-input::placeholder {
-  color: rgba(255,255,255,0.2);
-}
-.ld-chat-send {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.5);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: inherit;
-}
-.ld-chat-send:hover {
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.8);
-}
 
 /* ===== Game Over ===== */
 .ld-gameover {
