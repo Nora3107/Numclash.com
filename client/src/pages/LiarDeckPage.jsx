@@ -87,7 +87,10 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         // Phase 4: Clear (9s, server sends new round at ~10s)
         setTimeout(() => { setResPhase(0); }, 9000);
       },
-      'liardeck-game-over': (d) => { store.onGameOver(d); sfxGameOver(); },
+      'liardeck-game-over': (d) => {
+        // Delay game-over until after resolution animation finishes
+        setTimeout(() => { store.onGameOver(d); sfxGameOver(); }, 9500);
+      },
       'liardeck-timer': ({ remaining }) => {
         store.setTimer(remaining);
         if (remaining <= 5 && remaining > 0) sfxTimerTick();

@@ -104,7 +104,7 @@ function setupLiarDeckHandlers(io, socket, gameManager) {
       // Game over
       io.to(roomCode).emit('liardeck-game-over', { winner: result.winner });
 
-      // Cleanup after delay
+      // Cleanup after full resolution animation + game-over display
       setTimeout(() => {
         const room = gameManager.getRoom(roomCode);
         if (room) {
@@ -114,7 +114,7 @@ function setupLiarDeckHandlers(io, socket, gameManager) {
           io.to(roomCode).emit('back-to-lobby', info);
         }
         activeGames.delete(roomCode);
-      }, 5000);
+      }, 15000);
     } else {
       // Delay, then start new round
       setTimeout(() => {
