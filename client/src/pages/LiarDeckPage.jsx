@@ -7,28 +7,11 @@ import { useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import useLiarStore from '../stores/useLiarStore';
+import Card from '../components/Card';
 import './liarDeck.css';
 
-// Card face component
-function CardFace({ card }) {
-  if (!card) return null;
-  const isJoker = card.isJoker || card.rank === 'JOKER';
-  const isRed = ['Q', 'A'].includes(card.rank);
-
-  return (
-    <div className="ld-card-face">
-      <span className={`card-rank ${isJoker ? 'joker' : isRed ? 'red' : 'black'}`}>
-        {isJoker ? '★' : card.rank}
-      </span>
-      {!isJoker && (
-        <span className={`card-suit ${isRed ? 'red' : 'black'}`}>
-          {card.rank === 'J' ? '♠' : card.rank === 'Q' ? '♥' : card.rank === 'K' ? '♦' : '♣'}
-        </span>
-      )}
-      {isJoker && <span className="card-suit joker">Joker</span>}
-    </div>
-  );
-}
+// Map Liar's Deck card to Card.jsx props
+const RANK_SUIT_MAP = { J: 'spades', Q: 'hearts', K: 'diamonds', A: 'clubs' };
 
 // Opponent display
 function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position, lastPlay, socketId }) {
@@ -190,7 +173,12 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
               <div className="res-cards">
                 {res.flippedCards.map((card, i) => (
                   <motion.div key={i} className="res-card" initial={{ rotateY: 180 }} animate={{ rotateY: 0 }} transition={{ delay: i * 0.15 }}>
-                    <CardFace card={card} />
+                    <Card
+                      value={card.rank}
+                      suit={RANK_SUIT_MAP[card.rank]}
+                      isJoker={card.isJoker || card.rank === 'JOKER'}
+                      small
+                    />
                   </motion.div>
                 ))}
               </div>
@@ -231,7 +219,12 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
                 transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 22 }}
                 style={{ zIndex: sel ? 10 : i }}
               >
-                <CardFace card={card} />
+                <Card
+                  value={card.rank}
+                  suit={RANK_SUIT_MAP[card.rank]}
+                  isJoker={card.isJoker || card.rank === 'JOKER'}
+                  small
+                />
               </motion.button>
             );
           })}

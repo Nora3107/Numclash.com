@@ -227,55 +227,29 @@
 }
 
 .ld-handcard {
-  width: 52px;
-  height: 74px;
-  border-radius: 7px;
-  background: #fff;
-  border: 1.5px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  background: transparent;
+  border: none;
   cursor: default;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: inherit;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  padding: 0;
   transition: box-shadow 0.2s;
+}
+.ld-handcard .card {
+  pointer-events: none;
 }
 .ld-handcard.playable {
   cursor: pointer;
 }
-.ld-handcard.playable:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-}
-.ld-handcard.sel {
+.ld-handcard.sel .card {
   border-color: rgba(79,195,247,0.6);
   box-shadow: 0 0 0 2px rgba(79,195,247,0.15), 0 4px 12px rgba(79,195,247,0.1);
 }
 
-/* Card face */
-.ld-card-face {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  width: 100%;
-  height: 100%;
-}
-.card-rank {
-  font-size: 22px;
-  font-weight: 900;
-  line-height: 1;
-}
-.card-rank.black { color: #1a1a1a; }
-.card-rank.red { color: #d32f2f; }
-.card-rank.joker { color: #7b1fa2; font-size: 18px; }
-.card-suit {
-  font-size: 11px;
-  line-height: 1;
-}
-.card-suit.black { color: #555; }
-.card-suit.red { color: #d32f2f; }
-.card-suit.joker { font-size: 7px; color: #9c27b0; font-weight: 700; }
+
 
 /* ===== Actions — minimal ===== */
 .ld-actions {
@@ -353,14 +327,9 @@
   margin-bottom: 16px;
 }
 .res-card {
-  width: 52px;
-  height: 74px;
-  border-radius: 7px;
-  background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
 
 .res-result {
