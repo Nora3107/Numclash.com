@@ -124,9 +124,9 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
           {store.targetCard && <span className="ld-target">Mục tiêu: <strong>{store.targetLabel}</strong></span>}
           <span className="ld-round">Round {store.roundNumber}</span>
         </div>
-        {store.phase === 'playing' && (
-          <span className={`ld-timer ${store.timer <= 5 ? 'urgent' : ''}`}>{store.timer}</span>
-        )}
+        <span className={`ld-timer ${store.phase === 'playing' && store.timer <= 5 ? 'urgent' : ''}`}>
+          {store.phase === 'playing' ? store.timer : '--'}
+        </span>
       </div>
 
       {/* Opponents */}
@@ -225,7 +225,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
                 key={card.id}
                 className={`ld-handcard ${sel ? 'sel' : ''} ${playable ? 'playable' : ''}`}
                 onClick={() => playable && store.toggleCardSelection(card.id)}
-                animate={{ y: sel ? -14 : 0 }}
+                animate={{ y: sel ? -14 : 0, opacity: 1 }}
                 whileHover={playable ? { y: sel ? -18 : -10, transition: { type: 'spring', stiffness: 400, damping: 20 } } : {}}
                 initial={{ y: 40, opacity: 0 }}
                 transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 22 }}

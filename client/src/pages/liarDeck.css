@@ -56,16 +56,17 @@
 }
 
 .ld-timer {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 800;
-  color: rgba(255,255,255,0.6);
-  border: 1.5px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.3);
 }
 .ld-timer.urgent {
   color: #ef5350;
@@ -96,14 +97,14 @@
 .opp-nameplate {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: rgba(255,255,255,0.5);
-  font-size: 11px;
+  gap: 8px;
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
   font-weight: 700;
 }
-.opp-lives { display: flex; gap: 1px; font-size: 9px; }
+.opp-lives { display: flex; gap: 2px; font-size: 14px; }
 .opp-lives .alive { color: #ef5350; }
-.opp-lives .lost { color: rgba(255,255,255,0.1); }
+.opp-lives .lost { color: rgba(255,255,255,0.12); }
 
 .opp-cards { display: flex; align-items: center; }
 
@@ -210,11 +211,11 @@
 .ld-mystatus {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
-.my-name { color: rgba(255,255,255,0.5); font-size: 11px; font-weight: 600; }
-.my-lives { display: flex; gap: 2px; font-size: 13px; }
+.my-name { color: rgba(255,255,255,0.7); font-size: 14px; font-weight: 700; }
+.my-lives { display: flex; gap: 3px; font-size: 16px; }
 .my-lives .alive { color: #ef5350; }
 .my-lives .lost { color: rgba(255,255,255,0.1); }
 
