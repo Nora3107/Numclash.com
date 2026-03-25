@@ -3,11 +3,15 @@
 // 2D top-down card game UI — clean minimal
 // ============================================
 
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import useLiarStore from '../stores/useLiarStore';
 import Card from '../components/Card';
+import {
+  sfxSelect, sfxDeselect, sfxPlayCards, sfxCallLiar, sfxMyTurn,
+  sfxCaught, sfxWrongCall, sfxLoseLife, sfxNewRound, sfxGameOver, sfxTimerTick
+} from '../sounds/liarSfx';
 import './liarDeck.css';
 
 // Map Liar's Deck card to Card.jsx props
@@ -39,7 +43,7 @@ function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position,
       {hasLastPlay && (
         <motion.div className="opp-last-play" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
           {Array.from({ length: lastPlay.count }, (_, i) => (
-            <div key={i} className="card-back-played" style={{ transform: `rotate(${(i - 1) * 8}deg)` }} />
+            <div key={i} className="card-back-played" />
           ))}
         </motion.div>
       )}
@@ -55,21 +59,38 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
     return roomInfo?.players?.find(p => p.id === pid)?.nickname || pid?.slice(0, 6);
   }, [roomInfo]);
 
+  const prevTurnRef = useRef(null);
+
   useEffect(() => { if (initialState) store.syncState(initialState); }, [initialState]);
 
   useEffect(() => {
     const h = {
       'liardeck-state': (s) => store.syncState(s),
-      'liardeck-round-start': (d) => store.onRoundStart(d),
-      'liardeck-played': (d) => store.onPlayed(d),
-      'liardeck-resolution': (d) => store.onResolution(d),
-      'liardeck-game-over': (d) => store.onGameOver(d),
-      'liardeck-timer': ({ remaining }) => store.setTimer(remaining),
+      'liardeck-round-start': (d) => { store.onRoundStart(d); sfxNewRound(); },
+      'liardeck-played': (d) => { store.onPlayed(d); sfxPlayCards(); },
+      'liardeck-resolution': (d) => {
+        store.onResolution(d);
+        if (d.resultType === 'CAUGHT') sfxCaught(); else sfxWrongCall();
+        sfxLoseLife();
+      },
+      'liardeck-game-over': (d) => { store.onGameOver(d); sfxGameOver(); },
+      'liardeck-timer': ({ remaining }) => {
+        store.setTimer(remaining);
+        if (remaining <= 5 && remaining > 0) sfxTimerTick();
+      },
       'liardeck-error': (e) => console.warn('LiarDeck:', e),
     };
     Object.entries(h).forEach(([ev, fn]) => socket.on(ev, fn));
     return () => { Object.keys(h).forEach(ev => socket.off(ev)); store.reset(); };
   }, [socket]);
+
+  // Play "my turn" sound
+  useEffect(() => {
+    if (store.currentTurn === socketId && prevTurnRef.current !== socketId && store.phase === 'playing') {
+      sfxMyTurn();
+    }
+    prevTurnRef.current = store.currentTurn;
+  }, [store.currentTurn, socketId, store.phase]);
 
   const handlePlay = () => {
     if (store.selectedCards.length === 0) return;
@@ -77,6 +98,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
   };
 
   const handleCallLiar = () => {
+    sfxCallLiar();
     socket.emit('liardeck-call-liar', { roomCode: roomInfo?.code });
   };
 
@@ -153,7 +175,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
       {myLastPlay && (
         <motion.div className="ld-my-lastplay" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
           {Array.from({ length: store.lastPlay.count }, (_, i) => (
-            <div key={i} className="card-back-played" style={{ transform: `rotate(${(i - 1) * 8}deg)` }} />
+            <div key={i} className="card-back-played" />
           ))}
         </motion.div>
       )}
@@ -211,7 +233,12 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
               <motion.button
                 key={card.id}
                 className={`ld-handcard ${sel ? 'sel' : ''} ${playable ? 'playable' : ''}`}
-                onClick={() => playable && store.toggleCardSelection(card.id)}
+                onClick={() => {
+                  if (!playable) return;
+                  const wasSel = store.selectedCards.includes(card.id);
+                  store.toggleCardSelection(card.id);
+                  wasSel ? sfxDeselect() : sfxSelect();
+                }}
                 animate={{ y: sel ? -14 : 0, opacity: 1 }}
                 whileHover={playable ? { y: sel ? -18 : -10, transition: { type: 'spring', stiffness: 400, damping: 20 } } : {}}
                 initial={{ y: 40, opacity: 0 }}

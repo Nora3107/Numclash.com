@@ -119,16 +119,16 @@
 /* Last play in front of opponent */
 .opp-last-play {
   display: flex;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 6px;
 }
 .card-back-played {
   width: 44px;
   height: 62px;
   border-radius: 6px;
-  background: linear-gradient(135deg, #3a4a3a, #2a3a2a);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: linear-gradient(135deg, #2a3a4a, #1e2d3d);
+  border: 1px solid rgba(255,255,255,0.08);
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  margin-left: -8px;
 }
 .card-back-played:first-child { margin-left: 0; }
 
