@@ -37,7 +37,7 @@ function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position,
       {/* Timer bar */}
       {showTimer && (
         <div className="opp-timer-bar">
-          <div className={`opp-timer-fill ${timer <= 5 ? 'urgent' : ''}`} style={{ width: `${(timer / 30) * 100}%` }} />
+          <div className={`opp-timer-fill ${timer <= 5 ? 'urgent' : ''}`} style={{ width: `${(timer / 27) * 100}%` }} />
         </div>
       )}
 
@@ -312,7 +312,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
             </span>
             {isMyTurn && store.phase === 'playing' && store.timer > 0 && (
               <div className="my-timer-bar">
-                <div className={`my-timer-fill ${store.timer <= 5 ? 'urgent' : ''}`} style={{ width: `${(store.timer / 30) * 100}%` }} />
+                <div className={`my-timer-fill ${store.timer <= 5 ? 'urgent' : ''}`} style={{ width: `${(store.timer / 27) * 100}%` }} />
               </div>
             )}
           </div>

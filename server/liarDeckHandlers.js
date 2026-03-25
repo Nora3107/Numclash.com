@@ -5,7 +5,7 @@
 
 const { LiarDeckGame } = require('./liarDeckManager');
 
-const TURN_TIME = 30; // seconds per turn
+const TURN_TIME = 27; // seconds per turn
 const RESOLUTION_DELAY = 10000; // ms — dramatic sequence: LIAR!(0s) → flip(2.5s) → result(5.5s) → new round(10s)
 
 // Map of roomCode -> LiarDeckGame instance
