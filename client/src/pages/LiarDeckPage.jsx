@@ -43,9 +43,12 @@ function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position,
       {/* Last play — cards in front of this player */}
       {hasLastPlay && (
         <motion.div className="opp-last-play" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
-          {Array.from({ length: lastPlay.count }, (_, i) => (
-            <div key={i} className="card-back-played" />
-          ))}
+          <div className="opp-play-cards">
+            {Array.from({ length: lastPlay.count }, (_, i) => (
+              <div key={i} className="card-back-played" />
+            ))}
+          </div>
+          <span className="opp-play-label">Đánh {lastPlay.count} lá</span>
         </motion.div>
       )}
     </div>
@@ -185,10 +188,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
           )}
         </div>
 
-        {/* Turn + info text — plain white */}
-        {store.phase === 'playing' && store.lastPlay && (
-          <span className="ld-info-text">{getPlayerName(store.lastPlay.playerId)} đánh {store.lastPlay.count} lá</span>
-        )}
+        {/* Turn text only */}
         {store.phase === 'playing' && (
           <span className={`ld-turn-text ${isMyTurn ? 'mine' : ''}`}>
             {isMyTurn ? 'Lượt của bạn!' : getPlayerName(store.currentTurn)}
@@ -199,9 +199,12 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
       {/* My last play — shown in front of me */}
       {myLastPlay && (
         <motion.div className="ld-my-lastplay" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-          {Array.from({ length: store.lastPlay.count }, (_, i) => (
-            <div key={i} className="card-back-played" />
-          ))}
+          <span className="my-play-label">Đánh {store.lastPlay.count} lá</span>
+          <div className="my-play-cards">
+            {Array.from({ length: store.lastPlay.count }, (_, i) => (
+              <div key={i} className="card-back-played" />
+            ))}
+          </div>
         </motion.div>
       )}
 
