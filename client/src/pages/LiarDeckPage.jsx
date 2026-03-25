@@ -19,8 +19,9 @@ import './liarDeck.css';
 const RANK_SUIT_MAP = { J: 'spades', Q: 'clubs', K: 'diamonds', A: 'hearts' };
 
 // Opponent display
-function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position, lastPlay, socketId }) {
+function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position, lastPlay, socketId, timer, phase }) {
   const hasLastPlay = lastPlay && lastPlay.playerId === pid;
+  const showTimer = isActive && phase === 'playing' && timer > 0;
 
   return (
     <div className={`ld-opponent ${position} ${isActive ? 'active' : ''} ${isDead ? 'dead' : ''}`}>
@@ -33,6 +34,13 @@ function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position,
         </span>
       </div>
 
+      {/* Timer bar */}
+      {showTimer && (
+        <div className="opp-timer-bar">
+          <div className={`opp-timer-fill ${timer <= 5 ? 'urgent' : ''}`} style={{ width: `${(timer / 30) * 100}%` }} />
+        </div>
+      )}
+
       {/* Face-down hand */}
       <div className="opp-cards">
         {Array.from({ length: Math.min(cardCount, 6) }, (_, i) => (
@@ -40,7 +48,7 @@ function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position,
         ))}
       </div>
 
-      {/* Last play — cards in front of this player */}
+      {/* Last play */}
       {hasLastPlay && (
         <motion.div className="opp-last-play" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
           <span className="opp-play-label">Đánh {lastPlay.count} lá</span>
@@ -167,7 +175,8 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         <OpponentSlot key={o.pid} pid={o.pid} name={o.name} lives={o.lives}
           cardCount={o.cardCount} isActive={o.pid === store.currentTurn}
           isDead={o.status === 'ELIMINATED'} position={o.position}
-          lastPlay={store.lastPlay} socketId={socketId} />
+          lastPlay={store.lastPlay} socketId={socketId}
+          timer={store.timer} phase={store.phase} />
       ))}
 
       {/* Center zone */}
@@ -301,6 +310,11 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
                 <span key={i} className={i < myPlayer.lives ? 'alive' : 'lost'}>♥</span>
               ))}
             </span>
+            {isMyTurn && store.phase === 'playing' && store.timer > 0 && (
+              <div className="my-timer-bar">
+                <div className={`my-timer-fill ${store.timer <= 5 ? 'urgent' : ''}`} style={{ width: `${(store.timer / 30) * 100}%` }} />
+              </div>
+            )}
           </div>
         )}
 

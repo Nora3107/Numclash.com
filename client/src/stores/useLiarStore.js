@@ -55,9 +55,7 @@ const useLiarStore = create((set, get) => ({
 
   onPlayed: (data) => set((state) => ({
     lastPlay: { playerId: data.playerId, count: data.count },
-    message: data.auto
-      ? { text: `Hết giờ! Tự động đánh 1 lá.`, type: 'play' }
-      : null,
+    message: null,
   })),
 
   onResolution: (data) => set({
