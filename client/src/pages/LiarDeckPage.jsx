@@ -177,7 +177,6 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
                       value={card.rank}
                       suit={RANK_SUIT_MAP[card.rank]}
                       isJoker={card.isJoker || card.rank === 'JOKER'}
-                      small
                     />
                   </motion.div>
                 ))}
@@ -223,7 +222,6 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
                   value={card.rank}
                   suit={RANK_SUIT_MAP[card.rank]}
                   isJoker={card.isJoker || card.rank === 'JOKER'}
-                  small
                 />
               </motion.button>
             );
