@@ -6,6 +6,10 @@ import {
   Crown, Medal, Award, Circle, Gamepad2
 } from 'lucide-react';
 import { useLang } from '../i18n';
+import {
+  sfxSubmitNumber, sfxRevealStep, sfxRevealWinner, sfxRevealLoser,
+  sfxNewRound, sfxTimerTick, sfxTimerWarning
+} from '../sounds/gameSfx';
 
 export default function GamePage({
   roundData, revealData, gamePhase, setGamePhase,
@@ -32,6 +36,7 @@ export default function GamePage({
       setTimeLeft(roundData?.timeLimit || 36);
       setRevealStep(0);
       setShowScoreboard(false);
+      if (currentRound > 1) sfxNewRound();
     }
   }, [gamePhase, currentRound]);
 
@@ -44,6 +49,7 @@ export default function GamePage({
           if (!submitted) handleSubmit(0, true);
           return 0;
         }
+        if (prev <= 6) sfxTimerTick();
         return prev - 1;
       });
     }, 1000);
@@ -60,6 +66,7 @@ export default function GamePage({
     const interval = setInterval(() => {
       step++;
       setRevealStep(step);
+      sfxRevealStep();
       if (step >= totalSteps) clearInterval(interval);
     }, 1200);
     return () => clearInterval(interval);
@@ -72,6 +79,7 @@ export default function GamePage({
     setSubmittedNumber(num);
     setSubmitted(true);
     clearInterval(timerRef.current);
+    sfxSubmitNumber();
     // Gá»­i server, náº¿u lá»—i thÃ¬ revert
     const success = await onSubmitNumber(num);
     if (!success) {

@@ -2,6 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Crown, MessageCircle, ArrowLeft, Trophy, Shuffle } from 'lucide-react';
 import Card from '../components/Card';
+import {
+  sfxDrawCard, sfxPairDiscard, sfxOldMaidTurn, sfxShuffleHand,
+  sfxThrowItem, sfxGameOverWin, sfxGameOverLose, sfxAutoPlay,
+  sfxTimerTick, sfxChatMsg
+} from '../sounds/gameSfx';
 import '../oldmaid.css';
 
 const QUICK_CHATS = [
@@ -98,6 +103,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
 
   // Shuffle my hand locally + emit to server
   const shuffleMyHand = useCallback(() => {
+    sfxShuffleHand();
     setGameState(prev => {
       if (!prev || !prev.myHand) return prev;
       const shuffled = shuffleArray(prev.myHand);
@@ -129,16 +135,19 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
         setTimer(36);
         setTimerActive(true);
       }
+      if (data.currentTurn === socket.id) sfxOldMaidTurn();
       addAction(`🎯 Đến lượt ${getPlayerName(data.currentTurn)}`);
     });
 
     socket.on('oldmaid-timer', ({ remaining }) => {
       setTimer(remaining);
+      if (remaining <= 5 && remaining > 0) sfxTimerTick();
     });
 
     socket.on('oldmaid-draw', (data) => {
       // Step 1: Card flies from opponent → drawer (0.7s)
       setFlyingCard({ from: data.from, to: data.to });
+      sfxDrawCard();
       addAction(`🃏 ${getPlayerName(data.to)} rút bài từ ${getPlayerName(data.from)}`);
 
       setTimeout(() => {
@@ -155,6 +164,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
           setTimeout(() => {
             // Step 4: Pair flies from drawer's hand → center
             setFlyingPair(data.discarded.slice(0, 2));
+            sfxPairDiscard();
             // Update hand immediately so cards vanish when animation starts
             if (data.finalHand) {
               setGameState(prev => prev ? { ...prev, myHand: data.finalHand } : prev);
@@ -180,6 +190,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
 
     socket.on('oldmaid-auto-draw', (data) => {
       setFlyingCard({ from: data.from, to: data.to });
+      sfxAutoPlay();
       addAction(`⏰ Hết giờ! ${getPlayerName(data.to)} tự động rút bài`);
       setTimeout(() => {
         setFlyingCard(null);
@@ -220,12 +231,14 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
     socket.on('oldmaid-game-over', (data) => {
       setGameResult(data);
       addAction('Joker: ' + getPlayerName(data.loserId));
+      if (data.loserId === socket.id) sfxGameOverLose(); else sfxGameOverWin();
       setTimeout(() => {
         setShowGameOver(true);
       }, 4000);
     });
 
     socket.on('oldmaid-chat-msg', ({ playerId, text }) => {
+      sfxChatMsg();
       setChatBubbles(prev => ({ ...prev, [playerId]: text }));
       setTimeout(() => {
         setChatBubbles(prev => {
@@ -243,6 +256,7 @@ export default function OldMaidPage({ socket, roomInfo, onLeave, initialState })
 
     socket.on('oldmaid-thrown', ({ from, to, item }) => {
       setFlyingThrow({ from, to, item });
+      sfxThrowItem();
       setTimeout(() => setFlyingThrow(null), 1000);
     });
 

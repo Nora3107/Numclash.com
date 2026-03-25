@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Copy, Check, Crown, Users, Play, Settings, Hash, CheckCircle, Circle, LogOut, Globe, Lock, MessageCircle, Send, X, Gamepad2 } from 'lucide-react';
 import { useLang } from '../i18n';
+import { sfxCopy, sfxReady, sfxUnready, sfxGameStart, sfxModeSwitch, sfxChatMsg } from '../sounds/gameSfx';
 
 const ROUND_OPTIONS = [1, 4, 8, 18, 36];
 
@@ -25,6 +26,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
   const copyCode = () => {
     navigator.clipboard.writeText(roomCode);
     setCopied(true);
+    sfxCopy();
     setTimeout(() => setCopied(false), 5000);
   };
 
@@ -192,7 +194,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
               key={mode.key}
               whileHover={isHost ? { scale: 1.03 } : {}}
               whileTap={isHost ? { scale: 0.97 } : {}}
-              onClick={() => isHost && onSetGameMode(mode.key)}
+              onClick={() => { if (isHost) { onSetGameMode(mode.key); sfxModeSwitch(); } }}
               className={`flex-1 rounded-2xl font-bold text-sm transition-all duration-200 border-2 ${
                 roomInfo.gameMode === mode.key
                   ? 'bg-accent-orange/10 text-accent-orange border-accent-orange/40 shadow-md'
@@ -383,7 +385,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
             initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            onClick={onToggleReady}
+            onClick={() => { onToggleReady(); meReady ? sfxUnready() : sfxReady(); }}
             className={`pill-btn w-full flex items-center justify-center gap-3 text-lg ${
               meReady ? 'pill-btn-accent' : 'pill-btn-secondary'
             }`}
@@ -400,7 +402,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
             initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
             whileHover={{ scale: canStart && allReady ? 1.03 : 1 }}
             whileTap={{ scale: canStart && allReady ? 0.97 : 1 }}
-            onClick={onStartGame}
+            onClick={() => { onStartGame(); sfxGameStart(); }}
             disabled={!canStart || !allReady}
             className={`pill-btn pill-btn-primary w-full flex items-center justify-center gap-3 text-xl ${!allReady ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{ padding: '16px 36px' }}
