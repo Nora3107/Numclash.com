@@ -19,7 +19,7 @@ import './liarDeck.css';
 const RANK_SUIT_MAP = { J: 'spades', Q: 'hearts', K: 'diamonds', A: 'clubs' };
 
 // Opponent display
-function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position, lastPlay, socketId }) {
+function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position, lastPlay, socketId, chatBubble }) {
   const hasLastPlay = lastPlay && lastPlay.playerId === pid;
 
   return (
@@ -33,6 +33,16 @@ function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position,
         </span>
       </div>
 
+      {/* Chat bubble */}
+      <AnimatePresence>
+        {chatBubble && (
+          <motion.div className="opp-chat-bubble"
+            initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.7, opacity: 0 }}>
+            {chatBubble}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Face-down hand */}
       <div className="opp-cards">
         {Array.from({ length: Math.min(cardCount, 6) }, (_, i) => (
@@ -43,12 +53,12 @@ function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position,
       {/* Last play — cards in front of this player */}
       {hasLastPlay && (
         <motion.div className="opp-last-play" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+          <span className="opp-play-label">Đánh {lastPlay.count} lá</span>
           <div className="opp-play-cards">
             {Array.from({ length: lastPlay.count }, (_, i) => (
               <div key={i} className="card-back-played" />
             ))}
           </div>
-          <span className="opp-play-label">Đánh {lastPlay.count} lá</span>
         </motion.div>
       )}
     </div>
@@ -64,9 +74,26 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
   }, [roomInfo]);
 
   const prevTurnRef = useRef(null);
-  const [resPhase, setResPhase] = useState(0); // 0=none, 1=LIAR!, 2=flip, 3=result
+  const [resPhase, setResPhase] = useState(0);
   const [chatInput, setChatInput] = useState('');
-  const [chatBubble, setChatBubble] = useState(null); // { text, time }
+  const [chatBubbles, setChatBubbles] = useState({}); // { [senderId]: text }
+
+  // Listen for chat messages from all players
+  useEffect(() => {
+    const onMsg = (msg) => {
+      if (msg.system) return;
+      setChatBubbles(prev => ({ ...prev, [msg.senderId]: msg.text }));
+      setTimeout(() => {
+        setChatBubbles(prev => {
+          const next = { ...prev };
+          delete next[msg.senderId];
+          return next;
+        });
+      }, 4000);
+    };
+    socket.on('new-message', onMsg);
+    return () => socket.off('new-message', onMsg);
+  }, [socket]);
 
   useEffect(() => { if (initialState) store.syncState(initialState); }, [initialState]);
 
@@ -167,7 +194,8 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         <OpponentSlot key={o.pid} pid={o.pid} name={o.name} lives={o.lives}
           cardCount={o.cardCount} isActive={o.pid === store.currentTurn}
           isDead={o.status === 'ELIMINATED'} position={o.position}
-          lastPlay={store.lastPlay} socketId={socketId} />
+          lastPlay={store.lastPlay} socketId={socketId}
+          chatBubble={chatBubbles[o.pid]} />
       ))}
 
       {/* Center zone */}
@@ -196,7 +224,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         )}
       </div>
 
-      {/* My last play — shown in front of me */}
+      {/* My last play — centered at my area */}
       {myLastPlay && (
         <motion.div className="ld-my-lastplay" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
           <span className="my-play-label">Đánh {store.lastPlay.count} lá</span>
@@ -360,15 +388,15 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         )}
       </AnimatePresence>
 
-      {/* Chat bubble above hand */}
+      {/* My chat bubble — right side */}
       <AnimatePresence>
-        {chatBubble && (
+        {chatBubbles[socketId] && (
           <motion.div className="ld-chat-bubble"
-            initial={{ y: 10, opacity: 0, scale: 0.8 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -10, opacity: 0, scale: 0.8 }}
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.7, opacity: 0 }}
           >
-            {chatBubble.text}
+            {chatBubbles[socketId]}
           </motion.div>
         )}
       </AnimatePresence>
@@ -382,9 +410,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
           onKeyDown={(e) => {
             if (e.key === 'Enter' && chatInput.trim()) {
               socket.emit('send-message', { roomCode: roomInfo?.code, text: chatInput.trim() });
-              setChatBubble({ text: chatInput.trim(), time: Date.now() });
               setChatInput('');
-              setTimeout(() => setChatBubble(null), 4000);
             }
           }}
           placeholder="Chat..."
@@ -396,9 +422,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
           onClick={() => {
             if (chatInput.trim()) {
               socket.emit('send-message', { roomCode: roomInfo?.code, text: chatInput.trim() });
-              setChatBubble({ text: chatInput.trim(), time: Date.now() });
               setChatInput('');
-              setTimeout(() => setChatBubble(null), 4000);
             }
           }}
         >➤</button>

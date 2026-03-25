@@ -124,14 +124,27 @@
   gap: 4px;
   margin-top: 8px;
 }
-.opp-play-cards {
-  display: flex;
-  gap: 4px;
-}
 .opp-play-label {
   font-size: 11px;
   color: rgba(255,255,255,0.4);
   font-weight: 600;
+  text-align: center;
+}
+.opp-play-cards {
+  display: flex;
+  gap: 4px;
+}
+
+/* Opponent chat bubble */
+.opp-chat-bubble {
+  padding: 4px 10px;
+  border-radius: 10px 10px 10px 2px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  font-size: 11px;
+  font-weight: 600;
+  max-width: 140px;
+  word-break: break-word;
   text-align: center;
 }
 
@@ -426,20 +439,19 @@
 .ld-toast-hand.success { background: rgba(46,204,113,0.12); color: #2ecc71; }
 .ld-toast-hand.danger { background: rgba(239,83,80,0.12); color: #ef5350; }
 
-/* ===== Chat bubble ===== */
+/* ===== Chat bubble (my) ===== */
 .ld-chat-bubble {
   position: absolute;
-  bottom: 230px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 160px;
+  right: 20px;
   z-index: 35;
   padding: 6px 14px;
-  border-radius: 12px 12px 12px 4px;
+  border-radius: 12px 12px 2px 12px;
   background: rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.85);
   font-size: 13px;
   font-weight: 600;
-  max-width: 220px;
+  max-width: 200px;
   word-break: break-word;
   backdrop-filter: blur(6px);
 }
