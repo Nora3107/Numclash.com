@@ -3,14 +3,15 @@
 // 2D top-down card game UI — clean minimal
 // ============================================
 
-import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useCallback, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import useLiarStore from '../stores/useLiarStore';
 import Card from '../components/Card';
 import {
   sfxSelect, sfxDeselect, sfxPlayCards, sfxCallLiar, sfxMyTurn,
-  sfxCaught, sfxWrongCall, sfxLoseLife, sfxNewRound, sfxGameOver, sfxTimerTick
+  sfxCaught, sfxWrongCall, sfxLoseLife, sfxNewRound, sfxGameOver, sfxTimerTick,
+  sfxLiarShout, sfxCardFlip, sfxResultReveal
 } from '../sounds/liarSfx';
 import './liarDeck.css';
 
@@ -60,6 +61,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
   }, [roomInfo]);
 
   const prevTurnRef = useRef(null);
+  const [resPhase, setResPhase] = useState(0); // 0=none, 1=LIAR!, 2=flip, 3=result
 
   useEffect(() => { if (initialState) store.syncState(initialState); }, [initialState]);
 
@@ -70,8 +72,20 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
       'liardeck-played': (d) => { store.onPlayed(d); sfxPlayCards(); },
       'liardeck-resolution': (d) => {
         store.onResolution(d);
-        if (d.resultType === 'CAUGHT') sfxCaught(); else sfxWrongCall();
-        sfxLoseLife();
+        // Phase 1: LIAR! shout (immediate)
+        setResPhase(1);
+        sfxLiarShout();
+        // Phase 2: Card flip (2.5s)
+        setTimeout(() => { setResPhase(2); sfxCardFlip(); }, 2500);
+        // Phase 3: Result (5.5s)
+        setTimeout(() => {
+          setResPhase(3);
+          sfxResultReveal();
+          if (d.resultType === 'CAUGHT') sfxCaught(); else sfxWrongCall();
+          setTimeout(() => sfxLoseLife(), 500);
+        }, 5500);
+        // Phase 4: Clear (9s, server sends new round at ~10s)
+        setTimeout(() => { setResPhase(0); }, 9000);
       },
       'liardeck-game-over': (d) => { store.onGameOver(d); sfxGameOver(); },
       'liardeck-timer': ({ remaining }) => {
@@ -180,35 +194,86 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         </motion.div>
       )}
 
-      {/* Resolution overlay */}
+      {/* Resolution — multi-phase dramatic sequence */}
       <AnimatePresence>
-        {store.showResolution && res && (
-          <motion.div className="ld-resolution" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div className="res-content" initial={{ scale: 0.85 }} animate={{ scale: 1 }}>
-              <h2 className="res-title">{res.resultType === 'CAUGHT' ? 'Bắt được!' : 'Bắt sai!'}</h2>
-              <p className="res-subtitle">
-                {res.resultType === 'CAUGHT'
-                  ? `${getPlayerName(res.accusedId)} đã nói dối`
-                  : `${getPlayerName(res.accusedId)} nói thật — ${getPlayerName(res.callerId)} mất mạng`
-                }
-              </p>
-              <div className="res-cards">
-                {res.flippedCards.map((card, i) => (
-                  <motion.div key={i} className="res-card" initial={{ rotateY: 180 }} animate={{ rotateY: 0 }} transition={{ delay: i * 0.15 }}>
-                    <Card
-                      value={card.rank}
-                      suit={RANK_SUIT_MAP[card.rank]}
-                      isJoker={card.isJoker || card.rank === 'JOKER'}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-              <p className="res-result">
-                {getPlayerName(res.loserId)} mất 1 ♥
-                {res.eliminated && <span className="elim"> — Bị loại!</span>}
-              </p>
-            </motion.div>
-          </motion.div>
+        {resPhase >= 1 && res && (
+          <div className="ld-res-sequence">
+            {/* Phase 1: LIAR! shout */}
+            {resPhase === 1 && (
+              <motion.div
+                className="ld-res-liar"
+                initial={{ scale: 3, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 12 }}
+              >
+                <span className="liar-text">LIAR!</span>
+                <span className="liar-sub">{getPlayerName(res.callerId)} bắt bài {getPlayerName(res.accusedId)}</span>
+              </motion.div>
+            )}
+
+            {/* Phase 2: Card flip */}
+            {resPhase === 2 && (
+              <motion.div className="ld-res-flip" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <p className="flip-label">Lật bài...</p>
+                <div className="res-cards">
+                  {res.flippedCards.map((card, i) => (
+                    <motion.div
+                      key={i}
+                      className="res-card"
+                      initial={{ rotateY: 180, opacity: 0 }}
+                      animate={{ rotateY: 0, opacity: 1 }}
+                      transition={{ delay: i * 0.25, duration: 0.5, type: 'spring', stiffness: 200 }}
+                    >
+                      <Card
+                        value={card.rank}
+                        suit={RANK_SUIT_MAP[card.rank]}
+                        isJoker={card.isJoker || card.rank === 'JOKER'}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Phase 3: Result */}
+            {resPhase === 3 && (
+              <motion.div
+                className={`ld-res-result ${res.resultType === 'CAUGHT' ? 'caught' : 'wrong'}`}
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 250, damping: 15 }}
+              >
+                <div className="res-cards">
+                  {res.flippedCards.map((card, i) => (
+                    <div key={i} className="res-card">
+                      <Card
+                        value={card.rank}
+                        suit={RANK_SUIT_MAP[card.rank]}
+                        isJoker={card.isJoker || card.rank === 'JOKER'}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <motion.h2
+                  className="result-text"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  {res.resultType === 'CAUGHT' ? '🎉 Bắt được! Nói dối!' : '😤 Bắt sai! Nói thật!'}
+                </motion.h2>
+                <motion.p
+                  className="result-detail"
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  {getPlayerName(res.loserId)} mất 1 ♥
+                  {res.eliminated && <span className="elim"> — Bị loại!</span>}
+                </motion.p>
+              </motion.div>
+            )}
+          </div>
         )}
       </AnimatePresence>
 

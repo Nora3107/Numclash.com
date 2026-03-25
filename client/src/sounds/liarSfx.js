@@ -138,3 +138,29 @@ export async function sfxGameOver() {
   s.triggerAttackRelease('G5', now + 0.3);
   s.triggerAttackRelease('C6', now + 0.45);
 }
+
+// --- Dramatic resolution sequence ---
+
+export async function sfxLiarShout() {
+  await ensureStarted();
+  const s = getSynth();
+  const now = Tone.now();
+  s.triggerAttackRelease('E4', '16n', now);
+  s.triggerAttackRelease('G4', '16n', now + 0.07);
+  s.triggerAttackRelease('B4', '16n', now + 0.14);
+  s.triggerAttackRelease('E5', '8n', now + 0.21);
+  getMembrane().triggerAttackRelease('G2', '8n', now + 0.25);
+}
+
+export async function sfxCardFlip() {
+  await ensureStarted();
+  const now = Tone.now();
+  getNoise().triggerAttackRelease('16n', now);
+  getPluck().triggerAttackRelease('F5', now + 0.05);
+}
+
+export async function sfxResultReveal() {
+  await ensureStarted();
+  getMembrane().triggerAttackRelease('C2', '4n');
+  setTimeout(() => getPluck().triggerAttackRelease('G4'), 150);
+}

@@ -291,51 +291,95 @@
   color: #ef5350;
 }
 
-/* ===== Resolution ===== */
-.ld-resolution {
+/* ===== Resolution — multi-phase ===== */
+.ld-res-sequence {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
   z-index: 50;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
+  pointer-events: none;
 }
 
-.res-content {
-  text-align: center;
-  padding: 28px 36px;
-  min-width: 260px;
+/* Phase 1: LIAR! */
+.ld-res-liar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
-
-.res-title {
-  font-size: 26px;
+.liar-text {
+  font-size: 72px;
   font-weight: 900;
-  margin: 0 0 4px;
+  color: #ef5350;
+  text-shadow: 0 0 40px rgba(239,83,80,0.6), 0 4px 20px rgba(0,0,0,0.5);
+  letter-spacing: 6px;
 }
-.res-subtitle {
-  font-size: 12px;
-  color: rgba(255,255,255,0.4);
-  margin: 0 0 18px;
+.liar-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 600;
+}
+
+/* Phase 2: Card flip */
+.ld-res-flip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.flip-label {
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
 }
 
 .res-cards {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   justify-content: center;
-  margin-bottom: 16px;
 }
 .res-card {
   display: flex;
   align-items: center;
   justify-content: center;
+  perspective: 600px;
 }
 
-.res-result {
+/* Phase 3: Result */
+.ld-res-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 32px;
+  border-radius: 16px;
+}
+.ld-res-result.caught .res-card .card {
+  border-color: #2ecc71;
+  box-shadow: 0 0 16px rgba(46,204,113,0.3);
+}
+.ld-res-result.wrong .res-card .card {
+  border-color: #ef5350;
+  box-shadow: 0 0 16px rgba(239,83,80,0.3);
+}
+.result-text {
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0;
+}
+.ld-res-result.caught .result-text { color: #2ecc71; }
+.ld-res-result.wrong .result-text { color: #ef5350; }
+
+.result-detail {
   font-size: 13px;
   font-weight: 700;
   color: #ef5350;
+  margin: 0;
 }
 .elim { font-weight: 900; }
 
