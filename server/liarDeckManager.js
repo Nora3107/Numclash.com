@@ -5,6 +5,7 @@
 
 const RANKS = ['J', 'Q', 'K', 'A'];
 const RANK_LABELS = { J: 'Jack', Q: 'Queen', K: 'King', A: 'Ace' };
+const RANK_SUITS = { J: 'spades', Q: 'clubs', K: 'diamonds', A: 'hearts' };
 
 class LiarDeckGame {
   constructor(playerIds) {
@@ -36,16 +37,17 @@ class LiarDeckGame {
 
   _createDeck() {
     const deck = [];
-    // 4 of each rank
+    // 6 of each rank with fixed suit
     for (const rank of RANKS) {
-      for (let i = 0; i < 4; i++) {
-        deck.push({ id: this._nextCardId(), rank, isJoker: false });
+      for (let i = 0; i < 6; i++) {
+        deck.push({ id: this._nextCardId(), rank, suit: RANK_SUITS[rank], isJoker: false });
       }
     }
-    // 2 Jokers
-    deck.push({ id: this._nextCardId(), rank: 'JOKER', isJoker: true });
-    deck.push({ id: this._nextCardId(), rank: 'JOKER', isJoker: true });
-    return deck; // 18 cards total
+    // 6 Jokers
+    for (let i = 0; i < 6; i++) {
+      deck.push({ id: this._nextCardId(), rank: 'JOKER', isJoker: true });
+    }
+    return deck; // 30 cards total
   }
 
   _shuffle(arr) {

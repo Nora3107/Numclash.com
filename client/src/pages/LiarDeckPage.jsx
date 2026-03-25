@@ -16,7 +16,7 @@ import {
 import './liarDeck.css';
 
 // Map Liar's Deck card to Card.jsx props
-const RANK_SUIT_MAP = { J: 'spades', Q: 'hearts', K: 'diamonds', A: 'clubs' };
+const RANK_SUIT_MAP = { J: 'spades', Q: 'clubs', K: 'diamonds', A: 'hearts' };
 
 // Opponent display
 function OpponentSlot({ pid, name, lives, cardCount, isActive, isDead, position, lastPlay, socketId }) {
