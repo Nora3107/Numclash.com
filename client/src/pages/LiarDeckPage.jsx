@@ -62,6 +62,8 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
 
   const prevTurnRef = useRef(null);
   const [resPhase, setResPhase] = useState(0); // 0=none, 1=LIAR!, 2=flip, 3=result
+  const [chatInput, setChatInput] = useState('');
+  const [chatBubble, setChatBubble] = useState(null); // { text, time }
 
   useEffect(() => { if (initialState) store.syncState(initialState); }, [initialState]);
 
@@ -149,7 +151,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
       <div className="ld-topbar">
         <button className="ld-leave" onClick={onLeave}><ArrowLeft size={14} /> Rời</button>
         <div className="ld-header">
-          {store.targetCard && <span className="ld-target">Mục tiêu: <strong>{store.targetLabel}</strong></span>}
+        {store.targetCard && <span className="ld-target">Mục tiêu: <strong>{store.targetLabel}</strong></span>}
           <span className="ld-round">Round {store.roundNumber}</span>
         </div>
         <span className={`ld-timer ${store.phase === 'playing' && store.timer <= 5 ? 'urgent' : ''}`}>
@@ -345,15 +347,59 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         )}
       </div>
 
-      {/* Toast */}
+      {/* Toast — positioned above hand */}
       <AnimatePresence>
         {store.message && (
-          <motion.div className={`ld-toast ${store.message.type}`}
-            initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }}>
+          <motion.div className={`ld-toast-hand ${store.message.type}`}
+            initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 10, opacity: 0 }}>
             {store.message.text}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Chat bubble above hand */}
+      <AnimatePresence>
+        {chatBubble && (
+          <motion.div className="ld-chat-bubble"
+            initial={{ y: 10, opacity: 0, scale: 0.8 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: -10, opacity: 0, scale: 0.8 }}
+          >
+            {chatBubble.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chat input */}
+      <div className="ld-chat-box">
+        <input
+          type="text"
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value.slice(0, 60))}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && chatInput.trim()) {
+              socket.emit('send-message', { roomCode: roomInfo?.code, text: chatInput.trim() });
+              setChatBubble({ text: chatInput.trim(), time: Date.now() });
+              setChatInput('');
+              setTimeout(() => setChatBubble(null), 4000);
+            }
+          }}
+          placeholder="Chat..."
+          className="ld-chat-input"
+          maxLength={60}
+        />
+        <button
+          className="ld-chat-send"
+          onClick={() => {
+            if (chatInput.trim()) {
+              socket.emit('send-message', { roomCode: roomInfo?.code, text: chatInput.trim() });
+              setChatBubble({ text: chatInput.trim(), time: Date.now() });
+              setChatInput('');
+              setTimeout(() => setChatBubble(null), 4000);
+            }
+          }}
+        >➤</button>
+      </div>
 
       {/* Game Over */}
       <AnimatePresence>

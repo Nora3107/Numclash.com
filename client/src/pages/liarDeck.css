@@ -46,9 +46,9 @@
 }
 .ld-target {
   color: rgba(255,255,255,0.85);
-  font-size: 14px;
+  font-size: 18px;
 }
-.ld-target strong { color: #fff; }
+.ld-target strong { color: #fff; font-size: 20px; }
 .ld-round {
   color: rgba(255,255,255,0.25);
   font-size: 10px;
@@ -179,12 +179,14 @@
 }
 
 .ld-turn-text {
-  color: rgba(255,255,255,0.4);
-  font-size: 12px;
-  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  font-weight: 700;
 }
 .ld-turn-text.mine {
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.9);
+  font-size: 18px;
+  font-weight: 800;
 }
 
 /* My last play area */
@@ -383,23 +385,88 @@
 }
 .elim { font-weight: 900; }
 
-/* ===== Toast ===== */
-.ld-toast {
+/* ===== Toast — above hand ===== */
+.ld-toast-hand {
   position: absolute;
-  top: 56px;
+  bottom: 200px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 30;
-  padding: 6px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
   white-space: nowrap;
 }
-.ld-toast.info { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); }
-.ld-toast.play { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
-.ld-toast.success { background: rgba(46,204,113,0.1); color: #2ecc71; }
-.ld-toast.danger { background: rgba(239,83,80,0.1); color: #ef5350; }
+.ld-toast-hand.info { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+.ld-toast-hand.play { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+.ld-toast-hand.success { background: rgba(46,204,113,0.12); color: #2ecc71; }
+.ld-toast-hand.danger { background: rgba(239,83,80,0.12); color: #ef5350; }
+
+/* ===== Chat bubble ===== */
+.ld-chat-bubble {
+  position: absolute;
+  bottom: 230px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 35;
+  padding: 6px 14px;
+  border-radius: 12px 12px 12px 4px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 220px;
+  word-break: break-word;
+  backdrop-filter: blur(6px);
+}
+
+/* ===== Chat box ===== */
+.ld-chat-box {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 20;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.ld-chat-input {
+  width: 130px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.4);
+  color: rgba(255,255,255,0.8);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.ld-chat-input:focus {
+  border-color: rgba(255,255,255,0.25);
+}
+.ld-chat-input::placeholder {
+  color: rgba(255,255,255,0.2);
+}
+.ld-chat-send {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.5);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+.ld-chat-send:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+}
 
 /* ===== Game Over ===== */
 .ld-gameover {
