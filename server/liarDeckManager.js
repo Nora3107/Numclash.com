@@ -69,21 +69,27 @@ class LiarDeckGame {
     // Pick random target
     this.targetCard = RANKS[Math.floor(Math.random() * RANKS.length)];
 
-    // Build & shuffle deck
-    const deck = this._shuffle(this._createDeck());
-
-    // Get alive players
+    // Build deck — expand if needed for more players (6 cards each)
     const alivePids = this._getAlive();
+    const cardsNeeded = alivePids.length * 6;
+    let deck = [];
+    // Keep adding shuffled decks until we have enough
+    while (deck.length < cardsNeeded) {
+      deck.push(...this._createDeck());
+    }
+    deck = this._shuffle(deck);
 
     // Clear hands
     for (const pid of alivePids) {
       this.players.get(pid).hand = [];
     }
 
-    // Deal evenly
-    for (let i = 0; i < deck.length; i++) {
-      const pid = alivePids[i % alivePids.length];
-      this.players.get(pid).hand.push(deck[i]);
+    // Deal exactly 6 cards to each
+    let dealt = 0;
+    for (const pid of alivePids) {
+      for (let i = 0; i < 6; i++) {
+        this.players.get(pid).hand.push(deck[dealt++]);
+      }
     }
 
     // Sort each hand
