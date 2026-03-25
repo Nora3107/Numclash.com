@@ -206,7 +206,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 12 }}
               >
-                <span className="liar-text">LIAR!</span>
+                <span className="liar-text">deotin</span>
                 <span className="liar-sub">{getPlayerName(res.callerId)} bắt bài {getPlayerName(res.accusedId)}</span>
               </motion.div>
             )}
