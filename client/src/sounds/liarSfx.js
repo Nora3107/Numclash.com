@@ -141,15 +141,24 @@ export async function sfxGameOver() {
 
 // --- Dramatic resolution sequence ---
 
+import liarShoutUrl from './choilamsaodcvu.MP3';
+
+let _liarShoutPlayer = null;
+
 export async function sfxLiarShout() {
   await ensureStarted();
-  const s = getSynth();
-  const now = Tone.now();
-  s.triggerAttackRelease('E4', '16n', now);
-  s.triggerAttackRelease('G4', '16n', now + 0.07);
-  s.triggerAttackRelease('B4', '16n', now + 0.14);
-  s.triggerAttackRelease('E5', '8n', now + 0.21);
-  getMembrane().triggerAttackRelease('G2', '8n', now + 0.25);
+  if (!_liarShoutPlayer) {
+    _liarShoutPlayer = new Tone.Player({
+      url: liarShoutUrl,
+      volume: -10, // normalized to match other sfx
+    }).toDestination();
+    // Wait for buffer to load
+    await Tone.loaded();
+  }
+  if (_liarShoutPlayer.loaded) {
+    _liarShoutPlayer.stop();
+    _liarShoutPlayer.start();
+  }
 }
 
 export async function sfxCardFlip() {
