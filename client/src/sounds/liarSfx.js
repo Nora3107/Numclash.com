@@ -1,129 +1,140 @@
 // ============================================
 // SuckCard.com — Liar's Deck Sound Effects
-// Web Audio API synthesized sounds
+// Powered by Tone.js (MIT) — free forever
 // ============================================
 
-let audioCtx = null;
+import * as Tone from 'tone';
 
-function getCtx() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let _synth, _pluck, _metal, _membrane, _noise;
+
+async function ensureStarted() {
+  if (Tone.getContext().state !== 'running') {
+    try { await Tone.start(); } catch (e) { /* silent */ }
   }
-  return audioCtx;
 }
 
-function playTone(freq, duration, type = 'sine', volume = 0.15) {
-  try {
-    const ctx = getCtx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(volume, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + duration);
-  } catch (e) { /* silent fail */ }
+function getSynth() {
+  if (!_synth) _synth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.15, sustain: 0.05, release: 0.3 }, volume: -12 }).toDestination();
+  return _synth;
 }
 
-function playNoise(duration, volume = 0.08) {
-  try {
-    const ctx = getCtx();
-    const bufferSize = ctx.sampleRate * duration;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
-    }
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(volume, ctx.currentTime);
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.setValueAtTime(2000, ctx.currentTime);
-    source.connect(filter);
-    filter.connect(gain);
-    gain.connect(ctx.destination);
-    source.start();
-  } catch (e) { /* silent fail */ }
+function getPluck() {
+  if (!_pluck) _pluck = new Tone.PluckSynth({ attackNoise: 1, dampening: 4000, resonance: 0.9, volume: -10 }).toDestination();
+  return _pluck;
 }
 
-// --- Sound effects ---
-
-export function sfxSelect() {
-  // Soft click
-  playTone(800, 0.06, 'sine', 0.1);
+function getMetal() {
+  if (!_metal) _metal = new Tone.MetalSynth({ frequency: 200, envelope: { attack: 0.001, decay: 0.1, release: 0.1 }, harmonicity: 5.1, modulationIndex: 16, resonance: 4000, octaves: 1.5, volume: -22 }).toDestination();
+  return _metal;
 }
 
-export function sfxDeselect() {
-  playTone(600, 0.05, 'sine', 0.08);
+function getMembrane() {
+  if (!_membrane) _membrane = new Tone.MembraneSynth({ pitchDecay: 0.05, octaves: 4, envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.4 }, volume: -18 }).toDestination();
+  return _membrane;
 }
 
-export function sfxPlayCards() {
-  // Card slide/slap
-  playNoise(0.12, 0.12);
-  setTimeout(() => playTone(300, 0.08, 'triangle', 0.06), 30);
+function getNoise() {
+  if (!_noise) _noise = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.06, sustain: 0 }, volume: -22 }).toDestination();
+  return _noise;
 }
 
-export function sfxCallLiar() {
-  // Alert / dramatic
-  playTone(440, 0.1, 'square', 0.08);
-  setTimeout(() => playTone(660, 0.1, 'square', 0.08), 80);
-  setTimeout(() => playTone(880, 0.15, 'square', 0.1), 160);
+// --- Card interactions ---
+
+export async function sfxSelect() {
+  await ensureStarted();
+  getPluck().triggerAttackRelease('A5');
 }
 
-export function sfxMyTurn() {
-  // Gentle ding
-  playTone(523, 0.12, 'sine', 0.12);
-  setTimeout(() => playTone(659, 0.15, 'sine', 0.1), 100);
+export async function sfxDeselect() {
+  await ensureStarted();
+  getPluck().triggerAttackRelease('E4');
 }
 
-export function sfxCaught() {
-  // Success fanfare
-  playTone(523, 0.1, 'triangle', 0.12);
-  setTimeout(() => playTone(659, 0.1, 'triangle', 0.12), 100);
-  setTimeout(() => playTone(784, 0.2, 'triangle', 0.15), 200);
+export async function sfxPlayCards() {
+  await ensureStarted();
+  const now = Tone.now();
+  getNoise().triggerAttackRelease('16n', now);
+  getPluck().triggerAttackRelease('D4', now + 0.04);
 }
 
-export function sfxWrongCall() {
-  // Fail buzz
-  playTone(200, 0.15, 'sawtooth', 0.06);
-  setTimeout(() => playTone(150, 0.2, 'sawtooth', 0.08), 120);
+export async function sfxCallLiar() {
+  await ensureStarted();
+  const s = getSynth();
+  const now = Tone.now();
+  s.triggerAttackRelease('E4', '32n', now);
+  s.triggerAttackRelease('A4', '32n', now + 0.08);
+  s.triggerAttackRelease('E5', '16n', now + 0.16);
 }
 
-export function sfxLoseLife() {
-  // Heart break
-  playTone(440, 0.1, 'sine', 0.1);
-  setTimeout(() => playTone(330, 0.15, 'sine', 0.1), 100);
-  setTimeout(() => playTone(220, 0.25, 'sine', 0.08), 200);
+// --- Turn & timer ---
+
+export async function sfxMyTurn() {
+  await ensureStarted();
+  const s = getSynth();
+  const now = Tone.now();
+  s.triggerAttackRelease('C5', '16n', now);
+  s.triggerAttackRelease('E5', '16n', now + 0.1);
 }
 
-export function sfxEliminated() {
-  // Death
-  playTone(300, 0.1, 'square', 0.06);
-  setTimeout(() => playTone(200, 0.15, 'square', 0.06), 150);
-  setTimeout(() => playTone(100, 0.3, 'square', 0.08), 300);
+export async function sfxTimerTick() {
+  await ensureStarted();
+  getMetal().triggerAttackRelease('32n');
 }
 
-export function sfxNewRound() {
-  // Shuffle/deal
+// --- Resolution ---
+
+export async function sfxCaught() {
+  await ensureStarted();
+  const s = getPluck();
+  const now = Tone.now();
+  s.triggerAttackRelease('C5', now);
+  s.triggerAttackRelease('E5', now + 0.1);
+  s.triggerAttackRelease('G5', now + 0.2);
+}
+
+export async function sfxWrongCall() {
+  await ensureStarted();
+  const s = getSynth();
+  s.oscillator.type = 'sawtooth';
+  const now = Tone.now();
+  s.triggerAttackRelease('D3', '8n', now);
+  s.triggerAttackRelease('Bb2', '8n', now + 0.12);
+  setTimeout(() => { s.oscillator.type = 'triangle'; }, 300);
+}
+
+export async function sfxLoseLife() {
+  await ensureStarted();
+  const s = getSynth();
+  const now = Tone.now();
+  s.triggerAttackRelease('A4', '16n', now);
+  s.triggerAttackRelease('F4', '16n', now + 0.1);
+  s.triggerAttackRelease('D4', '8n', now + 0.2);
+}
+
+export async function sfxEliminated() {
+  await ensureStarted();
+  getMembrane().triggerAttackRelease('C1', '4n');
+  setTimeout(() => getMembrane().triggerAttackRelease('F0', '4n'), 200);
+}
+
+// --- Round & game ---
+
+export async function sfxNewRound() {
+  await ensureStarted();
+  const n = getNoise();
+  const now = Tone.now();
   for (let i = 0; i < 4; i++) {
-    setTimeout(() => playNoise(0.05, 0.06), i * 60);
+    n.triggerAttackRelease('64n', now + i * 0.05);
   }
-  setTimeout(() => playTone(440, 0.1, 'sine', 0.08), 300);
+  setTimeout(() => getPluck().triggerAttackRelease('A4'), 250);
 }
 
-export function sfxGameOver() {
-  // Victory fanfare
-  playTone(523, 0.12, 'triangle', 0.12);
-  setTimeout(() => playTone(659, 0.12, 'triangle', 0.12), 150);
-  setTimeout(() => playTone(784, 0.12, 'triangle', 0.12), 300);
-  setTimeout(() => playTone(1047, 0.3, 'triangle', 0.15), 450);
-}
-
-export function sfxTimerTick() {
-  playTone(1000, 0.03, 'sine', 0.04);
+export async function sfxGameOver() {
+  await ensureStarted();
+  const s = getPluck();
+  const now = Tone.now();
+  s.triggerAttackRelease('C5', now);
+  s.triggerAttackRelease('E5', now + 0.15);
+  s.triggerAttackRelease('G5', now + 0.3);
+  s.triggerAttackRelease('C6', now + 0.45);
 }
