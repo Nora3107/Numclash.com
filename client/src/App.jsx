@@ -67,6 +67,10 @@ function App() {
       setGamePhase('picking');
       setScreen('lobby');
       setChatMessages([]);
+      // Request fresh room info after a short delay to ensure sync
+      setTimeout(() => {
+        socket.emit('request-room-info', { roomCode: info.code });
+      }, 500);
     });
     socket.on('left-room', () => {
       setRoomInfo(null);

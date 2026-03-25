@@ -96,9 +96,9 @@ function setupOldMaidHandlers(io, socket, gameManager) {
       drawLocked.delete(roomCode);
       if (room) {
         room.phase = 'lobby';
-        room.readyPlayers.clear();
         // Send everyone back to lobby after a short delay
         setTimeout(() => {
+          room.readyPlayers.clear();
           io.to(roomCode).emit('back-to-lobby', gameManager.getRoomInfo(roomCode));
         }, 5000);
       }

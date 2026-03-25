@@ -140,6 +140,11 @@ function setupSocketHandlers(io) {
       broadcastPublicRooms();
     });
 
+    socket.on('request-room-info', ({ roomCode }) => {
+      const info = gameManager.getRoomInfo(roomCode);
+      if (info) socket.emit('room-updated', info);
+    });
+
     socket.on('toggle-ready', ({ roomCode, ready }) => {
       // If explicit ready=false, force unready
       if (ready === false) {
