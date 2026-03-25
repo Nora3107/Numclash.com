@@ -85,12 +85,6 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
           setResPhase(3);
           sfxResultReveal();
           if (d.resultType === 'CAUGHT') sfxCaught(); else sfxWrongCall();
-          // Now show actual result in toast
-          store.setMessage(
-            d.resultType === 'CAUGHT'
-              ? { text: '🎉 Bắt được! Nói dối!', type: 'success' }
-              : { text: '😤 Bắt sai! Nói thật!', type: 'danger' }
-          );
           setTimeout(() => sfxLoseLife(), 500);
         }, 5500);
         // Phase 4: Clear (9s, server sends new round at ~10s)

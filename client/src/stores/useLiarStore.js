@@ -65,10 +65,7 @@ const useLiarStore = create((set, get) => ({
     resolution: data,
     showResolution: true,
     selectedCards: [],
-    message: {
-      text: '🔍 Bắt bài!',
-      type: 'info',
-    },
+    message: null,
   }),
 
   onGameOver: (data) => set({
