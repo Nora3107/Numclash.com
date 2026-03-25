@@ -72,10 +72,8 @@ const useLiarStore = create((set, get) => ({
     showResolution: true,
     selectedCards: [],
     message: {
-      text: data.resultType === 'CAUGHT'
-        ? '🎉 Bắt được! Nói dối!'
-        : '😤 Bắt sai! Họ nói thật!',
-      type: data.resultType === 'CAUGHT' ? 'success' : 'danger',
+      text: '🔍 Bắt bài!',
+      type: 'info',
     },
   }),
 
@@ -100,6 +98,8 @@ const useLiarStore = create((set, get) => ({
   }),
 
   clearSelection: () => set({ selectedCards: [] }),
+
+  setMessage: (msg) => set({ message: msg }),
 
   clearMessage: () => set({ message: null }),
 
