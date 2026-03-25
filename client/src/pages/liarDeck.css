@@ -423,11 +423,12 @@
   padding: 20px 32px;
   border-radius: 16px;
 }
-.ld-res-result.caught .res-card .card {
+/* Per-card match/lie coloring */
+.res-card.card-match .card {
   border-color: #2ecc71;
   box-shadow: 0 0 16px rgba(46,204,113,0.3);
 }
-.ld-res-result.wrong .res-card .card {
+.res-card.card-lie .card {
   border-color: #ef5350;
   box-shadow: 0 0 16px rgba(239,83,80,0.3);
 }

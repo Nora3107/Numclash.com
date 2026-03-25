@@ -239,21 +239,24 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
               <motion.div className="ld-res-flip" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <p className="flip-label">Lật bài...</p>
                 <div className="res-cards">
-                  {res.flippedCards.map((card, i) => (
-                    <motion.div
-                      key={i}
-                      className="res-card"
-                      initial={{ rotateY: 180, opacity: 0 }}
-                      animate={{ rotateY: 0, opacity: 1 }}
-                      transition={{ delay: i * 0.25, duration: 0.5, type: 'spring', stiffness: 200 }}
-                    >
-                      <Card
-                        value={card.rank}
-                        suit={RANK_SUIT_MAP[card.rank]}
-                        isJoker={card.isJoker || card.rank === 'JOKER'}
-                      />
-                    </motion.div>
-                  ))}
+                  {res.flippedCards.map((card, i) => {
+                    const isMatch = card.isJoker || card.rank === 'JOKER' || card.rank === store.targetCard;
+                    return (
+                      <motion.div
+                        key={i}
+                        className={`res-card ${isMatch ? 'card-match' : 'card-lie'}`}
+                        initial={{ rotateY: 180, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        transition={{ delay: i * 0.25, duration: 0.5, type: 'spring', stiffness: 200 }}
+                      >
+                        <Card
+                          value={card.rank}
+                          suit={RANK_SUIT_MAP[card.rank]}
+                          isJoker={card.isJoker || card.rank === 'JOKER'}
+                        />
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
@@ -267,15 +270,18 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
                 transition={{ type: 'spring', stiffness: 250, damping: 15 }}
               >
                 <div className="res-cards">
-                  {res.flippedCards.map((card, i) => (
-                    <div key={i} className="res-card">
-                      <Card
-                        value={card.rank}
-                        suit={RANK_SUIT_MAP[card.rank]}
-                        isJoker={card.isJoker || card.rank === 'JOKER'}
-                      />
-                    </div>
-                  ))}
+                  {res.flippedCards.map((card, i) => {
+                    const isMatch = card.isJoker || card.rank === 'JOKER' || card.rank === store.targetCard;
+                    return (
+                      <div key={i} className={`res-card ${isMatch ? 'card-match' : 'card-lie'}`}>
+                        <Card
+                          value={card.rank}
+                          suit={RANK_SUIT_MAP[card.rank]}
+                          isJoker={card.isJoker || card.rank === 'JOKER'}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
                 <motion.h2
                   className="result-text"
