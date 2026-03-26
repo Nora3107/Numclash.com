@@ -131,43 +131,14 @@ class LiarDeckGame {
     const player = this.players.get(playerId);
     if (!player || player.status !== 'ALIVE') return { error: 'PLAYER_DEAD' };
 
-    // Check: if lastPlay player has 0 cards and current player chose to play (not call liar),
-    // that means they let the empty-hand player survive
-    let emptyHandResult = null;
+    // If last player has 0 cards in 1v1, current player MUST call liar (cannot play cards)
     if (this.lastPlay) {
       const prevPlayer = this.players.get(this.lastPlay.playerId);
       if (prevPlayer && prevPlayer.status === 'ALIVE' && prevPlayer.hand.length === 0) {
         const alive = this._getAlive();
-        if (alive.length === 2) {
-          // 1v1: empty-hand player wins, the other loses 1 life
-          const loserId = playerId;
-          const loser = this.players.get(loserId);
-          loser.lives--;
-          let eliminated = false;
-          if (loser.lives <= 0) {
-            loser.status = 'ELIMINATED';
-            loser.lives = 0;
-            eliminated = true;
-          }
-          const aliveAfter = this._getAlive();
-          let gameOver = aliveAfter.length <= 1;
-          if (gameOver) {
-            this.phase = 'finished';
-            this.winner = aliveAfter[0] || null;
-          }
-          emptyHandResult = {
-            type: 'EMPTY_HAND_WIN',
-            winnerId: this.lastPlay.playerId,
-            loserId,
-            livesLeft: loser.lives,
-            eliminated,
-            gameOver,
-            winner: this.winner,
-          };
-          return { success: true, emptyHand: emptyHandResult };
+        if (alive.length <= 2) {
+          return { error: 'MUST_CALL_LIAR' };
         }
-        // 3+ players: empty-hand player is safe, round continues without them
-        // They skip turns until next round
       }
     }
 
@@ -288,6 +259,10 @@ class LiarDeckGame {
       this._advanceTurn();
       return { success: true, skipped: true, nextTurn: this._getCurrentPlayerId() };
     }
+    // If previous player has 0 cards in 1v1, auto-call-liar
+    if (this._mustCallLiar()) {
+      return this.callLiar(playerId);
+    }
     // Play 1 random card
     const randomCard = player.hand[Math.floor(Math.random() * player.hand.length)];
     return this.playCards(playerId, [randomCard.id]);
@@ -326,7 +301,17 @@ class LiarDeckGame {
       } : null,
       roundNumber: this.roundNumber,
       winner: this.winner,
+      mustCallLiar: this._mustCallLiar(),
     };
+  }
+
+  // Check if current player must call liar (previous player empty-handed in 1v1)
+  _mustCallLiar() {
+    if (!this.lastPlay) return false;
+    const prevPlayer = this.players.get(this.lastPlay.playerId);
+    if (!prevPlayer || prevPlayer.status !== 'ALIVE' || prevPlayer.hand.length > 0) return false;
+    const alive = this._getAlive();
+    return alive.length <= 2;
   }
 
   // ------------------------------------------

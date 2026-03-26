@@ -368,14 +368,16 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
 
         {isMyTurn && store.phase === 'playing' && (
           <div className="ld-actions">
-            <motion.button className="ld-btn play" onClick={handlePlay} disabled={store.selectedCards.length === 0}
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              Đánh bài ({store.selectedCards.length})
-            </motion.button>
-            {canCallLiar && (
-              <motion.button className="ld-btn liar" onClick={handleCallLiar}
+            {!store.mustCallLiar && (
+              <motion.button className="ld-btn play" onClick={handlePlay} disabled={store.selectedCards.length === 0}
                 whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                Bắt bài
+                Đánh bài ({store.selectedCards.length})
+              </motion.button>
+            )}
+            {(canCallLiar || store.mustCallLiar) && (
+              <motion.button className={`ld-btn liar ${store.mustCallLiar ? 'must-call' : ''}`} onClick={handleCallLiar}
+                whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                {store.mustCallLiar ? '⚡ Bắt bài!' : 'Bắt bài'}
               </motion.button>
             )}
           </div>

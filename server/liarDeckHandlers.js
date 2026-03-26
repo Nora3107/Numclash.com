@@ -288,6 +288,44 @@ function startTurnTimer(io, roomCode) {
       const currentPid = game._getCurrentPlayerId();
       if (currentPid) {
         const result = game.autoPlay(currentPid);
+        
+        // autoPlay may return a callLiar result when mustCallLiar
+        if (result.success && result.resultType) {
+          // This is a callLiar result
+          io.to(roomCode).emit('liardeck-resolution', {
+            callerId: result.callerId,
+            accusedId: result.accusedId,
+            flippedCards: result.flippedCards,
+            resultType: result.resultType,
+            loserId: result.loserId,
+            livesLeft: result.livesLeft,
+            eliminated: result.eliminated,
+          });
+          if (result.gameOver) {
+            io.to(roomCode).emit('liardeck-game-over', { winner: result.winner });
+            setTimeout(() => {
+              const room = gameManager.getRoom(roomCode);
+              if (room) {
+                room.phase = 'lobby';
+                gameManager.resetReady(roomCode);
+                io.to(roomCode).emit('back-to-lobby', gameManager.getRoomInfo(roomCode));
+              }
+              activeGames.delete(roomCode);
+            }, 15000);
+          } else {
+            setTimeout(() => {
+              if (!activeGames.has(roomCode)) return;
+              const roundInfo = game.startRound();
+              for (const pid of [...game.players.keys()]) {
+                io.to(pid).emit('liardeck-state', game.getClientState(pid));
+              }
+              io.to(roomCode).emit('liardeck-round-start', roundInfo);
+              startTurnTimer(io, roomCode);
+            }, RESOLUTION_DELAY);
+          }
+          return;
+        }
+        
         if (result.success && !result.skipped) {
           io.to(roomCode).emit('liardeck-played', {
             playerId: currentPid,

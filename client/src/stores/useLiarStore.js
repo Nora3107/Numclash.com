@@ -17,6 +17,7 @@ const useLiarStore = create((set, get) => ({
   lastPlay: null,         // { playerId, count }
   roundNumber: 0,
   winner: null,
+  mustCallLiar: false,
   timer: 30,
 
   // UI state
@@ -40,6 +41,7 @@ const useLiarStore = create((set, get) => ({
     lastPlay: state.lastPlay,
     roundNumber: state.roundNumber,
     winner: state.winner,
+    mustCallLiar: state.mustCallLiar || false,
     selectedCards: [],
   }),
 
@@ -95,7 +97,7 @@ const useLiarStore = create((set, get) => ({
   reset: () => set({
     phase: 'waiting', targetCard: null, targetLabel: null, currentTurn: null,
     players: {}, myHand: [], tablePileCount: 0, lastPlay: null, roundNumber: 0,
-    winner: null, timer: 30, selectedCards: [], resolution: null, showResolution: false, message: null,
+    winner: null, mustCallLiar: false, timer: 30, selectedCards: [], resolution: null, showResolution: false, message: null,
   }),
 }));
 
