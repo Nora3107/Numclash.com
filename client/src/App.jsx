@@ -147,9 +147,9 @@ function App() {
     }
   }, [screen]);
 
-  const handleCreateRoom = useCallback(() => {
+  const handleCreateRoom = useCallback((mode) => {
     if (!nickname.trim()) { setError(t('enterNickname')); return; }
-    socket.emit('create-room', { nickname: nickname.trim() }, (res) => {
+    socket.emit('create-room', { nickname: nickname.trim(), gameMode: mode || 'classic' }, (res) => {
       if (res.success) {
         setRoomCode(res.roomCode);
         setRoomInfo(res.roomInfo);
@@ -197,7 +197,7 @@ function App() {
   const handleSetRoomName = useCallback((name) => { socket.emit('set-room-name', { roomCode, name }); }, [roomCode]);
   const handleSendMessage = useCallback((text) => { socket.emit('send-message', { roomCode, text }); }, [roomCode]);
   const handleKickPlayer = useCallback((targetId) => { socket.emit('kick-player', { roomCode, targetId }); }, [roomCode]);
-  const handleSetGameMode = useCallback((mode) => { socket.emit('set-game-mode', { roomCode, mode }); }, [roomCode]);
+  const handleSetGameMode = useCallback((mode) => { socket.emit('set-game-mode', { roomCode, mode }); }, [roomCode]); // kept for lobby backward compat
   const handleSwapSeat = useCallback((targetIndex) => { socket.emit('swap-seat', { roomCode, targetIndex }); }, [roomCode]);
   const handleSetDeckType = useCallback((deckType) => { socket.emit('set-deck-type', { roomCode, deckType }); }, [roomCode]);
   const handleLeaveRoom = useCallback(() => { socket.emit('leave-room'); }, []);

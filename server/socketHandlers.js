@@ -45,14 +45,14 @@ function setupSocketHandlers(io) {
     // Room Events
     // ------------------------------------------
 
-    socket.on('create-room', ({ nickname }, callback) => {
+    socket.on('create-room', ({ nickname, gameMode }, callback) => {
       try {
-        const room = gameManager.createRoom(socket.id, nickname);
+        const room = gameManager.createRoom(socket.id, nickname, gameMode);
         socket.join(room.code);
         socket.leave('home-browser');
         callback({ success: true, roomCode: room.code, roomInfo: gameManager.getRoomInfo(room.code) });
         broadcastPublicRooms();
-        console.log(`[Room] ${nickname} created room ${room.code}`);
+        console.log(`[Room] ${nickname} created room ${room.code} (${gameMode || 'classic'})`);
       } catch (err) {
         callback({ success: false, error: 'Lỗi tạo phòng!' });
       }

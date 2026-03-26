@@ -26,7 +26,7 @@ class GameManager {
     return code;
   }
 
-  createRoom(hostSocketId, nickname) {
+  createRoom(hostSocketId, nickname, gameMode = 'classic') {
     const roomCode = this.generateRoomCode();
     const room = {
       code: roomCode,
@@ -42,7 +42,7 @@ class GameManager {
       readyPlayers: new Set(), // Set of ready player IDs
       isPublic: true, // phòng public mặc định
       roomName: nickname, // tên phòng = tên host mặc định
-      gameMode: 'classic', // classic | average
+      gameMode: gameMode || 'classic',
     };
 
     // Add host as first player

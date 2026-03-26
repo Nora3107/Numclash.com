@@ -17,6 +17,19 @@ const translations = {
     manyRounds: 'Nhiều vòng đấu',
     enterNickname: 'Vui lòng nhập nickname!',
     enterCode: 'Vui lòng nhập mã phòng!',
+    chooseMode: 'Chọn chế độ chơi',
+    // Game mode names
+    mode_classic: 'NumClash Classic',
+    mode_average: 'Average ×0.8',
+    mode_oldmaid: 'Old Maid',
+    mode_liardeck: "Liar's Deck",
+    mode_poker: "Texas Hold'em",
+    // Game mode descriptions
+    modeDesc_classic: 'Đấu trí chọn số — Tổng vượt mục tiêu? Số nhỏ thắng!',
+    modeDesc_average: 'Đoán số gần nhất với trung bình × 0.8',
+    modeDesc_oldmaid: 'Rút bài ghép đôi — Ai giữ Joker cuối cùng thua!',
+    modeDesc_liardeck: 'Đánh bài lừa nhau — Bắt bài nói dối!',
+    modeDesc_poker: 'Poker cổ điển — All-in hay Fold?',
     // Server errors
     ROOM_NOT_FOUND: 'Phòng không tồn tại!',
     GAME_ALREADY_STARTED: 'Trận đấu đã bắt đầu!',
@@ -140,6 +153,19 @@ const translations = {
     manyRounds: 'Multiple rounds',
     enterNickname: 'Please enter a nickname!',
     enterCode: 'Please enter a room code!',
+    chooseMode: 'Choose Game Mode',
+    // Game mode names
+    mode_classic: 'NumClash Classic',
+    mode_average: 'Average ×0.8',
+    mode_oldmaid: 'Old Maid',
+    mode_liardeck: "Liar's Deck",
+    mode_poker: "Texas Hold'em",
+    // Game mode descriptions
+    modeDesc_classic: 'Number strategy — Beat the target or go low!',
+    modeDesc_average: 'Guess closest to the average × 0.8',
+    modeDesc_oldmaid: 'Match cards — Last one with Joker loses!',
+    modeDesc_liardeck: 'Bluff your cards — Call the liar!',
+    modeDesc_poker: 'Classic poker — All-in or Fold?',
     // Server errors
     ROOM_NOT_FOUND: 'Room not found!',
     GAME_ALREADY_STARTED: 'Game already started!',

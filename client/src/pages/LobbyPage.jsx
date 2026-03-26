@@ -188,23 +188,11 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
           <Gamepad2 size={16} className="text-accent-orange" />
           <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('gameMode')}</span>
         </div>
-        <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
-          {[{ key: 'classic', label: t('modeClassic') }, { key: 'average', label: t('modeAverage') }, { key: 'oldmaid', label: 'Old Maid 🃏' }, { key: 'liardeck', label: "Liar's Deck 🤥" }, { key: 'poker', label: "Texas Hold'em 🃏" }].map((mode) => (
-            <motion.button
-              key={mode.key}
-              whileHover={isHost ? { scale: 1.03 } : {}}
-              whileTap={isHost ? { scale: 0.97 } : {}}
-              onClick={() => { if (isHost) { onSetGameMode(mode.key); sfxModeSwitch(); } }}
-              className={`flex-1 rounded-2xl font-bold text-sm transition-all duration-200 border-2 ${
-                roomInfo.gameMode === mode.key
-                  ? 'bg-accent-orange/10 text-accent-orange border-accent-orange/40 shadow-md'
-                  : 'bg-bg-warm text-text-mid border-[#e0d8cc]'
-              } ${isHost ? 'cursor-pointer hover:border-text-light' : 'cursor-default'}`}
-              style={{ padding: '10px 0', minWidth: '80px' }}
-            >
-              {mode.label}
-            </motion.button>
-          ))}
+        <div
+          className="rounded-2xl font-bold text-sm text-accent-orange bg-accent-orange/10 border-2 border-accent-orange/40 text-center"
+          style={{ padding: '10px 16px' }}
+        >
+          {t(`mode_${roomInfo.gameMode}`) || roomInfo.gameMode}
         </div>
 
         {/* Deck type selector (Old Maid only) */}
