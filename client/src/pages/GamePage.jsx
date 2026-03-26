@@ -144,7 +144,7 @@ export default function GamePage({
         </AnimatePresence>
         {/* Round badge */}
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ marginBottom: '24px' }}>
-          <span className="badge badge-teal text-sm" style={{ padding: '10px 20px' }}>
+          <span className="tag-badge tag-badge-teal text-sm" style={{ padding: '10px 20px' }}>
             {t('round')} {roundData.round}/{roundData.totalRounds}
           </span>
         </motion.div>
@@ -329,7 +329,7 @@ export default function GamePage({
     return (
       <div className="min-h-screen flex flex-col items-center px-6" style={{ paddingTop: '32px', paddingBottom: '32px' }}>
         <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} style={{ marginBottom: '16px' }}>
-          <span className="badge badge-purple text-sm" style={{ padding: '10px 20px' }}>
+          <span className="tag-badge tag-badge-purple text-sm" style={{ padding: '10px 20px' }}>
             {t('round')} {revealData.round}
           </span>
         </motion.div>
@@ -630,8 +630,8 @@ export default function GamePage({
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.6 + i * 0.1, type: 'spring' }}
-                className={`badge text-sm ${
-                  r.rank === 1 ? 'badge-gold' : r.rank === 2 ? 'badge-teal' : r.rank === 3 ? 'badge-pink' : 'badge-purple'
+                className={`tag-badge text-sm ${
+                  r.rank === 1 ? 'tag-badge-gold' : r.rank === 2 ? 'tag-badge-teal' : r.rank === 3 ? 'tag-badge-pink' : 'tag-badge-purple'
                 }`}
               >
                 {r.rank === 1 ? <Crown size={12} /> : r.rank === 2 ? <Medal size={12} /> : r.rank === 3 ? <Award size={12} /> : `#${r.rank}`}

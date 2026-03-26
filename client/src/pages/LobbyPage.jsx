@@ -299,7 +299,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
             <Users size={16} className="text-secondary" />
             <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('playerList')}</span>
           </div>
-          <span className={`badge ${roomInfo.players.length >= 4 ? 'badge-teal' : 'badge-pink'}`}>
+          <span className={`tag-badge ${roomInfo.players.length >= 4 ? 'tag-badge-teal' : 'tag-badge-pink'}`} style={{ flexShrink: 0 }}>
             {roomInfo.players.length}/{roomInfo.gameMode === 'liardeck' ? 6 : roomInfo.gameMode === 'oldmaid' ? 6 : roomInfo.gameMode === 'poker' ? 6 : 8}
           </span>
         </div>
@@ -324,14 +324,14 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
               </div>
               <span className="flex-1 font-semibold text-text-dark">{player.nickname}</span>
               {player.isHost && (
-                <span className="badge badge-gold">
+                <span className="tag-badge tag-badge-gold" style={{ flexShrink: 0 }}>
                   <Crown size={12} /> HOST
                 </span>
               )}
               {player.isReady ? (
-                <CheckCircle size={20} className="text-primary" />
+                <CheckCircle size={20} className="text-primary" style={{ flexShrink: 0 }} />
               ) : (
-                <Circle size={20} className="text-text-light" />
+                <Circle size={20} className="text-text-light" style={{ flexShrink: 0 }} />
               )}
               {isHost && !player.isHost && (
                 <button

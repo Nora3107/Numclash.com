@@ -349,9 +349,9 @@ body {
 }
 
 /* ============================================
-   Badge / Tag
+   Badge / Tag — renamed to avoid Tailwind v4 .badge conflict
    ============================================ */
-.badge {
+.tag-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -360,23 +360,26 @@ body {
   font-size: 0.75rem;
   font-weight: 700;
   border: 2px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+  overflow: visible;
 }
-.badge-teal {
+.tag-badge-teal {
   background: rgba(43, 181, 160, 0.15);
   border-color: rgba(43, 181, 160, 0.3);
   color: #1f9585;
 }
-.badge-pink {
+.tag-badge-pink {
   background: rgba(255, 126, 179, 0.15);
   border-color: rgba(255, 126, 179, 0.3);
   color: #e0548f;
 }
-.badge-gold {
+.tag-badge-gold {
   background: rgba(255, 194, 51, 0.2);
   border-color: rgba(255, 194, 51, 0.4);
   color: #b88a1a;
 }
-.badge-purple {
+.tag-badge-purple {
   background: rgba(167, 139, 250, 0.15);
   border-color: rgba(167, 139, 250, 0.3);
   color: #7c5bcf;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import usePokerStore from '../stores/usePokerStore';
@@ -24,7 +24,7 @@ function getChipBreakdown(amount) {
   for (const d of CHIP_DENOMS) {
     const count = Math.floor(remaining / d.value);
     if (count > 0) {
-      chips.push({ ...d, count: Math.min(count, 5) }); // cap visual at 5
+      chips.push({ ...d, count: Math.min(count, 5) });
       remaining -= count * d.value;
     }
   }
@@ -34,118 +34,163 @@ function getChipBreakdown(amount) {
 function ChipStack({ amount, small }) {
   if (!amount || amount <= 0) return null;
   const chips = getChipBreakdown(amount);
-
   return (
-    <div className={`chip-stack ${small ? 'small' : ''}`}>
-      {chips.map((c, i) => (
+    <div className={`pk-chip-stack ${small ? 'small' : ''}`}>
+      {chips.map((c, i) =>
         Array.from({ length: c.count }, (_, j) => (
-          <div
+          <motion.div
             key={`${i}-${j}`}
-            className="chip"
+            className="pk-chip"
             style={{
               background: c.color,
               bottom: `${(i * c.count + j) * (small ? 2 : 3)}px`,
               color: c.color === '#ecf0f1' || c.color === '#ffd700' ? '#333' : '#fff',
             }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: (i * c.count + j) * 0.03, duration: 0.2 }}
           />
         ))
-      )).flat()}
-      <span className="chip-amount">{amount.toLocaleString()}</span>
+      ).flat()}
+      <span className="pk-chip-amount">{amount.toLocaleString()}</span>
     </div>
   );
 }
 
 // 6-seat positions around oval (relative %)
-const SEAT_POSITIONS = [
-  { left: '50%', bottom: '2%', transform: 'translateX(-50%)' },    // 0: bottom center (me)
-  { left: '4%', bottom: '25%' },                                     // 1: left bottom
-  { left: '4%', top: '15%' },                                        // 2: left top
-  { left: '50%', top: '2%', transform: 'translateX(-50%)' },       // 3: top center
-  { right: '4%', top: '15%' },                                       // 4: right top
-  { right: '4%', bottom: '25%' },                                    // 5: right bottom
+const SEAT_POS = [
+  { left: '50%', bottom: '2%', transform: 'translateX(-50%)' },     // 0: bottom center (me)
+  { left: '5%', bottom: '28%' },                                      // 1: left bottom
+  { left: '5%', top: '18%' },                                         // 2: left top
+  { left: '50%', top: '2%', transform: 'translateX(-50%)' },        // 3: top center
+  { right: '5%', top: '18%' },                                        // 4: right top
+  { right: '5%', bottom: '28%' },                                     // 5: right bottom
 ];
 
-// Bet chip positions (closer to center)
-const BET_POSITIONS = [
-  { left: '50%', bottom: '25%', transform: 'translateX(-50%)' },
-  { left: '20%', bottom: '35%' },
-  { left: '20%', top: '35%' },
-  { left: '50%', top: '25%', transform: 'translateX(-50%)' },
-  { right: '20%', top: '35%' },
-  { right: '20%', bottom: '35%' },
+// Bet chip positions (closer to center of table)
+const BET_POS = [
+  { left: '50%', bottom: '28%', transform: 'translateX(-50%)' },
+  { left: '22%', bottom: '38%' },
+  { left: '22%', top: '38%' },
+  { left: '50%', top: '28%', transform: 'translateX(-50%)' },
+  { right: '22%', top: '38%' },
+  { right: '22%', bottom: '38%' },
 ];
-
-function PokerCard({ card, faceDown, small }) {
-  if (!card || faceDown) {
-    return <div className={`poker-card-back ${small ? 'small' : ''}`} />;
-  }
-  return (
-    <div className={`poker-card-front ${small ? 'small' : ''}`}>
-      <Card value={card.rank} suit={SUIT_MAP[card.suit] || card.suit} />
-    </div>
-  );
-}
 
 function PlayerSeat({ player, isDealer, isSB, isBB, isActive, timer, maxTimer, mySeat, getPlayerName, showdownHands, winners }) {
   if (!player) return null;
   const isMe = player.seatIndex === mySeat;
   const isDead = player.status === 'SPECTATOR';
   const isFolded = player.status === 'FOLDED';
-  const showCards = player.holeCards && player.holeCards.length === 2 && player.holeCards[0] !== null;
+  const showCards = player.holeCards?.length === 2 && player.holeCards[0] !== null;
   const hasCards = player.hasCards;
   const timerPct = isActive ? (timer / maxTimer) * 100 : 0;
-
-  // Check if this player is a winner
   const isWinner = winners?.some(w => w.seatIndex === player.seatIndex);
   const myHand = showdownHands?.[player.id];
 
   return (
-    <div className={`poker-seat ${isActive ? 'active' : ''} ${isDead ? 'dead' : ''} ${isFolded ? 'folded' : ''} ${isMe ? 'me' : ''} ${isWinner ? 'winner' : ''}`}>
-      {/* Badge */}
-      <div className="seat-badges">
-        {isDealer && <span className="badge dealer">D</span>}
-        {isSB && <span className="badge sb">SB</span>}
-        {isBB && <span className="badge bb">BB</span>}
+    <div className={`pk-seat ${isActive ? 'pk-active' : ''} ${isDead ? 'pk-dead' : ''} ${isFolded ? 'pk-folded' : ''} ${isMe ? 'pk-me' : ''} ${isWinner ? 'pk-winner' : ''}`}>
+      {/* Badges */}
+      <div className="pk-badges">
+        {isDealer && <span className="pk-badge pk-badge-d">D</span>}
+        {isSB && <span className="pk-badge pk-badge-sb">SB</span>}
+        {isBB && <span className="pk-badge pk-badge-bb">BB</span>}
       </div>
 
-      {/* Cards */}
-      <div className="seat-cards">
-        {hasCards && (
-          <>
-            <PokerCard card={showCards ? player.holeCards[0] : null} faceDown={!showCards} small />
-            <PokerCard card={showCards ? player.holeCards[1] : null} faceDown={!showCards} small />
-          </>
-        )}
-      </div>
+      {/* Opponent cards (small) — only shown for non-me seats */}
+      {!isMe && hasCards && (
+        <div className="pk-seat-cards">
+          {showCards ? (
+            <>
+              <div className="pk-minicard"><Card value={player.holeCards[0].rank} suit={SUIT_MAP[player.holeCards[0].suit]} small /></div>
+              <div className="pk-minicard"><Card value={player.holeCards[1].rank} suit={SUIT_MAP[player.holeCards[1].suit]} small /></div>
+            </>
+          ) : (
+            <>
+              <div className="pk-card-back-sm" />
+              <div className="pk-card-back-sm" />
+            </>
+          )}
+        </div>
+      )}
 
       {/* Info */}
-      <div className="seat-info">
-        <span className="seat-name">{getPlayerName(player.id)}</span>
-        <span className="seat-chips">{player.chips.toLocaleString()}</span>
+      <div className="pk-seat-info">
+        <span className="pk-seat-name">{getPlayerName(player.id)}</span>
+        <span className="pk-seat-chips">{player.chips.toLocaleString()}</span>
       </div>
 
       {/* Timer bar */}
       {isActive && (
-        <div className="seat-timer">
-          <div className={`seat-timer-fill ${timer <= 5 ? 'urgent' : ''}`} style={{ width: `${timerPct}%` }} />
+        <div className="pk-seat-timer">
+          <div className={`pk-seat-timer-fill ${timer <= 5 ? 'urgent' : ''}`} style={{ width: `${timerPct}%` }} />
         </div>
       )}
 
       {/* Hand name at showdown */}
-      {myHand && <span className="seat-hand-name">{myHand.handName}</span>}
+      {myHand && <span className="pk-hand-label">{myHand.handName}</span>}
 
-      {/* Status */}
-      {isFolded && <span className="seat-status">FOLD</span>}
-      {player.status === 'ALL_IN' && <span className="seat-status allin">ALL IN</span>}
-      {isDead && <span className="seat-status spectator">👁</span>}
+      {/* Status overlays */}
+      {isFolded && <span className="pk-status">FOLD</span>}
+      {player.status === 'ALL_IN' && <span className="pk-status pk-allin">ALL IN</span>}
+      {isDead && <span className="pk-status pk-spectator">👁</span>}
     </div>
   );
 }
 
+// Sound effects
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.value = 0.08;
+
+    if (type === 'chip') {
+      osc.type = 'sine';
+      osc.frequency.value = 800;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.start(); osc.stop(ctx.currentTime + 0.15);
+    } else if (type === 'card') {
+      osc.type = 'triangle';
+      osc.frequency.value = 600;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      osc.start(); osc.stop(ctx.currentTime + 0.1);
+    } else if (type === 'fold') {
+      osc.type = 'sine';
+      osc.frequency.value = 300;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.start(); osc.stop(ctx.currentTime + 0.2);
+    } else if (type === 'win') {
+      osc.type = 'sine';
+      osc.frequency.value = 523;
+      gain.gain.value = 0.1;
+      osc.start();
+      setTimeout(() => { osc.frequency.value = 659; }, 100);
+      setTimeout(() => { osc.frequency.value = 784; }, 200);
+      osc.stop(ctx.currentTime + 0.4);
+    } else if (type === 'allin') {
+      osc.type = 'sawtooth';
+      osc.frequency.value = 440;
+      gain.gain.value = 0.06;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(); osc.stop(ctx.currentTime + 0.3);
+    } else if (type === 'tick') {
+      osc.type = 'sine';
+      osc.frequency.value = 1200;
+      gain.gain.value = 0.04;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.start(); osc.stop(ctx.currentTime + 0.05);
+    }
+  } catch {}
+}
+
 export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
   const store = usePokerStore();
-  const socketId = socket.id;
   const [raiseAmount, setRaiseAmount] = useState(0);
+  const [hoveredCard, setHoveredCard] = useState(-1);
 
   const getPlayerName = useCallback((pid) => {
     return roomInfo?.players?.find(p => p.id === pid)?.nickname || pid?.slice(0, 6);
@@ -158,11 +203,30 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
   useEffect(() => {
     const handlers = {
       'poker-state': (s) => store.syncState(s),
-      'poker-action': (a) => store.onAction(a),
-      'poker-community': (d) => store.onCommunity(d),
-      'poker-showdown': (d) => store.onShowdown(d),
-      'poker-new-hand': () => store.onNewHand(),
-      'poker-timer': ({ remaining }) => store.setTimer(remaining),
+      'poker-action': (a) => {
+        store.onAction(a);
+        // Play sound based on action
+        if (a.action === 'fold') playSound('fold');
+        else if (a.action === 'allin') playSound('allin');
+        else if (a.action === 'raise' || a.action === 'call') playSound('chip');
+        else if (a.action === 'check') playSound('tick');
+      },
+      'poker-community': (d) => {
+        store.onCommunity(d);
+        playSound('card');
+      },
+      'poker-showdown': (d) => {
+        store.onShowdown(d);
+        playSound('win');
+      },
+      'poker-new-hand': () => {
+        store.onNewHand();
+        playSound('card');
+      },
+      'poker-timer': ({ remaining }) => {
+        store.setTimer(remaining);
+        if (remaining <= 5 && remaining > 0) playSound('tick');
+      },
       'poker-error': (e) => console.warn('Poker:', e),
     };
     Object.entries(handlers).forEach(([ev, fn]) => socket.on(ev, fn));
@@ -175,7 +239,7 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
   // My seat info
   const mySeat = store.mySeat;
   const myPlayer = store.players.find(p => p.seatIndex === mySeat);
-  const isMyTurn = store.currentTurnSeat === mySeat && store.phase !== 'WAITING' && store.phase !== 'SHOWDOWN' && store.phase !== 'HAND_OVER' && store.phase !== 'GAME_OVER';
+  const isMyTurn = store.currentTurnSeat === mySeat && !['WAITING', 'SHOWDOWN', 'HAND_OVER', 'GAME_OVER'].includes(store.phase);
   const canCheck = myPlayer && myPlayer.currentBet >= store.currentHighestBet;
   const callAmount = myPlayer ? store.currentHighestBet - myPlayer.currentBet : 0;
   const minRaiseTotal = store.currentHighestBet + store.minRaise;
@@ -185,99 +249,68 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
     if (!store.players.length) return [];
     const totalSeats = store.players.length;
     const result = new Array(6).fill(null);
-
     for (const p of store.players) {
-      // Rotate so mySeat appears at index 0
-      let relativePos = (p.seatIndex - mySeat + totalSeats) % totalSeats;
-      // Map to 6-slot layout
-      if (totalSeats <= 2) {
-        // Heads-up: me=0, opponent=3
-        const posMap = [0, 3];
-        result[posMap[relativePos]] = p;
-      } else if (totalSeats <= 3) {
-        const posMap = [0, 2, 4];
-        result[posMap[relativePos]] = p;
-      } else if (totalSeats <= 4) {
-        const posMap = [0, 1, 3, 5];
-        result[posMap[relativePos]] = p;
-      } else if (totalSeats <= 5) {
-        const posMap = [0, 1, 2, 4, 5];
-        result[posMap[relativePos]] = p;
-      } else {
-        result[relativePos] = p;
-      }
+      let relPos = (p.seatIndex - mySeat + totalSeats) % totalSeats;
+      if (totalSeats <= 2) { result[[0, 3][relPos]] = p; }
+      else if (totalSeats <= 3) { result[[0, 2, 4][relPos]] = p; }
+      else if (totalSeats <= 4) { result[[0, 1, 3, 5][relPos]] = p; }
+      else if (totalSeats <= 5) { result[[0, 1, 2, 4, 5][relPos]] = p; }
+      else { result[relPos] = p; }
     }
     return result;
   }, [store.players, mySeat]);
 
-  // Dealer / SB / BB seat calculated
+  // Dealer / SB / BB
   const dealerSeat = store.dealerIndex;
-  const totalAlive = store.players.filter(p => p.status !== 'SPECTATOR').length;
-  let sbSeat, bbSeat;
-  if (totalAlive === 2) {
-    sbSeat = dealerSeat;
-    const alive = store.players.filter(p => p.status !== 'SPECTATOR').map(p => p.seatIndex);
-    bbSeat = alive.find(s => s !== dealerSeat) ?? -1;
-  } else {
-    const alive = store.players.filter(p => p.status !== 'SPECTATOR').map(p => p.seatIndex).sort((a, b) => a - b);
-    const dIdx = alive.indexOf(dealerSeat);
-    sbSeat = dIdx >= 0 ? alive[(dIdx + 1) % alive.length] : -1;
-    bbSeat = dIdx >= 0 ? alive[(dIdx + 2) % alive.length] : -1;
-  }
+  const alive = store.players.filter(p => p.status !== 'SPECTATOR').map(p => p.seatIndex).sort((a, b) => a - b);
+  const dIdx = alive.indexOf(dealerSeat);
+  let sbSeat = -1, bbSeat = -1;
+  if (alive.length === 2) { sbSeat = dealerSeat; bbSeat = alive.find(s => s !== dealerSeat) ?? -1; }
+  else if (dIdx >= 0) { sbSeat = alive[(dIdx + 1) % alive.length]; bbSeat = alive[(dIdx + 2) % alive.length]; }
 
   // Actions
   const handleFold = () => socket.emit('poker-action', { roomCode: roomInfo?.code, action: 'fold' });
   const handleCheck = () => socket.emit('poker-action', { roomCode: roomInfo?.code, action: 'check' });
   const handleCall = () => socket.emit('poker-action', { roomCode: roomInfo?.code, action: 'call' });
   const handleRaise = () => {
-    const total = Math.max(raiseAmount, minRaiseTotal);
-    socket.emit('poker-action', { roomCode: roomInfo?.code, action: 'raise', amount: total });
+    socket.emit('poker-action', { roomCode: roomInfo?.code, action: 'raise', amount: Math.max(raiseAmount, minRaiseTotal) });
   };
   const handleAllIn = () => socket.emit('poker-action', { roomCode: roomInfo?.code, action: 'allin' });
 
-  // Set raise to min on turn start
-  useEffect(() => {
-    if (isMyTurn) setRaiseAmount(minRaiseTotal);
-  }, [isMyTurn, minRaiseTotal]);
+  useEffect(() => { if (isMyTurn) setRaiseAmount(minRaiseTotal); }, [isMyTurn, minRaiseTotal]);
 
-  const totalPot = store.pots.reduce((s, p) => s + p.amount, 0)
-    + store.players.reduce((s, p) => s + p.currentBet, 0);
+  const totalPot = store.pots.reduce((s, p) => s + p.amount, 0) + store.players.reduce((s, p) => s + p.currentBet, 0);
+
+  // My hole cards
+  const myCards = myPlayer?.holeCards?.filter(c => c !== null) || [];
 
   return (
-    <div className="poker-page">
+    <div className="pk-page">
       {/* Top bar */}
-      <div className="poker-topbar">
-        <button className="poker-leave" onClick={onLeave}><ArrowLeft size={14} /> Rời</button>
-        <div className="poker-info">
-          <span className="poker-blinds">Blinds: {store.blinds.sb}/{store.blinds.bb}</span>
-          <span className="poker-hand">Hand #{store.handNumber}</span>
+      <div className="pk-topbar">
+        <button className="pk-leave" onClick={onLeave}><ArrowLeft size={14} /> Rời</button>
+        <div className="pk-topinfo">
+          <span className="pk-blinds-label">Blinds {store.blinds.sb}/{store.blinds.bb}</span>
+          <span className="pk-hand-num">Hand #{store.handNumber}</span>
         </div>
-        <span className={`poker-timer-num ${store.timer <= 5 ? 'urgent' : ''}`}>
-          {store.phase !== 'WAITING' && store.phase !== 'GAME_OVER' ? store.timer : '--'}
+        <span className={`pk-timer-num ${store.timer <= 5 ? 'urgent' : ''}`}>
+          {!['WAITING', 'GAME_OVER'].includes(store.phase) ? store.timer : '--'}
         </span>
       </div>
 
-      {/* Table */}
-      <div className="poker-table-area">
-        <div className="poker-table-oval" />
+      {/* Table area */}
+      <div className="pk-table-area">
+        <div className="pk-felt" />
 
-        {/* Seats */}
+        {/* Seats (opponents only) */}
         {arrangedPlayers.map((player, posIdx) => {
-          if (!player) return null;
+          if (!player || posIdx === 0) return null; // posIdx 0 = me, rendered below
           return (
-            <div key={player.seatIndex} className="poker-seat-wrapper" style={SEAT_POSITIONS[posIdx]}>
+            <div key={player.seatIndex} className="pk-seat-wrap" style={SEAT_POS[posIdx]}>
               <PlayerSeat
-                player={player}
-                isDealer={player.seatIndex === dealerSeat}
-                isSB={player.seatIndex === sbSeat}
-                isBB={player.seatIndex === bbSeat}
-                isActive={player.seatIndex === store.currentTurnSeat}
-                timer={store.timer}
-                maxTimer={26}
-                mySeat={mySeat}
-                getPlayerName={getPlayerName}
-                showdownHands={store.showdownHands}
-                winners={store.winners}
+                player={player} isDealer={player.seatIndex === dealerSeat} isSB={player.seatIndex === sbSeat} isBB={player.seatIndex === bbSeat}
+                isActive={player.seatIndex === store.currentTurnSeat} timer={store.timer} maxTimer={26} mySeat={mySeat}
+                getPlayerName={getPlayerName} showdownHands={store.showdownHands} winners={store.winners}
               />
             </div>
           );
@@ -287,46 +320,37 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
         {arrangedPlayers.map((player, posIdx) => {
           if (!player || player.currentBet <= 0) return null;
           return (
-            <div key={`bet-${player.seatIndex}`} className="poker-bet-wrapper" style={BET_POSITIONS[posIdx]}>
+            <div key={`bet-${player.seatIndex}`} className="pk-bet-wrap" style={BET_POS[posIdx]}>
               <ChipStack amount={player.currentBet} small />
             </div>
           );
         })}
 
-        {/* Community cards + pot (center) */}
-        <div className="poker-center">
-          {/* Pot */}
-          <div className="poker-pot">
+        {/* Center: community cards + pot */}
+        <div className="pk-center">
+          <div className="pk-pot-area">
             {totalPot > 0 && (
-              <motion.div
-                className="pot-display"
-                initial={{ scale: 0.8 }} animate={{ scale: 1 }}
-              >
+              <motion.div className="pk-pot-display" initial={{ scale: 0.8 }} animate={{ scale: 1 }}>
                 <ChipStack amount={totalPot} />
-                <span className="pot-label">Pot: {totalPot.toLocaleString()}</span>
+                <span className="pk-pot-label">Pot: {totalPot.toLocaleString()}</span>
               </motion.div>
             )}
             {store.pots.length > 1 && (
-              <div className="side-pots">
+              <div className="pk-side-pots">
                 {store.pots.map((p, i) => (
-                  <span key={i} className="side-pot-tag">
-                    {i === 0 ? 'Main' : `Side ${i}`}: {p.amount.toLocaleString()}
-                  </span>
+                  <span key={i} className="pk-side-tag">{i === 0 ? 'Main' : `Side ${i}`}: {p.amount.toLocaleString()}</span>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Community cards */}
-          <div className="poker-community">
+          <div className="pk-community">
             <AnimatePresence>
               {store.communityCards.map((card, i) => (
-                <motion.div
-                  key={i}
-                  className="community-card"
-                  initial={{ rotateY: 180, opacity: 0 }}
+                <motion.div key={i} className="pk-community-card"
+                  initial={{ rotateY: 90, opacity: 0 }}
                   animate={{ rotateY: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.15, duration: 0.4 }}
+                  transition={{ delay: i * 0.2, duration: 0.35, ease: 'easeOut' }}
                 >
                   <Card value={card.rank} suit={SUIT_MAP[card.suit]} />
                 </motion.div>
@@ -335,14 +359,12 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
           </div>
         </div>
 
-        {/* Last action indicator */}
+        {/* Last action toast */}
         <AnimatePresence>
           {store.lastAction && (
-            <motion.div
-              className="poker-last-action"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+            <motion.div className="pk-last-action"
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
             >
               {getPlayerName(store.players.find(p => p.seatIndex === store.lastAction.seatIndex)?.id)}: {store.lastAction.action.toUpperCase()}
               {store.lastAction.amount > 0 && ` ${store.lastAction.amount.toLocaleString()}`}
@@ -351,58 +373,73 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
         </AnimatePresence>
       </div>
 
-      {/* Action panel (my turn only) */}
-      <AnimatePresence>
-        {isMyTurn && myPlayer?.status === 'ACTIVE' && (
-          <motion.div
-            className="poker-actions"
-            initial={{ y: 40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 40, opacity: 0 }}
-          >
-            <button className="pk-btn fold" onClick={handleFold}>Fold</button>
-            {canCheck ? (
-              <button className="pk-btn check" onClick={handleCheck}>Check</button>
-            ) : (
-              <button className="pk-btn call" onClick={handleCall}>
-                Call {callAmount.toLocaleString()}
-              </button>
+      {/* Bottom: My cards + status + actions */}
+      <div className="pk-bottom">
+        {/* My info */}
+        {myPlayer && (
+          <div className="pk-my-info">
+            <span className="pk-my-name">{getPlayerName(myPlayer.id)}</span>
+            <span className="pk-my-chips">{myPlayer.chips.toLocaleString()}</span>
+            {/* Timer for me */}
+            {myPlayer.seatIndex === store.currentTurnSeat && (
+              <div className="pk-my-timer">
+                <div className={`pk-my-timer-fill ${store.timer <= 5 ? 'urgent' : ''}`} style={{ width: `${(store.timer / 26) * 100}%` }} />
+              </div>
             )}
-            <div className="raise-group">
-              <input
-                type="range"
-                min={minRaiseTotal}
-                max={myPlayer.chips + myPlayer.currentBet}
-                step={store.blinds.bb}
-                value={raiseAmount}
-                onChange={(e) => setRaiseAmount(parseInt(e.target.value))}
-                className="raise-slider"
-              />
-              <button className="pk-btn raise" onClick={handleRaise}>
-                Raise {raiseAmount.toLocaleString()}
-              </button>
-            </div>
-            <button className="pk-btn allin" onClick={handleAllIn}>All In</button>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+
+        {/* My hole cards — big, like Liar's Deck */}
+        <div className="pk-hand">
+          {myCards.map((card, i) => (
+            <motion.div
+              key={i}
+              className="pk-handcard"
+              onMouseEnter={() => setHoveredCard(i)}
+              onMouseLeave={() => setHoveredCard(-1)}
+              animate={{ y: hoveredCard === i ? -14 : 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            >
+              <Card value={card.rank} suit={SUIT_MAP[card.suit]} />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Actions — minimal, inline, no box */}
+        <AnimatePresence>
+          {isMyTurn && myPlayer?.status === 'ACTIVE' && (
+            <motion.div className="pk-actions"
+              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
+              transition={{ duration: 0.2 }}
+            >
+              <button className="pk-btn pk-fold" onClick={handleFold}>Fold</button>
+              {canCheck ? (
+                <button className="pk-btn pk-check" onClick={handleCheck}>Check</button>
+              ) : (
+                <button className="pk-btn pk-call" onClick={handleCall}>Call {callAmount.toLocaleString()}</button>
+              )}
+              <div className="pk-raise-group">
+                <input type="range" min={minRaiseTotal} max={myPlayer.chips + myPlayer.currentBet} step={store.blinds.bb} value={raiseAmount} onChange={(e) => setRaiseAmount(parseInt(e.target.value))} className="pk-slider" />
+                <button className="pk-btn pk-raise" onClick={handleRaise}>Raise {raiseAmount.toLocaleString()}</button>
+              </div>
+              <button className="pk-btn pk-allin" onClick={handleAllIn}>All In</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Showdown overlay */}
       <AnimatePresence>
-        {store.winners && store.winners.length > 0 && (store.phase === 'HAND_OVER' || store.phase === 'SHOWDOWN') && (
-          <motion.div
-            className="poker-showdown-overlay"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          >
+        {store.winners?.length > 0 && ['HAND_OVER', 'SHOWDOWN'].includes(store.phase) && (
+          <motion.div className="pk-showdown" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             {store.winners.map((w, i) => (
-              <motion.div key={i} className="winner-card"
-                initial={{ scale: 0.7, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: i * 0.2 }}
+              <motion.div key={i} className="pk-winner-card"
+                initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: i * 0.25, type: 'spring', stiffness: 200 }}
               >
-                <span className="winner-name">🏆 {getPlayerName(w.playerId)}</span>
-                <span className="winner-amount">+{w.amount.toLocaleString()}</span>
-                {w.handName && <span className="winner-hand">{w.handName}</span>}
+                <span className="pk-winner-name">🏆 {getPlayerName(w.playerId)}</span>
+                <span className="pk-winner-amount">+{w.amount.toLocaleString()}</span>
+                {w.handName && <span className="pk-winner-hand">{w.handName}</span>}
               </motion.div>
             ))}
           </motion.div>
@@ -412,7 +449,7 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
       {/* Game Over */}
       <AnimatePresence>
         {store.phase === 'GAME_OVER' && (
-          <motion.div className="poker-gameover" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <motion.div className="pk-gameover" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h2>🏆 Game Over!</h2>
             <p>Returning to lobby...</p>
           </motion.div>
