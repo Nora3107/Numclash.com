@@ -258,6 +258,24 @@ function startTurnTimer(io, roomCode) {
   const game = activeGames.get(roomCode);
   if (!game || game.phase !== 'playing') return;
 
+  // If no one can play cards, start a new round
+  const currentPid = game._getCurrentPlayerId();
+  if (!currentPid) {
+    // All alive players have 0 cards — start new round after short delay
+    setTimeout(() => {
+      if (!activeGames.has(roomCode)) return;
+      const g = activeGames.get(roomCode);
+      const ri = g.startRound();
+      const pids = g._getAlive();
+      for (const pid of pids) {
+        io.to(pid).emit('liardeck-state', g.getClientState(pid));
+      }
+      io.to(roomCode).emit('liardeck-round-start', ri);
+      startTurnTimer(io, roomCode);
+    }, 2000);
+    return;
+  }
+
   let remaining = TURN_TIME;
 
   const interval = setInterval(() => {

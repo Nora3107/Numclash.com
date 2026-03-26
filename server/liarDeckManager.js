@@ -343,13 +343,51 @@ class LiarDeckGame {
   _getCurrentPlayerId() {
     const alive = this._getAlive();
     if (alive.length === 0) return null;
-    return alive[this.currentTurnIndex % alive.length];
+    // Skip players with no cards (they can't play)
+    const idx = this.currentTurnIndex % alive.length;
+    const candidate = alive[idx];
+    const p = this.players.get(candidate);
+    if (p && p.hand.length === 0) {
+      // Find next player with cards
+      for (let i = 1; i < alive.length; i++) {
+        const nextIdx = (idx + i) % alive.length;
+        const nextPid = alive[nextIdx];
+        const np = this.players.get(nextPid);
+        if (np && np.hand.length > 0) {
+          this.currentTurnIndex = nextIdx;
+          return nextPid;
+        }
+      }
+      // ALL alive players have 0 cards → round should end
+      return null;
+    }
+    return candidate;
   }
 
   _advanceTurn() {
     const alive = this._getAlive();
     if (alive.length === 0) return;
+    // Move to next player, skipping those with empty hands
+    for (let i = 1; i <= alive.length; i++) {
+      const nextIdx = (this.currentTurnIndex + i) % alive.length;
+      const pid = alive[nextIdx];
+      const p = this.players.get(pid);
+      if (p && p.hand.length > 0) {
+        this.currentTurnIndex = nextIdx;
+        return;
+      }
+    }
+    // All alive players have 0 cards, just advance normally (round will end)
     this.currentTurnIndex = (this.currentTurnIndex + 1) % alive.length;
+  }
+
+  // Check if anyone can still play cards this round
+  _hasPlayablePlayers() {
+    const alive = this._getAlive();
+    return alive.some(pid => {
+      const p = this.players.get(pid);
+      return p && p.hand.length > 0;
+    });
   }
 }
 

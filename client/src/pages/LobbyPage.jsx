@@ -454,7 +454,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
             initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
             whileHover={{ scale: canStart && allReady ? 1.03 : 1 }}
             whileTap={{ scale: canStart && allReady ? 0.97 : 1 }}
-            onClick={() => { onStartGame(); sfxGameStart(); }}
+            onClick={() => { onStartGame(); try { sfxGameStart(); } catch(e) {} }}
             disabled={!canStart || !allReady}
             className={`pill-btn pill-btn-primary w-full flex items-center justify-center gap-3 text-xl ${!allReady ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={{ padding: '16px 36px' }}

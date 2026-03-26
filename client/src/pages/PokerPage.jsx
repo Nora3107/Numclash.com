@@ -232,7 +232,7 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
     };
     Object.entries(handlers).forEach(([ev, fn]) => socket.on(ev, fn));
     return () => {
-      Object.keys(handlers).forEach(ev => socket.off(ev));
+      Object.entries(handlers).forEach(([ev, fn]) => socket.off(ev, fn));
       store.reset();
     };
   }, [socket]);

@@ -116,7 +116,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
       'liardeck-error': (e) => console.warn('LiarDeck:', e),
     };
     Object.entries(h).forEach(([ev, fn]) => socket.on(ev, fn));
-    return () => { Object.keys(h).forEach(ev => socket.off(ev)); store.reset(); };
+    return () => { Object.entries(h).forEach(([ev, fn]) => socket.off(ev, fn)); store.reset(); };
   }, [socket]);
 
   // Play "my turn" sound

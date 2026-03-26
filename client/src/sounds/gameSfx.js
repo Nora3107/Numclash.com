@@ -67,13 +67,18 @@ export async function sfxUnready() {
 }
 
 export async function sfxGameStart() {
-  await ensureStarted();
-  const s = getPluckSynth();
-  const now = Tone.now();
-  s.triggerAttackRelease('C5', now);
-  s.triggerAttackRelease('E5', now + 0.1);
-  s.triggerAttackRelease('G5', now + 0.2);
-  s.triggerAttackRelease('C6', now + 0.3);
+  try {
+    await ensureStarted();
+    const s = getPluckSynth();
+    const now = Tone.now() + 0.05; // small offset to avoid scheduling conflict
+    s.triggerAttackRelease('C5', now);
+    s.triggerAttackRelease('E5', now + 0.1);
+    s.triggerAttackRelease('G5', now + 0.2);
+    s.triggerAttackRelease('C6', now + 0.3);
+  } catch (e) {
+    // Audio error should never block game start
+    console.warn('sfxGameStart error:', e.message);
+  }
 }
 
 export async function sfxPlayerJoin() {
