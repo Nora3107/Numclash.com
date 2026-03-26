@@ -197,6 +197,15 @@ function setupSocketHandlers(io) {
       const room = gameManager.getRoom(roomCode);
       if (!room) return callback({ success: false, error: 'ROOM_NOT_FOUND' });
 
+      // Universal pre-start checks
+      if (room.hostId !== socket.id) return callback({ success: false, error: 'HOST_ONLY' });
+      if (room.players.size < 2) return callback({ success: false, error: 'NEED_2_PLAYERS' });
+      if (!gameManager.isAllReady(roomCode)) return callback({ success: false, error: 'NOT_ALL_READY' });
+
+      // Force room to lobby phase and clean up before starting
+      // This ensures any leftover game state is cleared
+      room.phase = 'lobby';
+
       // Route to Old Maid if that mode is selected
       if (room.gameMode === 'oldmaid') {
         startOldMaidGame(io, socket, gameManager, roomCode, callback);

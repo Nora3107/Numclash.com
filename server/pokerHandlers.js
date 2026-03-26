@@ -115,6 +115,14 @@ function handleActionResult(io, roomCode, game, result) {
 
       if (handResult.gameOver) {
         io.to(roomCode).emit('poker-game-over', { winner: handResult.winner });
+        // Send everyone back to lobby
+        const gm = require('./gameManager');
+        const rm = gm.getRoom(roomCode);
+        if (rm) {
+          rm.phase = 'lobby';
+          gm.resetReady(roomCode);
+          io.to(roomCode).emit('back-to-lobby', gm.getRoomInfo(roomCode));
+        }
         activeGames.delete(roomCode);
         return;
       }
@@ -154,15 +162,7 @@ function handleActionResult(io, roomCode, game, result) {
 
 function startPokerGame(io, socket, gameManager, roomCode, callback) {
   const room = gameManager.getRoom(roomCode);
-  if (!room || room.hostId !== socket.id) {
-    return callback?.({ success: false, error: 'HOST_ONLY' });
-  }
-  if (room.players.size < 2) {
-    return callback?.({ success: false, error: 'NEED_2_PLAYERS' });
-  }
-  if (!gameManager.isAllReady(roomCode)) {
-    return callback?.({ success: false, error: 'NOT_ALL_READY' });
-  }
+  // Pre-checks already done in start-game handler (socketHandlers.js)
 
   // Clean up any previous game for this room
   clearTurnTimer(roomCode);
