@@ -339,7 +339,7 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         <div className="ld-hand">
           {store.myHand.map((card, i) => {
             const sel = store.selectedCards.includes(card.id);
-            const playable = isMyTurn && store.phase === 'playing';
+            const playable = isMyTurn && store.phase === 'playing' && !store.mustCallLiar;
             return (
               <motion.button
                 key={card.id}
