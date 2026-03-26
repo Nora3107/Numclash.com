@@ -45,12 +45,24 @@
   gap: 1px;
 }
 .ld-target {
-  color: rgba(255,255,255,0.85);
-  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.ld-target strong { font-size: 22px; }
+.ld-target-label {
+  color: rgba(255,255,255,0.55);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.ld-target .card {
+  pointer-events: none;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  border-radius: 5px;
+}
 
-/* Target card colors */
+/* Target card colors (kept for potential reuse) */
 .target-J { color: #64b5f6; text-shadow: 0 0 12px rgba(100,181,246,0.4); }
 .target-Q { color: #f48fb1; text-shadow: 0 0 12px rgba(244,143,177,0.4); }
 .target-K { color: #ffd54f; text-shadow: 0 0 12px rgba(255,213,79,0.4); }

@@ -13,6 +13,9 @@ import {
   sfxCaught, sfxWrongCall, sfxLoseLife, sfxNewRound, sfxGameOver, sfxTimerTick,
   sfxLiarShout, sfxCardFlip, sfxResultReveal
 } from '../sounds/liarSfx';
+
+// Fixed suit mapping for each target rank (matches server RANK_SUITS)
+const RANK_SUITS = { J: 'spades', Q: 'clubs', K: 'diamonds', A: 'hearts' };
 import './liarDeck.css';
 
 // Map Liar's Deck card to Card.jsx props
@@ -162,7 +165,15 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
         <button className="ld-leave" onClick={onLeave}><ArrowLeft size={14} /> Rời</button>
         <div className="ld-header">
         {store.targetCard && (
-          <span className="ld-target">Mục tiêu: <strong className={`target-${store.targetCard}`}>{store.targetLabel}</strong></span>
+          <div className="ld-target">
+            <span className="ld-target-label">Yêu cầu</span>
+            <Card
+              value={store.targetCard}
+              suit={RANK_SUITS[store.targetCard]}
+              small
+              style={{ width: 38, height: 54, fontSize: 11, transform: 'none', cursor: 'default' }}
+            />
+          </div>
         )}
         </div>
         <span className={`ld-timer ${store.phase === 'playing' && store.timer <= 5 ? 'urgent' : ''}`}>
