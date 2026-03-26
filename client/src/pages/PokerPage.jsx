@@ -7,6 +7,7 @@ import './poker.css';
 
 // Suit display map
 const SUIT_MAP = { s: 'spades', h: 'hearts', d: 'diamonds', c: 'clubs' };
+const RANK_DISPLAY = (r) => r === 'T' ? '10' : r;
 
 // Chip denomination colors
 const CHIP_DENOMS = [
@@ -105,8 +106,8 @@ function PlayerSeat({ player, isDealer, isSB, isBB, isActive, timer, maxTimer, m
         <div className="pk-seat-cards">
           {showCards ? (
             <>
-              <div className="pk-minicard"><Card value={player.holeCards[0].rank} suit={SUIT_MAP[player.holeCards[0].suit]} small /></div>
-              <div className="pk-minicard"><Card value={player.holeCards[1].rank} suit={SUIT_MAP[player.holeCards[1].suit]} small /></div>
+              <div className="pk-minicard"><Card value={RANK_DISPLAY(player.holeCards[0].rank)} suit={SUIT_MAP[player.holeCards[0].suit]} small /></div>
+              <div className="pk-minicard"><Card value={RANK_DISPLAY(player.holeCards[1].rank)} suit={SUIT_MAP[player.holeCards[1].suit]} small /></div>
             </>
           ) : (
             <>
@@ -352,7 +353,7 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
                   animate={{ rotateY: 0, opacity: 1 }}
                   transition={{ delay: i * 0.2, duration: 0.35, ease: 'easeOut' }}
                 >
-                  <Card value={card.rank} suit={SUIT_MAP[card.suit]} />
+                  <Card value={RANK_DISPLAY(card.rank)} suit={SUIT_MAP[card.suit]} />
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -400,7 +401,7 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
               animate={{ y: hoveredCard === i ? -14 : 0 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             >
-              <Card value={card.rank} suit={SUIT_MAP[card.suit]} />
+              <Card value={RANK_DISPLAY(card.rank)} suit={SUIT_MAP[card.suit]} />
             </motion.div>
           ))}
         </div>

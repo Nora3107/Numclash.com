@@ -2,6 +2,52 @@
    Texas Hold'em Poker — Polished Dark Felt Theme
    ============================================== */
 
+/* --- Card Base (shared) --- */
+.pk-page .card {
+  width: 80px;
+  height: 112px;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-display);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+.pk-page .card-sm { width: 48px; height: 68px; }
+.pk-page .card-front {
+  background: #fff;
+  border: 2px solid #d4cbbf;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.5);
+  padding: 5px 7px;
+}
+.pk-page .card-back {
+  background: linear-gradient(135deg, #5a1a1a, #3d0e0e);
+  border: 2px solid rgba(255,255,255,0.7);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  display: flex; align-items: center; justify-content: center;
+}
+.pk-page .card-back::after {
+  content: '♠'; font-size: 28px; font-weight: 900; color: rgba(255,255,255,0.1);
+}
+.pk-page .card-sm.card-back::after { font-size: 16px; }
+.pk-page .card-corner {
+  display: flex; flex-direction: column; align-items: center; line-height: 1;
+  position: absolute; top: 5px; left: 7px;
+}
+.pk-page .card-value { font-size: 16px; font-weight: 900; }
+.pk-page .card-sm .card-value { font-size: 12px; }
+.pk-page .card-suit { font-size: 14px; margin-top: -2px; }
+.pk-page .card-sm .card-suit { font-size: 10px; }
+.pk-page .card-center-suit {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px; opacity: 0.12;
+}
+.pk-page .card-sm .card-center-suit { font-size: 18px; }
+.pk-page .suit-red { color: #e74c3c; }
+.pk-page .suit-black { color: #2d3436; }
+
 .pk-page {
   position: relative;
   width: 100vw;

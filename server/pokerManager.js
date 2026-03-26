@@ -6,11 +6,12 @@
 const { Hand } = require('pokersolver');
 
 const SUITS = ['s', 'h', 'd', 'c']; // spades, hearts, diamonds, clubs
-const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
 // Map for pokersolver format: "As", "Kh", "Td", etc.
 function cardToSolverStr(card) {
-  return card.rank + card.suit.charAt(0).toLowerCase();
+  const r = card.rank === '10' ? 'T' : card.rank;
+  return r + card.suit.charAt(0).toLowerCase();
 }
 
 class PokerGame {

@@ -164,6 +164,10 @@ function startPokerGame(io, socket, gameManager, roomCode, callback) {
     return callback?.({ success: false, error: 'NOT_ALL_READY' });
   }
 
+  // Clean up any previous game for this room
+  clearTurnTimer(roomCode);
+  activeGames.delete(roomCode);
+
   const playerIds = [...room.players.keys()];
 
   // Get poker settings from room
@@ -232,6 +236,40 @@ function setupPokerHandlers(io, socket, gameManager) {
     if (!room || room.hostId !== socket.id) return;
     room.pokerSettings = { ...(room.pokerSettings || {}), ...settings };
     io.to(roomCode).emit('room-updated', gameManager.getRoomInfo(roomCode));
+  });
+
+  // Handle player manually leaving poker (via "Rời" button)
+  socket.on('leave-poker-game', ({ roomCode }) => {
+    const game = activeGames.get(roomCode);
+    if (game) {
+      const seat = game.getSeatForPlayer(socket.id);
+      if (seat !== -1) {
+        const p = game.players.get(seat);
+        if (p && p.status === 'ACTIVE') {
+          const result = game.doAction(seat, 'fold');
+          if (!result.error) {
+            io.to(roomCode).emit('poker-action', {
+              seatIndex: seat, action: 'fold', amount: 0, auto: true,
+            });
+            broadcastState(io, roomCode, game);
+            handleActionResult(io, roomCode, game, result);
+          }
+        }
+      }
+    }
+    // Reset room phase to lobby
+    const gm = require('./gameManager');
+    const room = gm.getRoom(roomCode);
+    if (room && room.phase === 'poker') {
+      // Only reset if we're the only one left or game is over
+      const otherPlayers = [...room.players.keys()].filter(id => id !== socket.id);
+      if (otherPlayers.length === 0) {
+        clearTurnTimer(roomCode);
+        activeGames.delete(roomCode);
+        room.phase = 'lobby';
+        gm.resetReady(roomCode);
+      }
+    }
   });
 
   // Handle disconnect during poker game

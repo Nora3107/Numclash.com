@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe } from 'lucide-react';
 import socket from './socket';
@@ -13,6 +13,7 @@ import PokerPage from './pages/PokerPage';
 
 function App() {
   const [screen, setScreen] = useState('home');
+  const screenRef = useRef('home'); // keep sync'd ref for closures
   const [nickname, setNickname] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [roomInfo, setRoomInfo] = useState(null);
@@ -21,6 +22,7 @@ function App() {
   const [oldMaidInitialState, setOldMaidInitialState] = useState(null);
   const [liarDeckInitialState, setLiarDeckInitialState] = useState(null);
   const [pokerInitialState, setPokerInitialState] = useState(null);
+  const isInPokerRef = useRef(false); // guards against stale poker-state events
 
   const [roundData, setRoundData] = useState(null);
   const [revealData, setRevealData] = useState(null);
@@ -50,9 +52,13 @@ function App() {
       setScreen('oldmaid');
     });
     socket.on('poker-state', (state) => {
-      if (screen !== 'poker') {
+      // Only transition to poker screen if we're NOT already in poker
+      // and only if server says it's an active game phase
+      if (screenRef.current !== 'poker' && state.phase && state.phase !== 'WAITING') {
+        isInPokerRef.current = true;
         setPokerInitialState(state);
         setScreen('poker');
+        screenRef.current = 'poker';
       }
     });
     socket.on('player-status-updated', (players) => {
@@ -68,12 +74,18 @@ function App() {
       setScreen('results');
     });
     socket.on('back-to-lobby', (info) => {
+      // Clear ALL game states to ensure clean lobby re-entry
+      isInPokerRef.current = false;
       setRoomInfo(info);
       setRoundData(null);
       setRevealData(null);
       setFinalScores(null);
       setGamePhase('picking');
+      setOldMaidInitialState(null);
+      setLiarDeckInitialState(null);
+      setPokerInitialState(null);
       setScreen('lobby');
+      screenRef.current = 'lobby';
       setChatMessages([]);
       // Request fresh room info after a short delay to ensure sync
       setTimeout(() => {
@@ -143,6 +155,7 @@ function App() {
         setRoomInfo(res.roomInfo);
         setIsHost(true);
         setScreen('lobby');
+        screenRef.current = 'lobby';
         setError('');
       } else setError(t(res.error) || res.error);
     });
@@ -157,6 +170,7 @@ function App() {
         setRoomInfo(res.roomInfo);
         setIsHost(false);
         setScreen('lobby');
+        screenRef.current = 'lobby';
         setError('');
       } else setError(t(res.error) || res.error);
     });
@@ -207,11 +221,15 @@ function App() {
   }, [roomCode]);
 
   const handleLeavePoker = useCallback(() => {
+    isInPokerRef.current = false;
+    setPokerInitialState(null);
+    socket.emit('leave-poker-game', { roomCode });
     socket.emit('toggle-ready', { roomCode, ready: false });
     setTimeout(() => {
       socket.emit('request-room-info', { roomCode });
     }, 200);
     setScreen('lobby');
+    screenRef.current = 'lobby';
   }, [roomCode]);
 
   useEffect(() => {
