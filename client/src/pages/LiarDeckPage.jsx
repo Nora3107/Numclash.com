@@ -163,23 +163,24 @@ export default function LiarDeckPage({ socket, roomInfo, onLeave, initialState }
       {/* Top bar */}
       <div className="ld-topbar">
         <button className="ld-leave" onClick={onLeave}><ArrowLeft size={14} /> Rời</button>
-        <div className="ld-header">
-        {store.targetCard && (
-          <div className="ld-target">
-            <span className="ld-target-label">Yêu cầu</span>
-            <Card
-              value={store.targetCard}
-              suit={RANK_SUITS[store.targetCard]}
-              small
-              style={{ width: 38, height: 54, fontSize: 11, transform: 'none', cursor: 'default' }}
-            />
-          </div>
-        )}
-        </div>
+        <div className="ld-header"></div>
         <span className={`ld-timer ${store.phase === 'playing' && store.timer <= 5 ? 'urgent' : ''}`}>
           {store.phase === 'playing' ? store.timer : '--'}
         </span>
       </div>
+
+      {/* Target card — top right */}
+      {store.targetCard && (
+        <div className="ld-target-float">
+          <span className="ld-target-label">YÊU CẦU</span>
+          <Card
+            value={store.targetCard}
+            suit={RANK_SUITS[store.targetCard]}
+            small
+            style={{ width: 52, height: 74, fontSize: 13, transform: 'none', cursor: 'default' }}
+          />
+        </div>
+      )}
 
       {/* Opponents */}
       {opponents.map(o => (
