@@ -90,14 +90,17 @@ function PlayerSeat({ player, isDealer, isSB, isBB, isActive, timer, maxTimer, m
 
   return (
     <div className={`pk-seat ${isActive ? 'pk-active' : ''} ${isDead ? 'pk-dead' : ''} ${isFolded ? 'pk-folded' : ''} ${isMe ? 'pk-me' : ''} ${isWinner ? 'pk-winner' : ''}`}>
-      {/* Badges */}
-      <div className="pk-badges">
-        {isDealer && <span className="pk-badge pk-badge-d">D</span>}
-        {isSB && <span className="pk-badge pk-badge-sb">SB</span>}
-        {isBB && <span className="pk-badge pk-badge-bb">BB</span>}
+      {/* Top row: name + badges */}
+      <div className="pk-seat-top">
+        <span className="pk-seat-name">{getPlayerName(player.id)}</span>
+        <div className="pk-badges-inline">
+          {isDealer && <span className="pk-badge pk-badge-d">D</span>}
+          {isSB && <span className="pk-badge pk-badge-sb">SB</span>}
+          {isBB && <span className="pk-badge pk-badge-bb">BB</span>}
+        </div>
       </div>
 
-      {/* Opponent cards (small) — only shown for non-me seats */}
+      {/* Middle: cards row */}
       {!isMe && hasCards && (
         <div className="pk-seat-cards">
           {showCards ? (
@@ -114,11 +117,8 @@ function PlayerSeat({ player, isDealer, isSB, isBB, isActive, timer, maxTimer, m
         </div>
       )}
 
-      {/* Info */}
-      <div className="pk-seat-info">
-        <span className="pk-seat-name">{getPlayerName(player.id)}</span>
-        <span className="pk-seat-chips">{player.chips.toLocaleString()}</span>
-      </div>
+      {/* Chips amount */}
+      <span className="pk-seat-chips">{player.chips.toLocaleString()}</span>
 
       {/* Timer bar */}
       {isActive && (
@@ -130,7 +130,7 @@ function PlayerSeat({ player, isDealer, isSB, isBB, isActive, timer, maxTimer, m
       {/* Hand name at showdown */}
       {myHand && <span className="pk-hand-label">{myHand.handName}</span>}
 
-      {/* Status overlays */}
+      {/* Status text */}
       {isFolded && <span className="pk-status">FOLD</span>}
       {player.status === 'ALL_IN' && <span className="pk-status pk-allin">ALL IN</span>}
       {isDead && <span className="pk-status pk-spectator">👁</span>}
@@ -428,21 +428,21 @@ export default function PokerPage({ socket, roomInfo, onLeave, initialState }) {
         </AnimatePresence>
       </div>
 
-      {/* Showdown overlay */}
+      {/* Winner text — minimal floating lines, no overlay box */}
       <AnimatePresence>
         {store.winners?.length > 0 && ['HAND_OVER', 'SHOWDOWN'].includes(store.phase) && (
-          <motion.div className="pk-showdown" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <div className="pk-win-text-area">
             {store.winners.map((w, i) => (
-              <motion.div key={i} className="pk-winner-card"
-                initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: i * 0.25, type: 'spring', stiffness: 200 }}
+              <motion.div key={i} className="pk-win-line"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+                transition={{ delay: i * 0.15, duration: 0.4 }}
               >
-                <span className="pk-winner-name">🏆 {getPlayerName(w.playerId)}</span>
-                <span className="pk-winner-amount">+{w.amount.toLocaleString()}</span>
-                {w.handName && <span className="pk-winner-hand">{w.handName}</span>}
+                <span className="pk-win-who">🏆 {getPlayerName(w.playerId)}</span>
+                <span className="pk-win-amt">+{w.amount.toLocaleString()}</span>
+                {w.handName && <span className="pk-win-hand">{w.handName}</span>}
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
