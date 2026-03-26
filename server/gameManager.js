@@ -104,7 +104,7 @@ class GameManager {
   setGameMode(roomCode, hostId, mode) {
     const room = this.rooms.get(roomCode);
     if (!room || room.hostId !== hostId) return false;
-    if (!['classic', 'average', 'oldmaid', 'liardeck'].includes(mode)) return false;
+    if (!['classic', 'average', 'oldmaid', 'liardeck', 'poker'].includes(mode)) return false;
     room.gameMode = mode;
     return true;
   }
@@ -485,6 +485,7 @@ class GameManager {
       roomName: room.roomName,
       gameMode: room.gameMode,
       deckType: room.deckType || 'quick',
+      pokerSettings: room.pokerSettings || {},
       players: Array.from(room.players.values()).map(p => ({
         id: p.id,
         nickname: p.nickname,

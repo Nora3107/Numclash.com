@@ -6,6 +6,7 @@
 const gameManager = require('./gameManager');
 const { setupOldMaidHandlers, startOldMaidGame } = require('./oldMaidHandlers');
 const { setupLiarDeckHandlers, startLiarDeckGame } = require('./liarDeckHandlers');
+const { setupPokerHandlers, startPokerGame } = require('./pokerHandlers');
 
 const PICK_TIME = 36; // seconds
 
@@ -21,6 +22,7 @@ function setupSocketHandlers(io) {
     // Setup Old Maid handlers for this connection
     setupOldMaidHandlers(io, socket, gameManager);
     setupLiarDeckHandlers(io, socket, gameManager);
+    setupPokerHandlers(io, socket, gameManager);
 
     // ------------------------------------------
     // Room Browser Events
@@ -203,6 +205,11 @@ function setupSocketHandlers(io) {
 
       if (room.gameMode === 'liardeck') {
         startLiarDeckGame(io, socket, gameManager, roomCode, callback);
+        return;
+      }
+
+      if (room.gameMode === 'poker') {
+        startPokerGame(io, socket, gameManager, roomCode, callback);
         return;
       }
 

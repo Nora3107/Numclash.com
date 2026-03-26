@@ -189,7 +189,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
           <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('gameMode')}</span>
         </div>
         <div className="flex gap-3" style={{ flexWrap: 'wrap' }}>
-          {[{ key: 'classic', label: t('modeClassic') }, { key: 'average', label: t('modeAverage') }, { key: 'oldmaid', label: 'Old Maid 🃏' }, { key: 'liardeck', label: "Liar's Deck 🤥" }].map((mode) => (
+          {[{ key: 'classic', label: t('modeClassic') }, { key: 'average', label: t('modeAverage') }, { key: 'oldmaid', label: 'Old Maid 🃏' }, { key: 'liardeck', label: "Liar's Deck 🤥" }, { key: 'poker', label: "Texas Hold'em 🃏" }].map((mode) => (
             <motion.button
               key={mode.key}
               whileHover={isHost ? { scale: 1.03 } : {}}
@@ -232,6 +232,58 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
             </div>
           </div>
         )}
+
+        {/* Poker settings */}
+        {roomInfo.gameMode === 'poker' && (
+          <div style={{ marginTop: '12px' }}>
+            <span className="text-xs font-bold text-text-light uppercase tracking-wider" style={{ marginBottom: '8px', display: 'block' }}>Chips khởi đầu</span>
+            <div className="flex gap-2" style={{ marginBottom: '8px' }}>
+              {[1000, 5000, 10000].map((chips) => (
+                <motion.button
+                  key={chips}
+                  whileHover={isHost ? { scale: 1.03 } : {}}
+                  whileTap={isHost ? { scale: 0.97 } : {}}
+                  onClick={() => {
+                    if (!isHost) return;
+                    const s = require('../socket').default;
+                    s.emit('poker-settings', { roomCode, settings: { defaultChips: chips } });
+                  }}
+                  className={`flex-1 rounded-xl font-semibold text-xs transition-all duration-200 border-2 ${
+                    (roomInfo.pokerSettings?.defaultChips || 1000) === chips
+                      ? 'bg-accent-orange/10 text-accent-orange border-accent-orange/40'
+                      : 'bg-bg-warm text-text-mid border-[#e0d8cc]'
+                  } ${isHost ? 'cursor-pointer' : 'cursor-default'}`}
+                  style={{ padding: '8px 4px' }}
+                >
+                  {chips.toLocaleString()}
+                </motion.button>
+              ))}
+            </div>
+            <span className="text-xs font-bold text-text-light uppercase tracking-wider" style={{ marginBottom: '8px', display: 'block' }}>Blinds (SB/BB)</span>
+            <div className="flex gap-2">
+              {[{ sb: 10, bb: 20 }, { sb: 25, bb: 50 }, { sb: 50, bb: 100 }].map((blind) => (
+                <motion.button
+                  key={`${blind.sb}/${blind.bb}`}
+                  whileHover={isHost ? { scale: 1.03 } : {}}
+                  whileTap={isHost ? { scale: 0.97 } : {}}
+                  onClick={() => {
+                    if (!isHost) return;
+                    const s = require('../socket').default;
+                    s.emit('poker-settings', { roomCode, settings: { smallBlind: blind.sb, bigBlind: blind.bb } });
+                  }}
+                  className={`flex-1 rounded-xl font-semibold text-xs transition-all duration-200 border-2 ${
+                    (roomInfo.pokerSettings?.smallBlind || 10) === blind.sb
+                      ? 'bg-accent-purple/10 text-accent-purple border-accent-purple/40'
+                      : 'bg-bg-warm text-text-mid border-[#e0d8cc]'
+                  } ${isHost ? 'cursor-pointer' : 'cursor-default'}`}
+                  style={{ padding: '8px 4px' }}
+                >
+                  {blind.sb}/{blind.bb}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        )}
       </motion.div>
 
       {/* Player List */}
@@ -248,7 +300,7 @@ export default function LobbyPage({ roomInfo, roomCode, isHost, onStartGame, onS
             <span className="text-sm font-bold text-text-mid uppercase tracking-wider">{t('playerList')}</span>
           </div>
           <span className={`badge ${roomInfo.players.length >= 4 ? 'badge-teal' : 'badge-pink'}`}>
-            {roomInfo.players.length}/{roomInfo.gameMode === 'liardeck' ? 6 : roomInfo.gameMode === 'oldmaid' ? 6 : 8}
+            {roomInfo.players.length}/{roomInfo.gameMode === 'liardeck' ? 6 : roomInfo.gameMode === 'oldmaid' ? 6 : roomInfo.gameMode === 'poker' ? 6 : 8}
           </span>
         </div>
 
