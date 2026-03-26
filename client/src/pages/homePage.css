@@ -1,0 +1,300 @@
+/* ============================================
+   SUCKCARD — Dark Homepage Theme
+   "Alice in Borderland" inspired
+   ============================================ */
+
+/* ── Dark canvas ── */
+.dark-home {
+  background: radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #0d0d1a 50%, #000 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  color: #e0e0e0;
+}
+
+/* ── Floating dust particles ── */
+.particle-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  animation: particle-float linear infinite;
+  will-change: transform;
+}
+@keyframes particle-float {
+  0%   { transform: translateY(100vh) translateX(0) scale(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-10vh) translateX(var(--drift)) scale(1); opacity: 0; }
+}
+
+/* ── Foggy overlay ── */
+.fog-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(100,50,255,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0,200,255,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,50,100,0.02) 0%, transparent 60%);
+}
+
+/* ── Logo glow ── */
+.neon-logo {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 10px rgba(0,220,255,0.3),
+    0 0 30px rgba(0,220,255,0.15),
+    0 0 60px rgba(0,220,255,0.05);
+}
+.neon-logo .accent {
+  text-shadow:
+    0 0 10px rgba(255,100,180,0.4),
+    0 0 30px rgba(255,100,180,0.2),
+    0 0 60px rgba(255,100,180,0.08);
+}
+
+/* ── Dark nickname input ── */
+.dark-input {
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 12px 20px;
+  color: #e0e0e0;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  width: 100%;
+}
+.dark-input::placeholder { color: rgba(255,255,255,0.25); }
+.dark-input:focus {
+  border-color: rgba(0,220,255,0.5);
+  box-shadow: 0 0 16px rgba(0,220,255,0.15);
+}
+.dark-input.error {
+  border-color: rgba(255,80,80,0.6);
+  box-shadow: 0 0 16px rgba(255,80,80,0.2);
+}
+
+/* ── Playing Card ── */
+.game-card {
+  position: relative;
+  width: 185px;
+  height: 270px;
+  border-radius: 16px;
+  cursor: pointer;
+  perspective: 800px;
+  flex-shrink: 0;
+}
+.game-card-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #1e1e30 0%, #12121f 100%);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.game-card:hover .game-card-inner {
+  border-color: var(--card-glow);
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--card-glow) 30%, transparent),
+    0 0 60px color-mix(in srgb, var(--card-glow) 15%, transparent),
+    0 12px 40px rgba(0,0,0,0.5);
+}
+
+/* Top-left / Bottom-right corner labels */
+.card-corner {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--card-glow);
+  opacity: 0.7;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--card-glow) 40%, transparent);
+}
+.card-corner.tl { top: 12px; left: 14px; text-align: left; }
+.card-corner.br { bottom: 12px; right: 14px; text-align: right; transform: rotate(180deg); }
+.card-corner .rank { font-size: 20px; display: block; }
+.card-corner .suit { font-size: 14px; display: block; margin-top: 1px; }
+
+/* Center suit symbol area */
+.card-symbol {
+  font-size: 64px;
+  line-height: 1;
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--card-glow) 50%, transparent));
+  margin-bottom: 6px;
+  user-select: none;
+  transition: filter 0.3s;
+}
+.game-card:hover .card-symbol {
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--card-glow) 70%, transparent));
+}
+
+/* Mode name on card */
+.card-mode-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  color: #fff;
+  text-shadow: 0 0 8px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.card-players {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Card desc overlay (revealed on hover) */
+.card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 14px 16px;
+  background: linear-gradient(transparent 0%, rgba(0,0,0,0.85) 30%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+.card-overlay.active { pointer-events: auto; }
+
+.card-overlay .desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Card action buttons */
+.card-btn {
+  width: 100%;
+  padding: 8px 0;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.15s, box-shadow 0.2s;
+  font-family: var(--font-body);
+}
+.card-btn:active { transform: scale(0.96); }
+
+.card-btn.create {
+  background: var(--card-glow);
+  color: #000;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--card-glow) 40%, transparent);
+}
+.card-btn.create:hover {
+  box-shadow: 0 0 24px color-mix(in srgb, var(--card-glow) 60%, transparent);
+}
+.card-btn.join {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.card-btn.join:hover {
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+}
+
+/* ── Join code input inside card ── */
+.card-join-input {
+  background: rgba(0,0,0,0.4);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 7px 10px;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 18px;
+  letter-spacing: 0.4em;
+  text-align: center;
+  outline: none;
+  width: 100%;
+}
+.card-join-input:focus {
+  border-color: var(--card-glow);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--card-glow) 30%, transparent);
+}
+
+/* ── Color themes ── */
+.game-card[data-mode="classic"]  { --card-glow: #00deff; }
+.game-card[data-mode="average"]  { --card-glow: #ff6a3d; }
+.game-card[data-mode="oldmaid"]  { --card-glow: #c77dff; }
+.game-card[data-mode="liardeck"] { --card-glow: #ff3b5c; }
+.game-card[data-mode="poker"]    { --card-glow: #ffd700; }
+
+/* ── Section divider ── */
+.dark-divider {
+  color: rgba(255,255,255,0.2);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* ── Public rooms (dark) ── */
+.dark-room-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
+}
+.dark-room-card:hover {
+  border-color: rgba(0,220,255,0.3);
+  background: rgba(255,255,255,0.07);
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .game-card {
+    width: 150px;
+    height: 220px;
+  }
+  .card-symbol { font-size: 46px; }
+  .card-mode-name { font-size: 12px; }
+  .card-corner .rank { font-size: 16px; }
+  .card-corner .suit { font-size: 12px; }
+}
+@media (max-width: 480px) {
+  .game-card {
+    width: 130px;
+    height: 195px;
+  }
+  .card-symbol { font-size: 36px; }
+  .card-overlay { padding: 10px 10px 12px; }
+  .card-btn { padding: 6px 0; font-size: 11px; }
+}

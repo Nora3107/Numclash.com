@@ -243,8 +243,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-cream bg-dots-pattern relative">
-      {/* Floating numbers background */}
+    <div className={`min-h-screen relative ${screen === 'home' ? 'bg-black' : 'bg-bg-cream bg-dots-pattern'}`}>
+      {/* Floating numbers background (non-home screens only) */}
+      {screen !== 'home' && (
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
         {[
           { num: 18, top: '8%', left: '5%', size: '4rem', dur: 9, dx: 30, dy: 20, rot: 15, opacity: 0.20 },
@@ -289,13 +290,18 @@ function App() {
           </motion.span>
         ))}
       </div>
+      )}
 
       {/* Language toggle */}
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={toggleLang}
-        className="absolute top-4 right-4 z-50 flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-sm border-2 border-[#e0d8cc] text-sm font-bold text-text-mid hover:border-primary hover:text-primary transition-all cursor-pointer shadow-sm"
+        className={`absolute top-4 right-4 z-50 flex items-center gap-2 rounded-full text-sm font-bold transition-all cursor-pointer ${
+          screen === 'home'
+            ? 'bg-white/8 backdrop-blur-sm border border-white/15 text-white/60 hover:text-white/90 hover:border-white/30'
+            : 'bg-white/90 backdrop-blur-sm border-2 border-[#e0d8cc] text-text-mid hover:border-primary hover:text-primary shadow-sm'
+        }`}
         style={{ padding: '8px 16px' }}
       >
         <Globe size={16} />
