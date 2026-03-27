@@ -1,38 +1,30 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, Users, ArrowLeft } from 'lucide-react';
+import { Crown, Users, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLang } from '../i18n';
+import LOBBY_CARDS from '../data/lobbyCards';
 import './homePage.css';
 
 /*
-  ┌─────────────────────────────────────────────────────────┐
-  │  3D FLIP CARD — Cơ chế hoạt động:                      │
-  │                                                         │
-  │  .flip-card          → perspective: 1000px              │
-  │    └─ .flip-card-inner → transform-style: preserve-3d   │
-  │         ├─ .flip-card-front → backface-visibility:hidden │
-  │         └─ .flip-card-back  → backface-visibility:hidden │
-  │                               + rotateY(180deg)          │
-  │                                                         │
-  │  Khi hover: inner rotateY(180deg)                       │
-  │  → front quay mặt vào (ẩn) → back quay mặt ra (hiện)  │
-  └─────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────────┐
+  │  CAROUSEL LOGIC:                                             │
+  │                                                              │
+  │  activeIndex = card hiện tại ở trung tâm                    │
+  │  Mỗi card được tính offset = i - activeIndex                │
+  │                                                              │
+  │  offset  0: scale 1.0, opacity 1, zIndex 30  (trung tâm)    │
+  │  offset ±1: scale 0.82, opacity 0.7, zIndex 20              │
+  │  offset ±2: scale 0.65, opacity 0.35, zIndex 10             │
+  │  offset ≥3: ẩn                                               │
+  │                                                              │
+  │  Khi hover card trung tâm: 3D flip rotateY(180°)            │
+  │  Cards bên cạnh: chỉ scale + translate, ko flip             │
+  │                                                              │
+  │  Nav: mũi tên trái/phải hoặc click card bên cạnh            │
+  └──────────────────────────────────────────────────────────────┘
 */
 
-// ── 5 Playing Cards — mỗi lá đại diện 1 chế độ chơi ──
-const CARDS = [
-  { key: 'classic',  rank: 'A', suit: '♠', symbol: '♠', players: '4-8', isJoker: false },
-  { key: 'average',  rank: 'K', suit: '♦', symbol: '♦', players: '4-8', isJoker: false },
-  { key: 'oldmaid',  rank: '🃏', suit: '',  symbol: '🃏', players: '2-6', isJoker: true },
-  { key: 'liardeck', rank: 'J', suit: '♥', symbol: '♥', players: '2-6', isJoker: false },
-  { key: 'poker',    rank: 'K', suit: '♣', symbol: '♣', players: '2-6', isJoker: false },
-];
-
-// Góc xòe hình quạt + Y offset cho mỗi lá
-const FAN_ANGLES  = [-14, -7, 0, 7, 14];
-const FAN_Y       = [12, 4, 0, 4, 12];
-
-// ── Tạo hạt bụi neon ──
+// Particle generator
 function makeParticles(n) {
   return Array.from({ length: n }, (_, i) => ({
     id: i,
@@ -45,31 +37,36 @@ function makeParticles(n) {
   }));
 }
 
+// Card spacing in px
+const CARD_GAP = 160;
+
 export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRoom, publicRooms = [] }) {
+  const [activeIndex, setActiveIndex] = useState(2); // Start on Old Maid (center)
   const [joinCode, setJoinCode] = useState('');
-  const [activeJoin, setActiveJoin] = useState(null);   // which card's join input is open
-  const [flippedCard, setFlippedCard] = useState(null); // which card is flipped
+  const [activeJoin, setActiveJoin] = useState(null);
+  const [flippedCard, setFlippedCard] = useState(null);
   const [nicknameError, setNicknameError] = useState(false);
   const { t, lang } = useLang();
   const particles = useMemo(() => makeParticles(35), []);
 
-  const ok = () => {
+  const ok = useCallback(() => {
     if (!nickname.trim()) { setNicknameError(true); setTimeout(() => setNicknameError(false), 3000); return false; }
     setNicknameError(false); return true;
-  };
+  }, [nickname]);
 
   const handleCreate = (mode) => { if (ok()) onCreateRoom(mode); };
-
   const handleJoinSubmit = (code) => {
     if (ok() && code.trim().length >= 4) {
-      onJoinRoom(code.trim());
-      setActiveJoin(null); setJoinCode('');
+      onJoinRoom(code.trim()); setActiveJoin(null); setJoinCode('');
     }
   };
 
+  const slideLeft = () => setActiveIndex(i => Math.max(0, i - 1));
+  const slideRight = () => setActiveIndex(i => Math.min(LOBBY_CARDS.length - 1, i + 1));
+
   return (
     <div className="dark-home">
-      {/* ── Particles ── */}
+      {/* Particles */}
       <div className="particle-field">
         {particles.map(p => (
           <span key={p.id} className="particle" style={{
@@ -81,14 +78,14 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
       </div>
       <div className="fog-overlay" />
 
-      {/* ── Content ── */}
-      <div className="relative z-10 flex flex-col items-center px-4 pb-12" style={{ paddingTop: '44px' }}>
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center px-4 pb-12" style={{ paddingTop: '40px' }}>
 
         {/* Logo */}
         <motion.div
           initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.7 }}
-          className="text-center" style={{ marginBottom: '20px' }}
+          className="text-center" style={{ marginBottom: '18px' }}
         >
           <h1 className="neon-logo text-5xl md:text-7xl">
             SUCK<span className="accent" style={{ color: '#ff7eb3' }}>CARD</span>
@@ -98,8 +95,8 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
 
         {/* Nickname */}
         <motion.div
-          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.12 }}
-          className="w-full max-w-sm flex items-center gap-3" style={{ marginBottom: '30px' }}
+          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}
+          className="w-full max-w-sm flex items-center gap-3" style={{ marginBottom: '24px' }}
         >
           <input
             type="text" value={nickname}
@@ -111,12 +108,11 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
           <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.2)', minWidth: 28 }}>{nickname.length}/12</span>
         </motion.div>
 
-        {/* Nickname error */}
         <AnimatePresence>
           {nicknameError && (
             <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="text-xs font-bold text-center"
-              style={{ color: '#ff5050', marginBottom: 12, textShadow: '0 0 8px rgba(255,80,80,0.4)' }}
+              style={{ color: '#ff5050', marginBottom: 10, textShadow: '0 0 8px rgba(255,80,80,0.4)' }}
             >{t('enterNickname')}</motion.p>
           )}
         </AnimatePresence>
@@ -124,99 +120,126 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
         {/* Divider */}
         <motion.div
           initial={{ opacity: 0, scaleX: 0 }} animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ delay: 0.22, duration: 0.5 }}
-          className="dark-divider flex items-center gap-4 w-full max-w-2xl" style={{ marginBottom: '32px' }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="dark-divider flex items-center gap-4 w-full max-w-2xl" style={{ marginBottom: '16px' }}
         >
           <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent)' }} />
           <span>{t('chooseMode')}</span>
           <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent)' }} />
         </motion.div>
 
-        {/* ═══════════════════════════════════════════
-            THE CARD FAN — 5 lá bài 3D Flip
-            ═══════════════════════════════════════════ */}
-        <div className="flex items-end justify-center gap-2 md:gap-4" style={{ minHeight: '340px', marginBottom: '20px' }}>
-          {CARDS.map((card, i) => {
-            const isFlipped = flippedCard === card.key;
+        {/* ═══════ CAROUSEL ═══════ */}
+        <div className="carousel-viewport">
+          {/* Left arrow */}
+          {activeIndex > 0 && (
+            <motion.button
+              className="carousel-arrow left"
+              onClick={slideLeft}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            >
+              <ChevronLeft size={22} />
+            </motion.button>
+          )}
+          {/* Right arrow */}
+          {activeIndex < LOBBY_CARDS.length - 1 && (
+            <motion.button
+              className="carousel-arrow right"
+              onClick={slideRight}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            >
+              <ChevronRight size={22} />
+            </motion.button>
+          )}
+
+          {/* Cards */}
+          {LOBBY_CARDS.map((card, i) => {
+            const offset = i - activeIndex;
+            const absOff = Math.abs(offset);
+            if (absOff > 2) return null; // Only render visible cards
+
+            const isCenter = offset === 0;
+            const isFlipped = flippedCard === card.key && isCenter && card.enabled;
             const isJoining = activeJoin === card.key;
+
+            // Carousel transforms
+            const scale = isCenter ? 1 : absOff === 1 ? 0.82 : 0.65;
+            const opacity = card.enabled
+              ? (isCenter ? 1 : absOff === 1 ? 0.6 : 0.3)
+              : (isCenter ? 0.5 : 0.2);
+            const x = offset * CARD_GAP;
+            const z = isCenter ? 30 : absOff === 1 ? 20 : 10;
+            const rotate = isCenter ? 0 : offset * 4;
+            const yOff = isCenter ? 0 : absOff * 10;
 
             return (
               <motion.div
                 key={card.key}
-                className="flip-card"
-                data-mode={card.key}
-                // ── Fan-spread + floating idle ──
-                initial={{ opacity: 0, y: 60, rotate: FAN_ANGLES[i] }}
+                className={`flip-card ${!card.enabled ? 'disabled' : ''}`}
+                style={{ '--card-glow': card.glow, zIndex: z }}
                 animate={{
-                  opacity: 1,
-                  rotate: isFlipped ? 0 : FAN_ANGLES[i],
-                  y: isFlipped ? -16 : FAN_Y[i],
-                  scale: isFlipped ? 1.12 : 1,
-                  zIndex: isFlipped ? 50 : 10 - Math.abs(i - 2),
+                  x,
+                  y: isFlipped ? -12 : yOff,
+                  scale: isFlipped ? 1.1 : scale,
+                  rotate: isFlipped ? 0 : rotate,
+                  opacity,
                 }}
-                transition={
-                  isFlipped
-                    ? { type: 'spring', stiffness: 180, damping: 18 }
-                    : { duration: 0.5, delay: 0.12 + i * 0.07 }
-                }
-                onHoverStart={() => setFlippedCard(card.key)}
-                onHoverEnd={() => {
-                  setFlippedCard(null);
-                  if (!isJoining) { setActiveJoin(null); setJoinCode(''); }
+                transition={{ type: 'spring', stiffness: 200, damping: 22 }}
+                onHoverStart={() => { if (isCenter && card.enabled) setFlippedCard(card.key); }}
+                onHoverEnd={() => { setFlippedCard(null); if (!isJoining) { setActiveJoin(null); setJoinCode(''); } }}
+                onClick={() => {
+                  // Click adjacent card → slide to it
+                  if (!isCenter && absOff === 1) setActiveIndex(i);
                 }}
               >
-                {/* Inner container — this rotates for the 3D flip */}
+                {/* Inner — rotates for 3D flip */}
                 <motion.div
                   className="flip-card-inner"
                   animate={{ rotateY: isFlipped ? 180 : 0 }}
                   transition={{ duration: 0.55, ease: [0.4, 0, 0.2, 1] }}
                 >
 
-                  {/* ════════════ FRONT FACE ════════════ */}
+                  {/* ════════ FRONT ════════ */}
                   <div className="flip-card-front">
-                    {card.isJoker ? (
+                    {card.useImage ? (
                       <>
-                        {/* 
-                          JOKER CARD IMAGE — Thay đổi src thành ảnh Joker thực tế
-                          Đặt file Joker_card.png vào thư mục /client/src/assets/
-                        */}
-                        <img
-                          src="/Joker_card.png"
-                          alt="Joker"
-                          className="joker-card-img"
-                          onError={(e) => { e.target.style.display = 'none'; }}
-                        />
+                        <img src={card.imageSrc} alt={card.key} className="joker-card-img"
+                          onError={e => { e.target.style.display = 'none'; }} />
                         <div className="joker-overlay" />
-                        {/* Fallback symbol nếu chưa có ảnh */}
                         <div className="card-symbol" style={{ zIndex: 3 }}>{card.symbol}</div>
                       </>
                     ) : (
                       <>
+                        {/* Top-left corner */}
                         <div className="card-corner tl">
                           <span className="rank">{card.rank}</span>
-                          <span className="suit-icon">{card.suit}</span>
+                          {card.suit && <span className="suit-icon">{card.suit}</span>}
                         </div>
+                        {/* Bottom-right corner */}
                         <div className="card-corner br">
                           <span className="rank">{card.rank}</span>
-                          <span className="suit-icon">{card.suit}</span>
+                          {card.suit && <span className="suit-icon">{card.suit}</span>}
                         </div>
                         <div className="card-symbol">{card.symbol}</div>
                       </>
                     )}
-                    <div className="card-mode-name">{t(`mode_${card.key}`)}</div>
+                    <div className="card-mode-name">{t(`mode_${card.key}`) || card.key}</div>
                     <div className="card-players">{card.players} {lang === 'vi' ? 'người' : 'players'}</div>
+
+                    {/* Coming soon badge for disabled cards */}
+                    {!card.enabled && <div className="coming-soon-badge">Coming Soon</div>}
                   </div>
 
-                  {/* ════════════ BACK FACE (hiện khi lật) ════════════ */}
+                  {/* ════════ BACK ════════ */}
                   <div className="flip-card-back">
-                    <div className="back-title">{t(`mode_${card.key}`)}</div>
-                    <div className="back-desc">{t(`modeDesc_${card.key}`)}</div>
+                    <div className="back-title">{t(`mode_${card.key}`) || card.key}</div>
+                    <div className="back-desc">{t(`modeDesc_${card.key}`) || 'Coming soon...'}</div>
 
                     <div className="back-actions">
                       <AnimatePresence mode="wait">
                         {isJoining ? (
-                          <motion.div
-                            key="join-form"
+                          <motion.div key="join-form"
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0 }}
@@ -243,8 +266,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
                             </div>
                           </motion.div>
                         ) : (
-                          <motion.div
-                            key="actions"
+                          <motion.div key="actions"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             className="flex flex-col gap-2"
                           >
@@ -268,10 +290,29 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
           })}
         </div>
 
-        {/* ── Public Rooms ── */}
+        {/* Dot indicators */}
+        <div className="flex gap-2" style={{ marginTop: '10px', marginBottom: '16px' }}>
+          {LOBBY_CARDS.map((card, i) => (
+            <button
+              key={card.key}
+              onClick={() => setActiveIndex(i)}
+              className="rounded-full transition-all duration-300"
+              style={{
+                width: i === activeIndex ? 24 : 8,
+                height: 8,
+                background: i === activeIndex ? card.glow : 'rgba(255,255,255,0.15)',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: i === activeIndex ? `0 0 8px ${card.glow}` : 'none',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Public rooms */}
         {publicRooms.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-            className="w-full max-w-lg" style={{ marginTop: 20 }}>
+            className="w-full max-w-lg" style={{ marginTop: 16 }}>
             <h3 className="dark-divider text-center" style={{ marginBottom: 14 }}>🏠 {t('publicRooms')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {publicRooms.map(room => (

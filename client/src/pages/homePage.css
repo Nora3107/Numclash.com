@@ -1,6 +1,6 @@
 /* ============================================
-   SUCKCARD — Dark Homepage Theme
-   3D Flipping Cards — Alice in Borderland
+   SUCKCARD — Dark Homepage
+   Sliding Card Carousel + 3D Flip
    ============================================ */
 
 /* ── Dark canvas ── */
@@ -12,370 +12,276 @@
   color: #e0e0e0;
 }
 
-/* ── Floating dust particles ── */
-.particle-field {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  overflow: hidden;
-}
+/* ── Particles ── */
+.particle-field { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
 .particle {
-  position: absolute;
-  border-radius: 50%;
+  position: absolute; border-radius: 50%;
   background: rgba(255,255,255,0.15);
-  animation: particle-float linear infinite;
-  will-change: transform;
+  animation: p-float linear infinite; will-change: transform;
 }
-@keyframes particle-float {
+@keyframes p-float {
   0%   { transform: translateY(100vh) translateX(0) scale(0); opacity: 0; }
   10%  { opacity: 1; }
   90%  { opacity: 0.6; }
   100% { transform: translateY(-10vh) translateX(var(--drift)) scale(1); opacity: 0; }
 }
 
-/* ── Fog overlay ── */
+/* ── Fog ── */
 .fog-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
+  position: fixed; inset: 0; pointer-events: none; z-index: 2;
   background:
     radial-gradient(ellipse at 20% 80%, rgba(100,50,255,0.04) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(0,200,255,0.03) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 50%, rgba(255,50,100,0.02) 0%, transparent 60%);
 }
 
-/* ── Logo glow ── */
+/* ── Logo neon ── */
 .neon-logo {
-  font-family: var(--font-display);
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-shadow:
-    0 0 10px rgba(0,220,255,0.3),
-    0 0 30px rgba(0,220,255,0.15),
-    0 0 60px rgba(0,220,255,0.05);
+  font-family: var(--font-display); font-weight: 900; letter-spacing: 0.04em;
+  text-shadow: 0 0 10px rgba(0,220,255,0.3), 0 0 30px rgba(0,220,255,0.15), 0 0 60px rgba(0,220,255,0.05);
 }
 .neon-logo .accent {
-  text-shadow:
-    0 0 10px rgba(255,100,180,0.4),
-    0 0 30px rgba(255,100,180,0.2),
-    0 0 60px rgba(255,100,180,0.08);
+  text-shadow: 0 0 10px rgba(255,100,180,0.4), 0 0 30px rgba(255,100,180,0.2), 0 0 60px rgba(255,100,180,0.08);
 }
 
-/* ── Dark nickname input ── */
+/* ── Dark input ── */
 .dark-input {
-  background: rgba(255,255,255,0.06);
-  border: 1.5px solid rgba(255,255,255,0.12);
-  border-radius: 14px;
-  padding: 12px 20px;
-  color: #e0e0e0;
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: 600;
-  text-align: center;
-  outline: none;
+  background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 14px; padding: 12px 20px; color: #e0e0e0;
+  font-family: var(--font-body); font-size: 15px; font-weight: 600;
+  text-align: center; outline: none; width: 100%;
   transition: border-color 0.3s, box-shadow 0.3s;
-  width: 100%;
 }
 .dark-input::placeholder { color: rgba(255,255,255,0.25); }
-.dark-input:focus {
-  border-color: rgba(0,220,255,0.5);
-  box-shadow: 0 0 16px rgba(0,220,255,0.15);
-}
-.dark-input.error {
-  border-color: rgba(255,80,80,0.6);
-  box-shadow: 0 0 16px rgba(255,80,80,0.2);
-}
+.dark-input:focus { border-color: rgba(0,220,255,0.5); box-shadow: 0 0 16px rgba(0,220,255,0.15); }
+.dark-input.error { border-color: rgba(255,80,80,0.6); box-shadow: 0 0 16px rgba(255,80,80,0.2); }
 
-/* ── Section divider ── */
+/* ── Divider ── */
 .dark-divider {
-  color: rgba(255,255,255,0.2);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 3px;
-  text-transform: uppercase;
+  color: rgba(255,255,255,0.2); font-size: 12px; font-weight: 800;
+  letter-spacing: 3px; text-transform: uppercase;
 }
 
 /* =============================================
-   3D FLIP CARD SYSTEM
+   CAROUSEL
    ============================================= */
+.carousel-viewport {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 370px;
+  overflow: visible;
+}
 
-/* Perspective wrapper — each card slot */
+/* Nav arrows */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  backdrop-filter: blur(8px);
+}
+.carousel-arrow:hover {
+  background: rgba(255,255,255,0.12); color: #fff;
+  border-color: rgba(255,255,255,0.25);
+}
+.carousel-arrow.left  { left: max(8px, calc(50% - 370px)); }
+.carousel-arrow.right { right: max(8px, calc(50% - 370px)); }
+
+/* =============================================
+   3D FLIP CARD
+   ============================================= */
 .flip-card {
-  width: 195px;
-  height: 280px;
   perspective: 1000px;
   cursor: pointer;
   flex-shrink: 0;
+  position: absolute;
+  /* Default size — overridden by JS for active/inactive */
+  width: 200px;
+  height: 290px;
+}
+.flip-card.disabled {
+  cursor: default;
+  pointer-events: none;
 }
 
-/* Inner container — this element rotates */
 .flip-card-inner {
-  width: 100%;
-  height: 100%;
+  width: 100%; height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s;
 }
 
-/* ── FRONT FACE ── */
+/* ── FRONT ── */
 .flip-card-front {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
   border-radius: 16px;
   background: linear-gradient(145deg, #1e1e30 0%, #12121f 100%);
   border: 1.5px solid rgba(255,255,255,0.08);
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   overflow: hidden;
   transition: border-color 0.4s, box-shadow 0.4s;
 }
 
-/* ── BACK FACE ── */
+/* ── BACK ── */
 .flip-card-back {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  position: absolute; inset: 0;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
   transform: rotateY(180deg);
   border-radius: 16px;
-  background: linear-gradient(145deg, rgba(20,20,40,0.95) 0%, rgba(10,10,25,0.98) 100%);
+  background: linear-gradient(145deg, rgba(20,20,40,0.95), rgba(10,10,25,0.98));
   border: 1.5px solid var(--card-glow, rgba(255,255,255,0.15));
   box-shadow:
     0 0 20px color-mix(in srgb, var(--card-glow) 25%, transparent),
     0 12px 40px rgba(0,0,0,0.5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 16px;
-  gap: 10px;
-  overflow: hidden;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 22px 16px; gap: 10px; overflow: hidden;
 }
-/* Frosted glass inner glow on back */
 .flip-card-back::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  background:
-    radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--card-glow) 8%, transparent) 0%, transparent 60%);
+  content: ''; position: absolute; inset: 0; border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--card-glow) 8%, transparent) 0%, transparent 60%);
   pointer-events: none;
 }
 
-/* ── Hover glow on front ── */
-.flip-card:hover .flip-card-front {
-  border-color: var(--card-glow);
-  box-shadow:
-    0 0 20px color-mix(in srgb, var(--card-glow) 30%, transparent),
-    0 0 60px color-mix(in srgb, var(--card-glow) 12%, transparent),
-    0 12px 40px rgba(0,0,0,0.5);
-}
-
-/* ── Corner labels ── */
+/* ── Corner labels — LARGER + top-left / bottom-right ── */
 .card-corner {
   position: absolute;
-  font-family: var(--font-display);
-  font-weight: 900;
+  font-family: var(--font-display); font-weight: 900;
   line-height: 1;
   color: var(--card-glow);
-  opacity: 0.7;
-  text-shadow: 0 0 8px color-mix(in srgb, var(--card-glow) 40%, transparent);
-  z-index: 2;
+  opacity: 0.8;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--card-glow) 50%, transparent);
+  z-index: 4;
 }
-.card-corner.tl { top: 12px; left: 14px; text-align: left; }
-.card-corner.br { bottom: 12px; right: 14px; text-align: right; transform: rotate(180deg); }
-.card-corner .rank { font-size: 22px; display: block; }
-.card-corner .suit-icon { font-size: 14px; display: block; margin-top: 2px; }
+.card-corner.tl { top: 10px; left: 12px; text-align: left; }
+.card-corner.br { bottom: 10px; right: 12px; text-align: right; transform: rotate(180deg); }
+.card-corner .rank { font-size: 26px; display: block; }
+.card-corner .suit-icon { font-size: 22px; display: block; margin-top: 2px; }
 
-/* ── Center suit symbol ── */
+/* ── Center symbol ── */
 .card-symbol {
-  font-size: 68px;
-  line-height: 1;
+  font-size: 72px; line-height: 1;
   filter: drop-shadow(0 0 18px color-mix(in srgb, var(--card-glow) 50%, transparent));
-  margin-bottom: 8px;
-  user-select: none;
+  margin-bottom: 8px; user-select: none;
+  z-index: 3;
   transition: filter 0.4s;
 }
-.flip-card:hover .card-symbol {
-  filter: drop-shadow(0 0 32px color-mix(in srgb, var(--card-glow) 70%, transparent));
-}
 
-/* ── Joker card image (Old Maid front) ── */
+/* ── Joker image ── */
 .joker-card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 16px;
-  position: absolute;
-  inset: 0;
-  z-index: 1;
+  width: 100%; height: 100%; object-fit: cover;
+  border-radius: 16px; position: absolute; inset: 0; z-index: 1;
 }
-/* Darken overlay on joker image */
 .joker-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(transparent 40%, rgba(0,0,0,0.75) 85%);
-  z-index: 2;
-  border-radius: 16px;
+  position: absolute; inset: 0;
+  background: linear-gradient(transparent 30%, rgba(0,0,0,0.8) 85%);
+  z-index: 2; border-radius: 16px;
 }
 
 /* ── Front card name ── */
 .card-mode-name {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 15px;
-  color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.6);
-  letter-spacing: 0.5px;
-  text-align: center;
-  z-index: 3;
+  font-family: var(--font-display); font-weight: 800; font-size: 15px;
+  color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+  text-align: center; z-index: 4; letter-spacing: 0.5px;
 }
 .card-players {
-  font-size: 11px;
-  color: rgba(255,255,255,0.35);
-  font-weight: 600;
-  margin-top: 2px;
-  z-index: 3;
+  font-size: 11px; color: rgba(255,255,255,0.35);
+  font-weight: 600; margin-top: 2px; z-index: 4;
 }
 
-/* ── Back face content ── */
+/* ── Back face ── */
 .back-title {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 17px;
+  font-family: var(--font-display); font-weight: 800; font-size: 17px;
   color: var(--card-glow);
   text-shadow: 0 0 12px color-mix(in srgb, var(--card-glow) 40%, transparent);
-  text-align: center;
-  z-index: 1;
+  text-align: center; z-index: 1;
 }
 .back-desc {
-  font-size: 12px;
-  color: rgba(255,255,255,0.55);
-  text-align: center;
-  line-height: 1.5;
-  z-index: 1;
-  flex: 1;
-  display: flex;
-  align-items: center;
+  font-size: 12px; color: rgba(255,255,255,0.55); text-align: center;
+  line-height: 1.5; z-index: 1; flex: 1; display: flex; align-items: center;
 }
-.back-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  z-index: 1;
-}
+.back-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; z-index: 1; }
 
-/* ── Card action buttons ── */
+/* ── Buttons ── */
 .card-btn {
-  width: 100%;
-  padding: 9px 0;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 12px;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
-  font-family: var(--font-body);
+  width: 100%; padding: 9px 0; border-radius: 10px;
+  font-weight: 700; font-size: 12px; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: transform 0.15s, box-shadow 0.2s; font-family: var(--font-body);
 }
 .card-btn:active { transform: scale(0.96); }
-
 .card-btn.create {
-  background: var(--card-glow);
-  color: #000;
-  font-weight: 800;
+  background: var(--card-glow); color: #000; font-weight: 800;
   box-shadow: 0 0 14px color-mix(in srgb, var(--card-glow) 40%, transparent);
 }
-.card-btn.create:hover {
-  box-shadow: 0 0 28px color-mix(in srgb, var(--card-glow) 60%, transparent);
-}
+.card-btn.create:hover { box-shadow: 0 0 28px color-mix(in srgb, var(--card-glow) 60%, transparent); }
 .card-btn.join-btn {
-  background: rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7);
   border: 1px solid rgba(255,255,255,0.12);
 }
-.card-btn.join-btn:hover {
-  background: rgba(255,255,255,0.14);
-  color: #fff;
-}
+.card-btn.join-btn:hover { background: rgba(255,255,255,0.14); color: #fff; }
 
-/* ── Join code input ── */
+/* ── Join input ── */
 .card-join-input {
-  background: rgba(0,0,0,0.5);
-  border: 1.5px solid rgba(255,255,255,0.2);
-  border-radius: 10px;
-  padding: 7px 10px;
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 18px;
-  letter-spacing: 0.4em;
-  text-align: center;
-  outline: none;
-  width: 100%;
+  background: rgba(0,0,0,0.5); border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 10px; padding: 7px 10px; color: #fff;
+  font-family: var(--font-display); font-weight: 900; font-size: 18px;
+  letter-spacing: 0.4em; text-align: center; outline: none; width: 100%;
 }
 .card-join-input:focus {
   border-color: var(--card-glow);
   box-shadow: 0 0 10px color-mix(in srgb, var(--card-glow) 30%, transparent);
 }
 
-/* ── Color themes per card ── */
-.flip-card[data-mode="classic"]  { --card-glow: #00deff; }
-.flip-card[data-mode="average"]  { --card-glow: #ff6a3d; }
-.flip-card[data-mode="oldmaid"]  { --card-glow: #c77dff; }
-.flip-card[data-mode="liardeck"] { --card-glow: #ff3b5c; }
-.flip-card[data-mode="poker"]    { --card-glow: #ffd700; }
+/* ── "Coming Soon" badge ── */
+.coming-soon-badge {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
+  background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; padding: 6px 16px;
+  font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); z-index: 10; pointer-events: none;
+  white-space: nowrap;
+}
 
-/* ── Public rooms (dark) ── */
+/* ── Public rooms ── */
 .dark-room-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 14px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: border-color 0.3s, background 0.3s;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 14px 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; transition: border-color 0.3s, background 0.3s;
 }
-.dark-room-card:hover {
-  border-color: rgba(0,220,255,0.3);
-  background: rgba(255,255,255,0.07);
-}
+.dark-room-card:hover { border-color: rgba(0,220,255,0.3); background: rgba(255,255,255,0.07); }
 
 /* ── Responsive ── */
 @media (max-width: 680px) {
-  .flip-card {
-    width: 145px;
-    height: 215px;
-  }
-  .card-symbol { font-size: 46px; }
+  .flip-card { width: 155px !important; height: 230px !important; }
+  .card-symbol { font-size: 48px; }
   .card-mode-name { font-size: 12px; }
-  .card-corner .rank { font-size: 17px; }
-  .card-corner .suit-icon { font-size: 12px; }
+  .card-corner .rank { font-size: 20px; }
+  .card-corner .suit-icon { font-size: 17px; }
   .back-title { font-size: 14px; }
   .back-desc { font-size: 11px; }
   .card-btn { padding: 7px 0; font-size: 11px; }
+  .carousel-arrow { width: 36px; height: 36px; }
+  .carousel-arrow.left  { left: 4px; }
+  .carousel-arrow.right { right: 4px; }
 }
 @media (max-width: 480px) {
-  .flip-card {
-    width: 120px;
-    height: 185px;
-  }
-  .card-symbol { font-size: 34px; }
-  .card-corner .rank { font-size: 14px; }
-  .back-title { font-size: 12px; }
+  .flip-card { width: 130px !important; height: 195px !important; }
+  .card-symbol { font-size: 36px; }
+  .card-corner .rank { font-size: 16px; }
+  .card-corner .suit-icon { font-size: 14px; }
   .card-btn { padding: 6px 0; font-size: 10px; }
 }

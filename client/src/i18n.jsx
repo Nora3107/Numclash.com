@@ -30,6 +30,10 @@ const translations = {
     modeDesc_oldmaid: 'Rút bài ghép đôi — Ai giữ Joker cuối cùng thua!',
     modeDesc_liardeck: 'Đánh bài lừa nhau — Bắt bài nói dối!',
     modeDesc_poker: 'Poker cổ điển — All-in hay Fold?',
+    mode_buckshot: 'Buckshot Roulette',
+    modeDesc_buckshot: 'Sắp ra mắt...',
+    mode_blackjack: 'Blackjack 21',
+    modeDesc_blackjack: 'Sắp ra mắt...',
     // Server errors
     ROOM_NOT_FOUND: 'Phòng không tồn tại!',
     GAME_ALREADY_STARTED: 'Trận đấu đã bắt đầu!',
@@ -166,6 +170,10 @@ const translations = {
     modeDesc_oldmaid: 'Match cards — Last one with Joker loses!',
     modeDesc_liardeck: 'Bluff your cards — Call the liar!',
     modeDesc_poker: 'Classic poker — All-in or Fold?',
+    mode_buckshot: 'Buckshot Roulette',
+    modeDesc_buckshot: 'Coming soon...',
+    mode_blackjack: 'Blackjack 21',
+    modeDesc_blackjack: 'Coming soon...',
     // Server errors
     ROOM_NOT_FOUND: 'Room not found!',
     GAME_ALREADY_STARTED: 'Game already started!',
