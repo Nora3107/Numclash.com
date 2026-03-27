@@ -4,6 +4,7 @@ import { Globe } from 'lucide-react';
 import socket from './socket';
 import { useLang } from './i18n';
 import HomePage from './pages/HomePage';
+import GameLobbyScreen from './pages/GameLobbyScreen';
 import LobbyPage from './pages/LobbyPage';
 import GamePage from './pages/GamePage';
 import ResultsPage from './pages/ResultsPage';
@@ -31,6 +32,7 @@ function App() {
   const [leaderboard, setLeaderboard] = useState([]);
   const [publicRooms, setPublicRooms] = useState([]);
   const [chatMessages, setChatMessages] = useState([]);
+  const [selectedMode, setSelectedMode] = useState('classic');
 
   const clearError = useCallback(() => setError(''), []);
   const { t, lang, toggleLang } = useLang();
@@ -243,9 +245,9 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen relative ${screen === 'home' ? 'bg-black' : 'bg-bg-cream bg-dots-pattern'}`}>
+    <div className={`min-h-screen relative ${(screen === 'home' || screen === 'gameLobby') ? 'bg-black' : 'bg-bg-cream bg-dots-pattern'}`}>
       {/* Floating numbers background (non-home screens only) */}
-      {screen !== 'home' && (
+      {screen !== 'home' && screen !== 'gameLobby' && (
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
         {[
           { num: 18, top: '8%', left: '5%', size: '4rem', dur: 9, dx: 30, dy: 20, rot: 15, opacity: 0.20 },
@@ -298,7 +300,7 @@ function App() {
         whileTap={{ scale: 0.9 }}
         onClick={toggleLang}
         className={`absolute top-4 right-4 z-50 flex items-center gap-2 rounded-full text-sm font-bold transition-all cursor-pointer ${
-          screen === 'home'
+          (screen === 'home' || screen === 'gameLobby')
             ? 'bg-white/8 backdrop-blur-sm border border-white/15 text-white/60 hover:text-white/90 hover:border-white/30'
             : 'bg-white/90 backdrop-blur-sm border-2 border-[#e0d8cc] text-text-mid hover:border-primary hover:text-primary shadow-sm'
         }`}
@@ -328,7 +330,23 @@ function App() {
       <AnimatePresence mode="wait">
         {screen === 'home' && (
           <motion.div key="home" {...pageVariants}>
-            <HomePage nickname={nickname} setNickname={setNickname} onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} publicRooms={publicRooms} />
+            <HomePage
+              nickname={nickname}
+              setNickname={setNickname}
+              onEnterLobby={(mode) => { setSelectedMode(mode); setScreen('gameLobby'); }}
+              publicRooms={publicRooms}
+            />
+          </motion.div>
+        )}
+        {screen === 'gameLobby' && (
+          <motion.div key="gameLobby" {...pageVariants}>
+            <GameLobbyScreen
+              gameMode={selectedMode}
+              nickname={nickname}
+              onBack={() => setScreen('home')}
+              onCreateRoom={handleCreateRoom}
+              onJoinRoom={handleJoinRoom}
+            />
           </motion.div>
         )}
         {screen === 'lobby' && (

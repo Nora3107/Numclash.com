@@ -39,14 +39,12 @@ const LOBBY_CARDS = [
   },
   {
     key: 'oldmaid',
-    rank: '🃏',
-    suit: '',
-    symbol: '🃏',
+    rank: 'Q',
+    suit: '♠',
+    symbol: '♠',
     players: '2-6',
     glow: '#c77dff',
     enabled: true,
-    useImage: true,
-    imageSrc: jokerImg,
   },
   {
     key: 'liardeck',
@@ -68,15 +66,6 @@ const LOBBY_CARDS = [
   },
 
   // ── Placeholder games (extensibility demo) ──
-  {
-    key: 'buckshot',
-    rank: '10',
-    suit: '♥',
-    symbol: '🔫',
-    players: '2',
-    glow: '#ff4466',
-    enabled: false, // Coming soon
-  },
   {
     key: 'blackjack',
     rank: '8',

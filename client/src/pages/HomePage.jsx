@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, Users, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { useLang } from '../i18n';
 import LOBBY_CARDS from '../data/lobbyCards';
 import './homePage.css';
@@ -40,10 +40,8 @@ function makeParticles(n) {
 // Card spacing in px
 const CARD_GAP = 160;
 
-export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRoom, publicRooms = [] }) {
+export default function HomePage({ nickname, setNickname, onEnterLobby, publicRooms = [] }) {
   const [activeIndex, setActiveIndex] = useState(2); // Start on Old Maid (center)
-  const [joinCode, setJoinCode] = useState('');
-  const [activeJoin, setActiveJoin] = useState(null);
   const [flippedCard, setFlippedCard] = useState(null);
   const [nicknameError, setNicknameError] = useState(false);
   const { t, lang } = useLang();
@@ -54,15 +52,19 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
     setNicknameError(false); return true;
   }, [nickname]);
 
-  const handleCreate = (mode) => { if (ok()) onCreateRoom(mode); };
-  const handleJoinSubmit = (code) => {
-    if (ok() && code.trim().length >= 4) {
-      onJoinRoom(code.trim()); setActiveJoin(null); setJoinCode('');
-    }
-  };
-
   const slideLeft = () => setActiveIndex(i => Math.max(0, i - 1));
   const slideRight = () => setActiveIndex(i => Math.min(LOBBY_CARDS.length - 1, i + 1));
+
+  // Mouse wheel scrolling with cooldown
+  const wheelCooldown = useRef(false);
+  const handleWheel = useCallback((e) => {
+    if (wheelCooldown.current) return;
+    if (Math.abs(e.deltaY) < 15 && Math.abs(e.deltaX) < 15) return;
+    wheelCooldown.current = true;
+    if (e.deltaY > 0 || e.deltaX > 0) slideLeft();
+    else slideRight();
+    setTimeout(() => { wheelCooldown.current = false; }, 150);
+  }, []);
 
   return (
     <div className="dark-home">
@@ -129,7 +131,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
         </motion.div>
 
         {/* ═══════ CAROUSEL ═══════ */}
-        <div className="carousel-viewport">
+        <div className="carousel-viewport" onWheel={handleWheel}>
           {/* Left arrow */}
           {activeIndex > 0 && (
             <motion.button
@@ -161,7 +163,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
 
             const isCenter = offset === 0;
             const isFlipped = flippedCard === card.key && isCenter && card.enabled;
-            const isJoining = activeJoin === card.key;
+
 
             // Carousel transforms
             const scale = isCenter ? 1 : absOff === 1 ? 0.82 : 0.65;
@@ -187,10 +189,13 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
                 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 22 }}
                 onHoverStart={() => { if (isCenter && card.enabled) setFlippedCard(card.key); }}
-                onHoverEnd={() => { setFlippedCard(null); if (!isJoining) { setActiveJoin(null); setJoinCode(''); } }}
+                onHoverEnd={() => { setFlippedCard(null); }}
                 onClick={() => {
-                  // Click adjacent card → slide to it
-                  if (!isCenter && absOff === 1) setActiveIndex(i);
+                  if (!isCenter && absOff === 1) { setActiveIndex(i); return; }
+                  // Mobile: tap center card to toggle flip
+                  if (isCenter && card.enabled) {
+                    setFlippedCard(prev => prev === card.key ? null : card.key);
+                  }
                 }}
               >
                 {/* Inner — rotates for 3D flip */}
@@ -202,28 +207,18 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
 
                   {/* ════════ FRONT ════════ */}
                   <div className="flip-card-front">
-                    {card.useImage ? (
-                      <>
-                        <img src={card.imageSrc} alt={card.key} className="joker-card-img"
-                          onError={e => { e.target.style.display = 'none'; }} />
-                        <div className="joker-overlay" />
-                        <div className="card-symbol" style={{ zIndex: 3 }}>{card.symbol}</div>
-                      </>
-                    ) : (
-                      <>
-                        {/* Top-left corner */}
-                        <div className="card-corner tl">
-                          <span className="rank">{card.rank}</span>
-                          {card.suit && <span className="suit-icon">{card.suit}</span>}
-                        </div>
-                        {/* Bottom-right corner */}
-                        <div className="card-corner br">
-                          <span className="rank">{card.rank}</span>
-                          {card.suit && <span className="suit-icon">{card.suit}</span>}
-                        </div>
-                        <div className="card-symbol">{card.symbol}</div>
-                      </>
-                    )}
+                    {/* Top-left corner */}
+                    <div className="card-corner tl">
+                      <span className="rank">{card.rank}</span>
+                      {card.suit && <span className="suit-icon">{card.suit}</span>}
+                    </div>
+                    {/* Bottom-right corner */}
+                    <div className="card-corner br">
+                      <span className="rank">{card.rank}</span>
+                      {card.suit && <span className="suit-icon">{card.suit}</span>}
+                    </div>
+                    {/* Center symbol */}
+                    <div className="card-symbol">{card.symbol}</div>
                     <div className="card-mode-name">{t(`mode_${card.key}`) || card.key}</div>
                     <div className="card-players">{card.players} {lang === 'vi' ? 'người' : 'players'}</div>
 
@@ -237,50 +232,13 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
                     <div className="back-desc">{t(`modeDesc_${card.key}`) || 'Coming soon...'}</div>
 
                     <div className="back-actions">
-                      <AnimatePresence mode="wait">
-                        {isJoining ? (
-                          <motion.div key="join-form"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0 }}
-                          >
-                            <input
-                              type="text" value={joinCode}
-                              onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
-                              placeholder="ABCD" className="card-join-input"
-                              maxLength={4} autoFocus
-                              onKeyDown={e => e.key === 'Enter' && handleJoinSubmit(joinCode)}
-                              onClick={e => e.stopPropagation()}
-                            />
-                            <div className="flex gap-2" style={{ marginTop: 6 }}>
-                              <button className="card-btn join-btn flex-1"
-                                onClick={e => { e.stopPropagation(); setActiveJoin(null); setJoinCode(''); }}>
-                                <ArrowLeft size={12} />
-                              </button>
-                              <button className="card-btn create flex-1"
-                                onClick={e => { e.stopPropagation(); handleJoinSubmit(joinCode); }}
-                                disabled={joinCode.length < 4}
-                                style={{ opacity: joinCode.length < 4 ? 0.4 : 1 }}>
-                                {t('join')} →
-                              </button>
-                            </div>
-                          </motion.div>
-                        ) : (
-                          <motion.div key="actions"
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="flex flex-col gap-2"
-                          >
-                            <button className="card-btn create"
-                              onClick={e => { e.stopPropagation(); handleCreate(card.key); }}>
-                              <Crown size={13} /> {t('createRoom')}
-                            </button>
-                            <button className="card-btn join-btn"
-                              onClick={e => { e.stopPropagation(); if (ok()) { setActiveJoin(card.key); setJoinCode(''); } }}>
-                              <Users size={13} /> {t('joinRoom')}
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      <button
+                        className="card-btn create"
+                        style={{ padding: '12px 0', fontSize: '14px', letterSpacing: '1px' }}
+                        onClick={e => { e.stopPropagation(); onEnterLobby(card.key); }}
+                      >
+                        {t('enterLobby')} →
+                      </button>
                     </div>
                   </div>
 
@@ -318,7 +276,7 @@ export default function HomePage({ nickname, setNickname, onCreateRoom, onJoinRo
               {publicRooms.map(room => (
                 <motion.button key={room.code}
                   whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => { if (!ok()) return; onJoinRoom(room.code); }}
+                  onClick={() => { if (!ok()) return; onEnterLobby(room.gameMode || 'classic'); }}
                   className="dark-room-card">
                   <span className="text-xs font-bold w-full text-center overflow-hidden whitespace-nowrap text-ellipsis" style={{ color: 'rgba(255,255,255,0.5)' }}>
                     {room.roomName}
