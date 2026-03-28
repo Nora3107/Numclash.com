@@ -1,0 +1,345 @@
+/* ============================================
+   Blackjack — Liar Deck–style full-viewport layout
+   ============================================ */
+
+/* ===== Full viewport page ===== */
+.bj-page {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #1a3a2a 0%, #0d1f15 60%, #080e0a 100%);
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  color: #fff;
+  user-select: none;
+}
+
+/* ===== Top bar — flush to edges ===== */
+.bj-topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+}
+
+.bj-leave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.4);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.bj-leave:hover { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.15); }
+
+.bj-header-center {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+.bj-title {
+  font-weight: 900; font-size: 20px;
+  color: #44ddaa; letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(68,221,170,0.3);
+  margin: 0;
+}
+.bj-subtitle { font-size: 10px; color: rgba(255,255,255,0.25); font-style: italic; }
+
+.bj-room-code {
+  font-size: 11px; color: rgba(255,255,255,0.2); font-weight: 600;
+}
+
+/* ===== Table felt — background oval ===== */
+.bj-table-felt {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 82%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, #0f2e20 0%, #091c13 55%, #050f0a 100%);
+  border: 3px solid rgba(68,221,170,0.1);
+  box-shadow: inset 0 0 80px rgba(0,0,0,0.5), 0 0 40px rgba(68,221,170,0.03);
+  z-index: 0;
+}
+
+.bj-deck-icon {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px; opacity: 0.08;
+  color: #44ddaa; z-index: 1;
+}
+
+/* ===== Opponent seats — absolute positioned ===== */
+.bj-opponent {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 5;
+}
+.bj-opponent.top { top: 50px; left: 50%; transform: translateX(-50%); }
+.bj-opponent.left { top: 42%; left: 28px; transform: translateY(-50%); }
+.bj-opponent.right { top: 42%; right: 28px; transform: translateY(-50%); }
+.bj-opponent.top-left { top: 55px; left: 18%; }
+.bj-opponent.top-right { top: 55px; right: 18%; }
+
+.bj-opp-name {
+  font-size: 13px; font-weight: 800;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 1px; text-transform: uppercase;
+  white-space: nowrap;
+}
+.bj-opp-name.active { color: #44ddaa; text-shadow: 0 0 8px rgba(68,221,170,0.4); }
+.bj-opp-name.is-dealer-label { color: rgba(255,215,0,0.6); }
+
+/* ===== Cards — bright, classic ===== */
+.bj-hand {
+  display: flex; gap: 5px;
+  justify-content: center; align-items: center;
+}
+
+.bj-card {
+  width: 66px; height: 94px;
+  border-radius: 8px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  font-weight: 900;
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+  transition: transform 0.2s;
+}
+.bj-card:hover { transform: translateY(-3px); }
+
+.bj-card.face-up {
+  background: linear-gradient(145deg, #ffffff, #f2f2f2);
+  border: 1.5px solid rgba(180,180,180,0.5);
+}
+.bj-card.face-down {
+  background: linear-gradient(135deg, #0f2d5c, #0a1e3d);
+  border: 2px solid rgba(255,255,255,0.5);
+}
+.bj-card.red { color: #dc2626; }
+.bj-card.black { color: #1a1a2e; }
+.bj-card .c-rank { font-size: 24px; line-height: 1; }
+.bj-card .c-suit { font-size: 16px; margin-top: 1px; }
+.bj-card .c-corner { position: absolute; font-size: 10px; line-height: 1.1; }
+.bj-card .c-corner.tl { top: 3px; left: 5px; }
+.bj-card .c-corner.br { bottom: 3px; right: 5px; transform: rotate(180deg); }
+.bj-card .c-back-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100,180,255,0.5) 0%, rgba(60,130,220,0.2) 100%);
+  border: 1.5px solid rgba(100,180,255,0.3);
+}
+
+/* ── Score badge ── */
+.bj-score {
+  font-weight: 800; font-size: 12px;
+  padding: 2px 10px; border-radius: 6px;
+  margin-top: 2px; white-space: nowrap;
+}
+
+/* ── Opponent info ── */
+.bj-opp-info {
+  display: flex; gap: 8px; align-items: center;
+  font-size: 13px; font-weight: 700;
+}
+.bj-opp-chips { color: #ffd700; opacity: 0.5; }
+.bj-opp-bet {
+  color: #ff6a3d; font-size: 12px; font-weight: 800;
+  background: rgba(255,106,61,0.1);
+  padding: 1px 6px; border-radius: 5px;
+  border: 1px solid rgba(255,106,61,0.15);
+}
+.bj-opp-status {
+  font-size: 10px; font-weight: 800;
+}
+.bj-opp-status.bust { color: #ff4466; }
+.bj-opp-status.done { color: rgba(255,255,255,0.2); }
+
+/* ===== Bottom panel — my hand + actions ===== */
+.bj-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 16px 20px;
+  gap: 4px;
+}
+
+.bj-my-label {
+  font-size: 13px; font-weight: 800;
+  color: #ffd700; letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+
+.bj-my-info {
+  display: flex; gap: 10px; align-items: center;
+  margin-bottom: 6px; font-size: 13px;
+}
+.bj-my-chips { color: #ffd700; font-weight: 700; opacity: 0.6; }
+.bj-my-bet {
+  color: #ff6a3d; font-weight: 800;
+  background: rgba(255,106,61,0.1); padding: 2px 8px;
+  border-radius: 6px; border: 1px solid rgba(255,106,61,0.2);
+}
+
+/* ── Actions row ── */
+.bj-actions {
+  display: flex; gap: 10px;
+  margin-top: 8px;
+}
+
+.bj-btn {
+  padding: 8px 24px; border-radius: 8px;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.08);
+  font-family: inherit; letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 5px;
+  transition: all 0.15s;
+}
+.bj-btn.hit {
+  background: rgba(68,221,170,0.12);
+  color: #44ddaa;
+  border-color: rgba(68,221,170,0.2);
+}
+.bj-btn.hit:hover { background: rgba(68,221,170,0.2); color: #5eeebb; }
+.bj-btn.stand {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.5);
+}
+.bj-btn.stand:hover:not(:disabled) { color: #ffd700; border-color: rgba(255,215,0,0.2); }
+.bj-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+.bj-btn.check-btn {
+  background: rgba(239,83,80,0.1);
+  color: rgba(239,83,80,0.8);
+  border-color: rgba(239,83,80,0.15);
+  padding: 5px 14px; font-size: 11px;
+}
+.bj-btn.check-btn:hover { background: rgba(239,83,80,0.18); color: #ef5350; }
+
+/* ── Betting panel ── */
+.bj-bet-panel {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  padding: 14px 24px; border-radius: 16px;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.bj-bet-title {
+  font-size: 10px; color: rgba(255,255,255,0.3);
+  font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+}
+.bj-bet-row { display: flex; gap: 8px; }
+.bj-chip {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 12px;
+  cursor: pointer; transition: all 0.15s;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.5);
+  font-family: inherit;
+}
+.bj-chip:hover:not(:disabled) { border-color: rgba(255,255,255,0.25); color: rgba(255,255,255,0.7); }
+.bj-chip:disabled { opacity: 0.15; cursor: default; }
+.bj-chip.selected { border-color: rgba(68,221,170,0.5); color: #44ddaa; background: rgba(68,221,170,0.08); }
+.bj-bet-confirm {
+  padding: 8px 28px; border-radius: 8px;
+  border: 1px solid rgba(68,221,170,0.25);
+  font-weight: 700; font-size: 12px;
+  background: rgba(68,221,170,0.1); color: #44ddaa; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.bj-bet-confirm:hover { background: rgba(68,221,170,0.18); border-color: rgba(68,221,170,0.4); }
+
+/* ── Phase banner — center of table ── */
+.bj-phase-banner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 900; font-size: 14px;
+  color: rgba(255,255,255,0.15);
+  letter-spacing: 4px; text-transform: uppercase;
+  z-index: 3; pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Result overlay ── */
+.bj-result-overlay {
+  position: absolute; inset: 0;
+  z-index: 60;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.75);
+}
+.bj-result-card {
+  text-align: center; padding: 28px 36px;
+  min-width: 280px; border-radius: 16px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.bj-result-card h2 {
+  font-weight: 900; font-size: 24px;
+  margin: 0 0 12px; color: #44ddaa;
+}
+.bj-result-item {
+  display: flex; justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 13px;
+}
+.bj-result-item .outcome-win { color: #44ddaa; font-weight: 800; }
+.bj-result-item .outcome-lose { color: #ff4466; font-weight: 800; }
+.bj-result-item .outcome-push { color: #ffd700; font-weight: 800; }
+.bj-next-btn {
+  margin-top: 16px; padding: 10px 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(68,221,170,0.25);
+  font-weight: 700; font-size: 13px;
+  background: rgba(68,221,170,0.1); color: #44ddaa; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.bj-next-btn:hover { background: rgba(68,221,170,0.18); }
+
+/* ── Toast ── */
+.bj-toast {
+  position: absolute; bottom: 220px;
+  left: 50%; transform: translateX(-50%);
+  z-index: 30; padding: 8px 20px;
+  border-radius: 8px; font-size: 12px;
+  font-weight: 700; white-space: nowrap;
+}
+.bj-toast.warn { background: rgba(255,165,0,0.12); color: #ffa500; }
+.bj-toast.info { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+
+/* ── Responsive ── */
+@media (max-width: 700px) {
+  .bj-card { width: 46px; height: 66px; }
+  .bj-card .c-rank { font-size: 16px; }
+  .bj-card .c-suit { font-size: 11px; }
+  .bj-chip { width: 40px; height: 40px; font-size: 11px; }
+  .bj-opponent.left { left: 12px; }
+  .bj-opponent.right { right: 12px; }
+  .bj-opponent.top-left { left: 12%; }
+  .bj-opponent.top-right { right: 12%; }
+}

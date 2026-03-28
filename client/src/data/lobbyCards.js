@@ -68,12 +68,12 @@ const LOBBY_CARDS = [
   // ── Placeholder games (extensibility demo) ──
   {
     key: 'blackjack',
-    rank: '8',
-    suit: '♣',
-    symbol: '🂡',
-    players: '2-7',
+    rank: 'A',
+    suit: '♥',
+    symbol: '♥',
+    players: '2-6',
     glow: '#44ddaa',
-    enabled: false, // Coming soon
+    enabled: true,
   },
 ];
 

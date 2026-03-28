@@ -1,0 +1,266 @@
+/* ============================================
+   Xì Dách — Dark Glassmorphism Theme
+   ============================================ */
+
+.xidach-page {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 50% 30%, #0a1a2a 0%, #060d15 50%, #000 100%);
+  color: #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  font-family: var(--font-body);
+}
+
+/* ── Ambient glow ── */
+.xidach-page::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(68,221,170,0.08) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── Glass panel ── */
+.xd-panel {
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Header ── */
+.xd-header {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; max-width: 800px;
+  margin-bottom: 12px;
+  z-index: 10;
+}
+.xd-title {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 900;
+  color: #44ddaa;
+  text-shadow: 0 0 20px rgba(68,221,170,0.3), 0 0 60px rgba(68,221,170,0.15);
+}
+.xd-chips {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255,215,0,0.3);
+}
+.xd-back-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 8px 14px;
+  color: rgba(255,255,255,0.4);
+  font-weight: 700; font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+}
+.xd-back-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+}
+
+/* ── Table ── */
+.xd-table {
+  width: 100%; max-width: 800px;
+  display: flex; flex-direction: column;
+  gap: 20px; flex: 1;
+  justify-content: center;
+}
+
+/* ── Card area (dealer / player) ── */
+.xd-card-area {
+  padding: 24px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.xd-area-label {
+  font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 3px;
+  color: rgba(255,255,255,0.2);
+}
+.xd-hand {
+  display: flex; gap: 10px; justify-content: center;
+  flex-wrap: wrap;
+  min-height: 130px; align-items: center;
+}
+.xd-score-badge {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 14px;
+  padding: 4px 16px; border-radius: 8px;
+  margin-top: 4px;
+}
+
+/* ── Playing card ── */
+.xd-card {
+  width: 80px; height: 120px;
+  border-radius: 10px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  transition: transform 0.2s;
+}
+.xd-card:hover { transform: translateY(-4px); }
+
+.xd-card.red { color: #ff4466; }
+.xd-card.black { color: #e0e0e0; }
+.xd-card.face-up {
+  background: rgba(20,20,40,0.9);
+  border: 1.5px solid rgba(255,255,255,0.15);
+}
+.xd-card.face-down {
+  background: linear-gradient(135deg, #1a3a5c, #0d2240);
+  border: 1.5px solid rgba(68,221,170,0.2);
+}
+.xd-card .card-rank { font-size: 28px; line-height: 1; }
+.xd-card .card-suit { font-size: 20px; margin-top: 2px; }
+.xd-card .card-corner {
+  position: absolute; font-size: 11px; line-height: 1;
+}
+.xd-card .card-corner.tl { top: 5px; left: 6px; }
+.xd-card .card-corner.br { bottom: 5px; right: 6px; transform: rotate(180deg); }
+.xd-card .card-back-pattern {
+  font-size: 32px; opacity: 0.3; color: #44ddaa;
+}
+
+/* ── Betting area ── */
+.xd-bet-area {
+  padding: 28px 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.xd-bet-label {
+  font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase; letter-spacing: 2px;
+}
+.xd-bet-options {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+}
+.xd-chip-btn {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900; font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 3px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.5);
+  color: #ffd700;
+  box-shadow: 0 0 12px rgba(255,215,0,0.1);
+}
+.xd-chip-btn:hover {
+  transform: translateY(-4px) scale(1.05);
+  border-color: #ffd700;
+  box-shadow: 0 0 24px rgba(255,215,0,0.25);
+}
+.xd-chip-btn:active { transform: scale(0.95); }
+.xd-chip-btn:disabled {
+  opacity: 0.3; cursor: default;
+  transform: none;
+}
+
+/* ── Action buttons ── */
+.xd-actions {
+  display: flex; gap: 14px; justify-content: center;
+  margin-top: 8px;
+}
+.xd-action-btn {
+  padding: 12px 32px;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 16px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  display: flex; align-items: center; gap: 8px;
+}
+.xd-action-btn.hit {
+  background: #44ddaa;
+  color: #000;
+  box-shadow: 0 0 16px rgba(68,221,170,0.3);
+}
+.xd-action-btn.hit:hover {
+  box-shadow: 0 0 28px rgba(68,221,170,0.5);
+  transform: translateY(-1px);
+}
+.xd-action-btn.stand {
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+}
+.xd-action-btn.stand:hover:not(:disabled) {
+  border-color: #ffd700;
+  color: #ffd700;
+}
+.xd-action-btn:disabled {
+  opacity: 0.25; cursor: not-allowed;
+  transform: none !important;
+}
+.xd-action-btn:active:not(:disabled) { transform: scale(0.96); }
+
+/* ── Result overlay ── */
+.xd-result-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.xd-result-card {
+  padding: 36px 48px;
+  border-radius: 24px;
+  text-align: center;
+  max-width: 380px;
+}
+.xd-result-card h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+.xd-result-card .result-msg {
+  font-size: 15px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 20px;
+}
+.xd-result-card .result-payout {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 22px;
+  margin-bottom: 20px;
+}
+.xd-next-btn {
+  padding: 14px 40px;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 16px;
+  border: none; cursor: pointer;
+  background: #44ddaa; color: #000;
+  box-shadow: 0 0 20px rgba(68,221,170,0.3);
+  transition: all 0.15s;
+}
+.xd-next-btn:hover {
+  box-shadow: 0 0 32px rgba(68,221,170,0.5);
+  transform: translateY(-1px);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .xd-card { width: 65px; height: 100px; }
+  .xd-card .card-rank { font-size: 22px; }
+  .xd-card .card-suit { font-size: 16px; }
+  .xd-chip-btn { width: 54px; height: 54px; font-size: 12px; }
+  .xd-action-btn { padding: 10px 24px; font-size: 14px; }
+}

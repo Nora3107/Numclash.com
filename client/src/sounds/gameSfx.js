@@ -113,6 +113,34 @@ export async function sfxModeSwitch() {
 }
 
 // ===========================
+// UI Interactions (Homepage / Game Lobby)
+// ===========================
+
+export async function sfxHover() {
+  await ensureStarted();
+  getMetalSynth().triggerAttackRelease('64n');
+}
+
+export async function sfxClick() {
+  await ensureStarted();
+  const s = getPluckSynth();
+  s.triggerAttackRelease('A4');
+}
+
+export async function sfxCardFlip() {
+  await ensureStarted();
+  const n = getNoiseSynth();
+  const now = Tone.now();
+  n.triggerAttackRelease('32n', now);
+  setTimeout(() => getPluckSynth().triggerAttackRelease('E4'), 60);
+}
+
+export async function sfxSlide() {
+  await ensureStarted();
+  getNoiseSynth().triggerAttackRelease('64n');
+}
+
+// ===========================
 // Classic / Average (GamePage)
 // ===========================
 
@@ -246,3 +274,71 @@ export async function sfxAutoPlay() {
   s.triggerAttackRelease('E4', '16n', now);
   s.triggerAttackRelease('C4', '16n', now + 0.08);
 }
+
+// ===========================
+// Blackjack (Xì Dách) — Soft, realistic card sounds
+// ===========================
+
+/** Chip bet — soft coin click */
+export async function sfxChipBet() {
+  await ensureStarted();
+  const n = getNoiseSynth();
+  n.volume.value = -28;
+  n.triggerAttackRelease('64n');
+  setTimeout(() => {
+    const p = getPluckSynth();
+    p.volume.value = -16;
+    p.triggerAttackRelease('C4');
+  }, 30);
+}
+
+/** Card deal — gentle paper slide */
+export async function sfxCardDeal() {
+  await ensureStarted();
+  const n = getNoiseSynth();
+  n.volume.value = -26;
+  n.triggerAttackRelease('64n');
+}
+
+/** Bust — soft low thud */
+export async function sfxBust() {
+  await ensureStarted();
+  const m = getMembraneSynth();
+  m.volume.value = -24;
+  m.triggerAttackRelease('E2', '16n');
+}
+
+/** Win hand — warm ascending pluck */
+export async function sfxWinHand() {
+  await ensureStarted();
+  const p = getPluckSynth();
+  p.volume.value = -14;
+  const now = Tone.now();
+  p.triggerAttackRelease('C5', now);
+  p.triggerAttackRelease('E5', now + 0.12);
+}
+
+/** Dealer card reveal — gentle flip */
+export async function sfxDealerReveal() {
+  await ensureStarted();
+  const n = getNoiseSynth();
+  n.volume.value = -24;
+  n.triggerAttackRelease('32n');
+  setTimeout(() => {
+    const p = getPluckSynth();
+    p.volume.value = -16;
+    p.triggerAttackRelease('G3');
+  }, 50);
+}
+
+/** Xì Dách / Xì Bàng — pleasant chime */
+export async function sfxSpecialHand() {
+  await ensureStarted();
+  const p = getPluckSynth();
+  p.volume.value = -12;
+  const now = Tone.now();
+  p.triggerAttackRelease('E5', now);
+  p.triggerAttackRelease('G5', now + 0.1);
+  p.triggerAttackRelease('C6', now + 0.22);
+}
+

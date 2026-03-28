@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { useLang } from '../i18n';
 import LOBBY_CARDS from '../data/lobbyCards';
+import { sfxHover, sfxClick, sfxCardFlip, sfxSlide } from '../sounds/gameSfx';
 import './homePage.css';
 
 /*
@@ -40,7 +41,7 @@ function makeParticles(n) {
 // Card spacing in px
 const CARD_GAP = 160;
 
-export default function HomePage({ nickname, setNickname, onEnterLobby, publicRooms = [] }) {
+export default function HomePage({ nickname, setNickname, onEnterLobby }) {
   const [activeIndex, setActiveIndex] = useState(2); // Start on Old Maid (center)
   const [flippedCard, setFlippedCard] = useState(null);
   const [nicknameError, setNicknameError] = useState(false);
@@ -52,8 +53,8 @@ export default function HomePage({ nickname, setNickname, onEnterLobby, publicRo
     setNicknameError(false); return true;
   }, [nickname]);
 
-  const slideLeft = () => setActiveIndex(i => Math.max(0, i - 1));
-  const slideRight = () => setActiveIndex(i => Math.min(LOBBY_CARDS.length - 1, i + 1));
+  const slideLeft = () => { setActiveIndex(i => Math.max(0, i - 1)); sfxSlide(); };
+  const slideRight = () => { setActiveIndex(i => Math.min(LOBBY_CARDS.length - 1, i + 1)); sfxSlide(); };
 
   // Mouse wheel scrolling with cooldown
   const wheelCooldown = useRef(false);
@@ -134,25 +135,23 @@ export default function HomePage({ nickname, setNickname, onEnterLobby, publicRo
         <div className="carousel-viewport" onWheel={handleWheel}>
           {/* Left arrow */}
           {activeIndex > 0 && (
-            <motion.button
+            <button
+              type="button"
               className="carousel-arrow left"
-              onClick={slideLeft}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              onClick={(e) => { e.preventDefault(); slideLeft(); }}
             >
               <ChevronLeft size={22} />
-            </motion.button>
+            </button>
           )}
           {/* Right arrow */}
           {activeIndex < LOBBY_CARDS.length - 1 && (
-            <motion.button
+            <button
+              type="button"
               className="carousel-arrow right"
-              onClick={slideRight}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+              onClick={(e) => { e.preventDefault(); slideRight(); }}
             >
               <ChevronRight size={22} />
-            </motion.button>
+            </button>
           )}
 
           {/* Cards */}
@@ -188,13 +187,13 @@ export default function HomePage({ nickname, setNickname, onEnterLobby, publicRo
                   opacity,
                 }}
                 transition={{ type: 'spring', stiffness: 200, damping: 22 }}
-                onHoverStart={() => { if (isCenter && card.enabled) setFlippedCard(card.key); }}
+                onHoverStart={() => { if (isCenter && card.enabled) { setFlippedCard(card.key); sfxCardFlip(); } }}
                 onHoverEnd={() => { setFlippedCard(null); }}
                 onClick={() => {
-                  if (!isCenter && absOff === 1) { setActiveIndex(i); return; }
+                  if (!isCenter && absOff === 1) { setActiveIndex(i); sfxSlide(); return; }
                   // Mobile: tap center card to toggle flip
                   if (isCenter && card.enabled) {
-                    setFlippedCard(prev => prev === card.key ? null : card.key);
+                    setFlippedCard(prev => { const next = prev === card.key ? null : card.key; if (next) sfxCardFlip(); return next; });
                   }
                 }}
               >
@@ -235,7 +234,12 @@ export default function HomePage({ nickname, setNickname, onEnterLobby, publicRo
                       <button
                         className="card-btn create"
                         style={{ padding: '12px 0', fontSize: '14px', letterSpacing: '1px' }}
-                        onClick={e => { e.stopPropagation(); onEnterLobby(card.key); }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          sfxClick();
+                          if (!nickname.trim()) { setNicknameError(true); return; }
+                          onEnterLobby(card.key);
+                        }}
                       >
                         {t('enterLobby')} →
                       </button>
@@ -266,30 +270,6 @@ export default function HomePage({ nickname, setNickname, onEnterLobby, publicRo
             />
           ))}
         </div>
-
-        {/* Public rooms */}
-        {publicRooms.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-            className="w-full max-w-lg" style={{ marginTop: 16 }}>
-            <h3 className="dark-divider text-center" style={{ marginBottom: 14 }}>🏠 {t('publicRooms')}</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {publicRooms.map(room => (
-                <motion.button key={room.code}
-                  whileHover={{ scale: 1.04, y: -2 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => { if (!ok()) return; onEnterLobby(room.gameMode || 'classic'); }}
-                  className="dark-room-card">
-                  <span className="text-xs font-bold w-full text-center overflow-hidden whitespace-nowrap text-ellipsis" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    {room.roomName}
-                  </span>
-                  <Users size={22} style={{ color: 'rgba(255,255,255,0.3)' }} strokeWidth={1.5} />
-                  <span className="text-sm font-black" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                    {room.playerCount}/{room.maxPlayers}
-                  </span>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import ResultsPage from './pages/ResultsPage';
 import OldMaidPage from './pages/OldMaidPage';
 import LiarDeckPage from './pages/LiarDeckPage';
 import PokerPage from './pages/PokerPage';
+import BlackjackPage from './pages/BlackjackPage';
 
 function App() {
   const [screen, setScreen] = useState('home');
@@ -24,6 +25,7 @@ function App() {
   const [liarDeckInitialState, setLiarDeckInitialState] = useState(null);
   const [pokerInitialState, setPokerInitialState] = useState(null);
   const isInPokerRef = useRef(false); // guards against stale poker-state events
+  const [blackjackInitialState, setBlackjackInitialState] = useState(null);
 
   const [roundData, setRoundData] = useState(null);
   const [revealData, setRevealData] = useState(null);
@@ -61,6 +63,13 @@ function App() {
         setPokerInitialState(state);
         setScreen('poker');
         screenRef.current = 'poker';
+      }
+    });
+    socket.on('blackjack-state', (state) => {
+      if (screenRef.current !== 'blackjack' && state.phase && state.phase !== 'WAITING') {
+        setBlackjackInitialState(state);
+        setScreen('blackjack');
+        screenRef.current = 'blackjack';
       }
     });
     socket.on('player-status-updated', (players) => {
@@ -137,6 +146,7 @@ function App() {
       socket.off('oldmaid-state');
       socket.off('liardeck-state');
       socket.off('poker-state');
+      socket.off('blackjack-state');
     };
   }, []);
 
@@ -245,9 +255,9 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen relative ${(screen === 'home' || screen === 'gameLobby') ? 'bg-black' : 'bg-bg-cream bg-dots-pattern'}`}>
+    <div className={`min-h-screen relative ${['home','gameLobby','lobby','blackjack'].includes(screen) ? 'bg-black' : 'bg-bg-cream bg-dots-pattern'}`}>
       {/* Floating numbers background (non-home screens only) */}
-      {screen !== 'home' && screen !== 'gameLobby' && (
+      {!['home','gameLobby','lobby','blackjack'].includes(screen) && (
       <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
         {[
           { num: 18, top: '8%', left: '5%', size: '4rem', dur: 9, dx: 30, dy: 20, rot: 15, opacity: 0.20 },
@@ -300,7 +310,7 @@ function App() {
         whileTap={{ scale: 0.9 }}
         onClick={toggleLang}
         className={`absolute top-4 right-4 z-50 flex items-center gap-2 rounded-full text-sm font-bold transition-all cursor-pointer ${
-          (screen === 'home' || screen === 'gameLobby')
+          ['home','gameLobby','lobby','blackjack'].includes(screen)
             ? 'bg-white/8 backdrop-blur-sm border border-white/15 text-white/60 hover:text-white/90 hover:border-white/30'
             : 'bg-white/90 backdrop-blur-sm border-2 border-[#e0d8cc] text-text-mid hover:border-primary hover:text-primary shadow-sm'
         }`}
@@ -333,8 +343,11 @@ function App() {
             <HomePage
               nickname={nickname}
               setNickname={setNickname}
-              onEnterLobby={(mode) => { setSelectedMode(mode); setScreen('gameLobby'); }}
-              publicRooms={publicRooms}
+              onEnterLobby={(mode) => {
+                if (!nickname.trim()) return; // HomePage handles the visual error
+                setSelectedMode(mode);
+                setScreen('gameLobby');
+              }}
             />
           </motion.div>
         )}
@@ -346,6 +359,8 @@ function App() {
               onBack={() => setScreen('home')}
               onCreateRoom={handleCreateRoom}
               onJoinRoom={handleJoinRoom}
+              onPlaySolo={(mode) => { setScreen(mode); screenRef.current = mode; }}
+              publicRooms={publicRooms}
             />
           </motion.div>
         )}
@@ -377,6 +392,18 @@ function App() {
         {screen === 'poker' && (
           <motion.div key="poker" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
             <PokerPage socket={socket} roomInfo={roomInfo} onLeave={handleLeavePoker} initialState={pokerInitialState} />
+          </motion.div>
+        )}
+        {screen === 'blackjack' && (
+          <motion.div key="blackjack" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
+            <BlackjackPage socket={socket} roomInfo={roomInfo} roomCode={roomCode} initialState={blackjackInitialState} onLeave={() => {
+              setBlackjackInitialState(null);
+              socket.emit('blackjack-leave', { roomCode });
+              socket.emit('toggle-ready', { roomCode, ready: false });
+              setTimeout(() => socket.emit('request-room-info', { roomCode }), 200);
+              setScreen('lobby');
+              screenRef.current = 'lobby';
+            }} />
           </motion.div>
         )}
       </AnimatePresence>
