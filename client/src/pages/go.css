@@ -1,0 +1,367 @@
+/* ============================================
+   Go (Cờ Vây) — Full Viewport Layout
+   Wood board + stone aesthetics
+   ============================================ */
+
+/* ===== Full viewport page ===== */
+.go-page {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d1a 60%, #050508 100%);
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+  color: #fff;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Top bar ── */
+.go-topbar {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; z-index: 20;
+}
+.go-back-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+  font-weight: 700; font-size: 12px;
+  cursor: pointer; transition: all 0.15s;
+  font-family: inherit;
+}
+.go-back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.go-title {
+  font-weight: 900; font-size: 18px;
+  color: #dcb35c;
+  letter-spacing: 2px;
+  text-shadow: 0 0 16px rgba(220,179,92,0.2);
+}
+.go-subtitle {
+  font-size: 10px; color: rgba(255,255,255,0.25);
+  letter-spacing: 1px;
+}
+.go-timer-display {
+  font-weight: 800; font-size: 16px;
+  color: rgba(255,255,255,0.6);
+  min-width: 40px; text-align: right;
+}
+.go-timer-display.urgent { color: #ff4466; animation: go-pulse 0.5s infinite; }
+@keyframes go-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* ── Player info panels ── */
+.go-player-panel {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 16px; border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  min-width: 200px;
+}
+.go-player-panel.active {
+  border-color: rgba(220,179,92,0.3);
+  background: rgba(220,179,92,0.06);
+}
+.go-player-stone {
+  width: 20px; height: 20px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.go-player-stone.black {
+  background: radial-gradient(circle at 35% 35%, #555, #111);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.go-player-stone.white {
+  background: radial-gradient(circle at 35% 35%, #fff, #ccc);
+  border: 1px solid rgba(0,0,0,0.15);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.go-player-name {
+  font-weight: 700; font-size: 13px;
+  color: rgba(255,255,255,0.7);
+}
+.go-player-captures {
+  font-size: 11px; color: rgba(255,255,255,0.35);
+  margin-left: auto;
+}
+
+/* ── Board wrapper (centers board) ── */
+.go-board-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 56px 16px 16px;
+  width: 100%;
+}
+
+/* ── The Board ── */
+.go-board {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  max-width: min(75vh, 90vw);
+  max-height: min(75vh, 90vw);
+  width: min(75vh, 90vw);
+  background: #dcb35c;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  border-radius: 6px;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.5),
+    inset 0 0 40px rgba(0,0,0,0.08);
+  display: grid;
+  padding: 4%;
+}
+
+/* Grid lines are drawn via CSS on intersections */
+.go-intersection {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Draw grid lines using pseudo-elements */
+.go-intersection::before {
+  content: '';
+  position: absolute;
+  background: rgba(0,0,0,0.45);
+}
+
+/* Horizontal line */
+.go-intersection::before {
+  top: 50%; left: 0; right: 0;
+  height: 1px;
+  transform: translateY(-50%);
+}
+.go-intersection::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 0; bottom: 0;
+  width: 1px;
+  background: rgba(0,0,0,0.45);
+  transform: translateX(-50%);
+}
+
+/* Edge clipping — top/bottom/left/right edges only show half line */
+.go-intersection.edge-top::after { top: 50%; }
+.go-intersection.edge-bottom::after { bottom: 50%; }
+.go-intersection.edge-left::before { left: 50%; }
+.go-intersection.edge-right::before { right: 50%; }
+
+/* ── Star points (hoshi) ── */
+.go-star-point {
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  z-index: 2;
+  pointer-events: none;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* ── Stones ── */
+.go-stone {
+  width: 90%; height: 90%;
+  border-radius: 50%;
+  z-index: 5;
+  position: relative;
+  pointer-events: none;
+}
+.go-stone.black {
+  background: radial-gradient(circle at 35% 35%, #555, #1a1a1a);
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.55);
+}
+.go-stone.white {
+  background: radial-gradient(circle at 35% 35%, #fff, #d4d4d4);
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 1px 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Last move indicator */
+.go-stone .last-move-dot {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%; height: 30%;
+  border-radius: 50%;
+}
+.go-stone.black .last-move-dot { background: rgba(255,255,255,0.5); }
+.go-stone.white .last-move-dot { background: rgba(0,0,0,0.35); }
+
+/* Stone placement animation */
+.go-stone.placing {
+  animation: go-stone-place 0.2s ease-out;
+}
+@keyframes go-stone-place {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Stone capture animation */
+.go-stone.capturing {
+  animation: go-stone-capture 0.3s ease-in forwards;
+}
+@keyframes go-stone-capture {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.4); opacity: 0; }
+}
+
+/* ── Hover preview ── */
+.go-hover-preview {
+  width: 90%; height: 90%;
+  border-radius: 50%;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.3;
+}
+.go-hover-preview.black {
+  background: radial-gradient(circle at 35% 35%, #555, #1a1a1a);
+}
+.go-hover-preview.white {
+  background: radial-gradient(circle at 35% 35%, #fff, #d4d4d4);
+}
+.go-hover-invalid {
+  width: 40%; height: 40%;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.4;
+  color: #cc3333;
+  font-size: 14px; font-weight: 900;
+}
+
+/* ── Territory overlay (scoring) ── */
+.go-territory {
+  width: 60%; height: 60%;
+  border-radius: 50%;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  animation: go-territory-fade 0.5s ease-out forwards;
+}
+.go-territory.black-territory { background: rgba(80,180,255,0.35); }
+.go-territory.white-territory { background: rgba(255,180,80,0.35); }
+@keyframes go-territory-fade {
+  to { opacity: 1; }
+}
+
+/* ── Action buttons (bottom) ── */
+.go-actions {
+  display: flex; gap: 10px;
+  align-items: center;
+}
+.go-btn {
+  padding: 8px 24px; border-radius: 8px;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.08);
+  font-family: inherit; letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.15s;
+}
+.go-btn.pass {
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.5);
+}
+.go-btn.pass:hover { color: #dcb35c; border-color: rgba(220,179,92,0.25); }
+.go-btn.resign {
+  background: rgba(255,68,102,0.06);
+  color: rgba(255,68,102,0.5);
+  border-color: rgba(255,68,102,0.1);
+}
+.go-btn.resign:hover { color: #ff4466; border-color: rgba(255,68,102,0.25); }
+.go-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+/* ── Pass notification ── */
+.go-pass-toast {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 25;
+  padding: 10px 28px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.06);
+  font-weight: 700; font-size: 14px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ── Result overlay ── */
+.go-result-overlay {
+  position: absolute; inset: 0;
+  z-index: 30;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  gap: 12px;
+}
+.go-result-title {
+  font-weight: 900; font-size: 28px;
+  color: #dcb35c;
+}
+.go-result-score {
+  display: flex; gap: 32px;
+  font-size: 16px; font-weight: 700;
+}
+.go-result-black { color: rgba(255,255,255,0.7); }
+.go-result-white { color: rgba(255,255,255,0.7); }
+.go-result-winner { color: #44ddaa !important; }
+.go-result-margin {
+  font-size: 12px; color: rgba(255,255,255,0.3);
+}
+.go-result-btn {
+  margin-top: 8px; padding: 10px 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(220,179,92,0.25);
+  font-weight: 700; font-size: 13px;
+  background: rgba(220,179,92,0.1); color: #dcb35c;
+  cursor: pointer; font-family: inherit;
+  transition: all 0.15s;
+}
+.go-result-btn:hover { background: rgba(220,179,92,0.18); }
+
+/* ── Bot thinking indicator ── */
+.go-bot-thinking {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.4);
+  color: rgba(255,255,255,0.35);
+  font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+}
+.go-bot-thinking .dot { animation: go-dot 1s infinite; }
+.go-bot-thinking .dot:nth-child(2) { animation-delay: 0.2s; }
+.go-bot-thinking .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes go-dot { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+/* ── Move number badge ── */
+.go-move-num {
+  font-size: 10px; font-weight: 700;
+  color: rgba(255,255,255,0.25);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .go-board {
+    max-width: 95vw;
+    max-height: 95vw;
+    width: 95vw;
+  }
+  .go-player-panel { min-width: 160px; padding: 6px 12px; }
+  .go-topbar { padding: 8px 12px; }
+  .go-star-point { width: 5px; height: 5px; }
+}

@@ -12,6 +12,7 @@ import OldMaidPage from './pages/OldMaidPage';
 import LiarDeckPage from './pages/LiarDeckPage';
 import PokerPage from './pages/PokerPage';
 import BlackjackPage from './pages/BlackjackPage';
+import GoPage from './pages/GoPage';
 
 function App() {
   const [screen, setScreen] = useState('home');
@@ -26,6 +27,8 @@ function App() {
   const [pokerInitialState, setPokerInitialState] = useState(null);
   const isInPokerRef = useRef(false); // guards against stale poker-state events
   const [blackjackInitialState, setBlackjackInitialState] = useState(null);
+  const [goInitialState, setGoInitialState] = useState(null);
+  const [goBotConfig, setGoBotConfig] = useState(null); // { level, size }
 
   const [roundData, setRoundData] = useState(null);
   const [revealData, setRevealData] = useState(null);
@@ -71,6 +74,18 @@ function App() {
         setScreen('blackjack');
         screenRef.current = 'blackjack';
       }
+    });
+    socket.on('go-state', (state) => {
+      if (screenRef.current !== 'go' && state.phase && state.phase !== 'WAITING') {
+        setGoInitialState(state);
+        setScreen('go');
+        screenRef.current = 'go';
+      }
+    });
+    socket.on('go-ended', () => {
+      setGoInitialState(null);
+      setScreen('lobby');
+      screenRef.current = 'lobby';
     });
     socket.on('player-status-updated', (players) => {
       setRoundData(prev => prev ? { ...prev, players } : prev);
@@ -403,6 +418,27 @@ function App() {
               setTimeout(() => socket.emit('request-room-info', { roomCode }), 200);
               setScreen('lobby');
               screenRef.current = 'lobby';
+            }} />
+          </motion.div>
+        )}
+        {screen === 'go' && (
+          <motion.div key="go" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
+            <GoPage roomCode={roomCode} initialState={goInitialState} onLeave={() => {
+              setGoInitialState(null);
+              socket.emit('go-back-to-lobby', { roomCode });
+              socket.emit('toggle-ready', { roomCode, ready: false });
+              setTimeout(() => socket.emit('request-room-info', { roomCode }), 200);
+              setScreen('lobby');
+              screenRef.current = 'lobby';
+            }} />
+          </motion.div>
+        )}
+        {screen === 'gobot' && (
+          <motion.div key="gobot" {...pageVariants} style={{ position: 'absolute', inset: 0, zIndex: 40 }}>
+            <GoPage botConfig={goBotConfig} onLeave={() => {
+              setGoBotConfig(null);
+              setScreen('home');
+              screenRef.current = 'home';
             }} />
           </motion.div>
         )}

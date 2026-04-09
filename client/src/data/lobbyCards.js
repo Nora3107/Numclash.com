@@ -75,6 +75,15 @@ const LOBBY_CARDS = [
     glow: '#44ddaa',
     enabled: true,
   },
+  {
+    key: 'go',
+    rank: '9',
+    suit: '●',
+    symbol: '●',
+    players: '1-2',
+    glow: '#dcb35c',
+    enabled: true,
+  },
 ];
 
 export default LOBBY_CARDS;

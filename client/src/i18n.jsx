@@ -44,6 +44,9 @@ const translations = {
     mode_blackjack: 'Blackjack',
     modeDesc_blackjack: 'Xì Dách — Gần 21 nhưng đừng Quắc!',
     modeRules_blackjack: '1. Đặt cược rồi nhận 2 lá bài.\n2. Rút (Hit) thêm bài để tăng điểm, hoặc Dằn (Stand) nếu đủ (≥16).\n3. Vượt 21 điểm = Quắc (thua ngay).\n4. 2 Át = Xì Bàng, Át + 10/J/Q/K = Xì Dách (thắng ngay!).\n5. 5 lá mà ≤21 = Ngũ Linh (rất mạnh!).\n6. Host là Dealer — rút cuối cùng.',
+    mode_go: 'Cờ Vây',
+    modeDesc_go: 'Cờ Vây chiến thuật — Chiếm lãnh thổ, bắt quân đối phương!',
+    modeRules_go: '1. Đen đi trước. Luân phiên đặt quân lên giao điểm lưới.\n2. Nhóm quân mất hết quyền tự do (đường thở) → bị bắt.\n3. Không được đặt quân tự sát (trừ khi bắt được quân đối thủ).\n4. Luật Ko: Không được tạo lại vị trí bàn cờ ngay lập tức.\n5. Khi cả 2 Pass liên tiếp → hết game, đếm lãnh thổ.\n6. Trắng được cộng 7.5 điểm bù (komi). Ai nhiều điểm hơn thắng!',
     // Server errors
     ROOM_NOT_FOUND: 'Phòng không tồn tại!',
     GAME_ALREADY_STARTED: 'Trận đấu đã bắt đầu!',
@@ -194,6 +197,9 @@ const translations = {
     mode_blackjack: 'Blackjack',
     modeDesc_blackjack: 'Vietnamese Blackjack — Get close to 21 but don\'t Bust!',
     modeRules_blackjack: '1. Place a bet, then receive 2 cards.\n2. Hit to draw more cards, or Stand if you have ≥16 points.\n3. Over 21 = Bust (instant loss).\n4. Two Aces = Xì Bàng, Ace + 10/J/Q/K = Xì Dách (instant win!).\n5. 5 cards with ≤21 points = Ngũ Linh (very strong!).\n6. Host is the Dealer — draws last.',
+    mode_go: 'Go (Weiqi)',
+    modeDesc_go: 'Strategic board game — Surround territory, capture stones!',
+    modeRules_go: '1. Black goes first. Players take turns placing stones on grid intersections.\n2. A group of stones with no liberties (breathing room) is captured.\n3. No suicide moves (unless they capture opponent stones).\n4. Ko rule: Cannot recreate the exact previous board position.\n5. Two consecutive Passes → game ends, count territory.\n6. White gets 7.5 komi (compensation). Highest score wins!',
     // Server errors
     ROOM_NOT_FOUND: 'Room not found!',
     GAME_ALREADY_STARTED: 'Game already started!',
